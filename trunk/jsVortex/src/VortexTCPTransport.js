@@ -1,5 +1,3 @@
-/* -*- java -*- */
-
 /**
  * @brief TCP constructor for the set of functions that support I/O
  * with direct sockets.
@@ -67,8 +65,15 @@ function VortexFirefoxConnect (host, port) {
     return this.socket;
 };
 
+/**
+ * @internal Implementation for firefox socket write operation.
+ * FIXME. The method do not store the content that wasn't read
+ * and pending to be sent.
+ */
 function VortexFirefoxWrite (data, length) {
-    this.outstream.write (data, length);
+
+    var result = this.outstream.write (data, length);
+    return (result == length);
 };
 
 function VortexFirefoxIsOk () {
