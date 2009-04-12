@@ -33,6 +33,7 @@ function VortexLoad (basepath) {
     VortexLoadJs (basepath + "VortexConnection.js");
     VortexLoadJs (basepath + "VortexChannel.js");
     VortexLoadJs (basepath + "VortexEngine.js");
+    VortexLoadJs (basepath + "VortexXMLEngine.js");
     VortexLoadJs (basepath + "VortexFrame.js");
     VortexLoadJs (basepath + "VortexMimeHeader.js");
 
