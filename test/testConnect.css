@@ -1,0 +1,26 @@
+body {
+  margin: 0px;
+  padding: 0px;
+  font-family: arial, verdana, trebuchetms;
+}
+
+h1 {
+  color: white;
+  background: #383838;
+  padding: 10px;
+  margin: 0px;
+}
+
+.error {
+  color: white;
+  background: #cc0000;
+  padding: 3px;
+  font-weight: bold;
+}
+
+.ok {
+  color: white;
+  background: #00cc00;
+  padding: 3px;
+  font-weight: bold;
+}
