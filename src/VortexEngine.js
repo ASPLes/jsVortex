@@ -233,15 +233,109 @@ VortexEngine.getFrame = function (connection, data) {
  */
 VortexEngine.channel0Received = function (frame) {
 
-    console.log ("Frame received: " + frame.content);
-    console.log ("Frame type: " + frame.type);
+    if (! this.connection.isReady) {
+	/* call to process incoming content to prepare the connection */
+	console.log ("VortexEngine.channel0Received: connection is not ready, process greetings and prepare connection");
+	VortexEngine.channel0PrepareConnection.apply (this, [frame]);
+
+	/* report connection creation status (only if handler defined) */
+	if (this.connection.createdHandler != null) {
+	    /* report using a particular context if defined */
+	    if (this.connection.createdContext != null)
+		this.connection.createdHandler.apply (this.connection.createdContext, [this.connection]);
+	    else
+		this.connection.createdHandler.apply (this.connection, [this.connection]);
+	} else {
+	    console.log ("VortexEngine.channel0Received: WARNING connection notification not defined!");
+	    console.dir (this.connection);
+	} /* end if */
+	return;
+    } /* end if */
+
+    /* normal processing for BEEP channel 0 */
+    return;
+};
+
+/**
+ * @internal Function used to process incoming
+ * greetings, prepare connection and send initial greetings.
+ *
+ * @param frame The function receives a frame reference.
+ *
+ * @return true if the prepare process was ok, otherwise
+ * false is returned.
+ */
+VortexEngine.channel0PrepareConnection = function (frame)
+{
+
+    /* check frame type */
+    if (frame.type != "RPY") {
+	console.log ("VortexEngine.channel0PrepareConnection: received a non-positive greetings, closing BEEP session");
+	this.connection.Shutdown ();
+	return false;
+    }
 
     /* now do XML processing */
-    var document = VortexXMLEngine.parseFromString (frame.content);
+    var node = VortexXMLEngine.parseFromString (frame.content);
 
-    /* print document */
-    VortexXMLEngine.dumpXML (document, 0);
+    /* check result (node reference) */
+    if (node == null) {
+	this.connection.Shutdown ();
+	return false;
+    }
 
-    /* follow here */
+    /* OPTIONAL: print document */
+    VortexXMLEngine.dumpXML (node, 0);
+
+    /* check content received */
+    if (node.name != "greeting") {
+	console.log ("VortexEngine.channel0PrepareConnection: expected to find <greeting> node on BEEP greetings, but found: " + node.name);
+	this.connection.Shutdown ();
+	return false;
+    }
+
+    /* start array of profiles supported */
+    this.connection.profiles = [];
+
+    /* check for profiles available */
+    if (node.haveChilds) {
+
+	/* for each xml <node> found inside <greeting> do: */
+	for (tag in node.childs) {
+
+	    /* check <profile> node found inside <greeting> */
+	    if (node.childs[tag].name != 'profile') {
+		console.log ("VortexEngine.channel0PrepareConnection: expected to find <profile> node on BEEP greetings");
+		this.connection.Shutdown ();
+		return false;
+	    } /* end if */
+
+	    /* now register the profile received in uri label */
+	    for (attr in node.childs[tag].attrs) {
+
+		/* check uri attribute */
+		if (node.childs[tag].attrs[attr].name != 'uri') {
+		    console.log ("VortexEngine.channel0PrepareConnection: expected to find 'uri' attribute on <profile> node on BEEP greetings");
+		    this.connection.Shutdown ();
+		    return false;
+		}
+
+		/* register profile */
+		console.log ("VortexEngine.channel0PrepareConnection: registering profile: " + node.childs[tag].attrs[attr].value);
+		this.connection.profiles.push (node.childs[tag].attrs[attr].value);
+	    } /* end for */
+	} /* end for */
+    } /* end if */
+
+    /* flag connection as ready */
+    this.connection.isReady = true;
+
+    /* flag channel as ready */
+    this.isReady = true;
+
+    /* send greetings reply */
+    this.sendRPY ("<greeting />\r\n");
+
+    return true;
 };
 

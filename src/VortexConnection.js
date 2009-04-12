@@ -15,9 +15,9 @@
  * to perform the low-level (usually TCP) communication.
  *
  * @param connectionCreatedContext The object under which the
- * connectionCreatedFunc will execute (this reference).
+ * connectionCreatedHandler will execute (this reference).
  *
- * @param connectionCreatedFunc The function or method to execute
+ * @param connectionCreatedHandler The function or method to execute
  * when the connect operation has finished. This method will be
  * used to notify the connection created or errors found during
  * the operation.
@@ -28,9 +28,19 @@
 function VortexConnection (host,
 			   port,
 			   transport,
-			   timeout,
+			   connectionCreatedHandler,
 			   connectionCreatedContext,
-			   connectionCreatedFunc) {
+			   timeout) {
+
+    /* flag the connection as not ready. This state will be
+     * changed once we have completed session setup. */
+    this.isReady   = false;
+
+    /* save handlers */
+    this.createdHandler = connectionCreatedHandler;
+    this.createdContext = connectionCreatedContext;
+    console.log ("VortexConnection.ctor: requesting to create a connection to " + host + ":" + port);
+
     /* store properties */
     this.host      = host;
     this.port      = port;
@@ -73,8 +83,9 @@ VortexConnection.prototype.isOk = function () {
     }
 
     /* check here if we have completed setup operation */
-
     return true;
+    return this.isReady;
+
 };
 
 /**
@@ -82,8 +93,14 @@ VortexConnection.prototype.isOk = function () {
  * BEEP close negotiation phase.
  */
 VortexConnection.prototype.Shutdown = function () {
+    /* call to close on transport */
     if (this._transport != null)
 	this._transport.close ();
+
+    /* flag connection is not ready */
+    this.isReady    = false;
+
+    /* nullify transport reference */
     this._transport = null;
 };
 
@@ -131,5 +148,26 @@ VortexConnection.prototype._onRead = function (connection, data) {
     return true;
 };
 
+/**
+ * @internal Function used to send raw content using configured transport.
+ *
+ * @param connection The connection where the send operation will
+ * take place.
+ *
+ * @param content The content to be sent.
+ *
+ * @return true if the content was sent, otherwise false
+ * is returned.
+ */
+VortexConnection.prototype._send = function (content) {
 
+    /* check connection status */
+    if (! this.isOk ()) {
+	console.log ("VortexChannel._sned: unable to send content, connection is not ready.");
+	return false;
+    }
+
+    /* send content */
+    return this._transport.write (content, content.length);
+};
 
