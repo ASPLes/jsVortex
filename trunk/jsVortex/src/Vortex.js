@@ -49,6 +49,12 @@ if (typeof console == "undefined") {
     this.console = {
 	log: function () {
 	/* do something here */
+	},
+	error: function () {
+	/* do something here */
+	},
+	warn: function () {
+	/* do something here */
 	}
     };
 }

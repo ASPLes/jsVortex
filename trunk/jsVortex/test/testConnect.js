@@ -22,8 +22,8 @@ function testConnect () {
 
     document.write ("<h2>jsVortex-01: testing basic BEEP connect..</h1>");
 
-    document.write ("Connecting to localhost:602<br>");
-    var conn = new VortexConnection ("localhost", "602",
+    document.write ("Connecting to localhost:44010<br>");
+    var conn = new VortexConnection ("localhost", "44010",
 				     new VortexTCPTransport (),
 				     this.testConnectResult, null);
     return true;

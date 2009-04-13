@@ -83,7 +83,7 @@ function VortexChannel (connection,
  */
 VortexChannel.prototype.sendRPY = function (content, mimeHeaders) {
     if (! this.isReady) {
-	console.log ("VortexChannel.send: unable to send content, connection is not ready.");
+	console.warn ("VortexChannel.send: unable to send content, connection is not ready.");
 	return false;
     }
 
@@ -108,7 +108,7 @@ VortexChannel.prototype.sendRPY = function (content, mimeHeaders) {
 
     /* check channel stalled */
     if (allowedSize == 0) {
-	console.log ("VortexChannel.sendRPY: channel is stalled, queueing content");
+	console.warn ("VortexChannel.sendRPY: channel is stalled, queueing content");
 
 	/* add the content at the begining of the queue to
 	 * handle it first on the next operation. */
