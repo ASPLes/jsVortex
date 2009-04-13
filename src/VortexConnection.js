@@ -72,13 +72,13 @@ function VortexConnection (host,
  */
 VortexConnection.prototype.isOk = function () {
 
-    if (this._transport == null) {
-	console.log ("Transport is not defined..");
+    /* do nothing if transport is not defined */
+    if (this._transport == null) 
 	return false;
-    }
+
     /* call to transport is ok implementation */
     if (! this._transport.isOk ()) {
-	console.log ("VortexConnection.isOk: connection transport is not available.");
+	console.warn ("VortexConnection.isOk: connection transport is not available.");
 	return false;
     }
 
@@ -130,14 +130,14 @@ VortexConnection.prototype._onRead = function (connection, data) {
 
     /* check if channel is available on the connection */
     if (channel == null) {
-	console.log ("VortexConnection._onRead: found frame for a channel no available. Protocol violation.");
+	console.error ("VortexConnection._onRead: found frame for a channel no available. Protocol violation.");
 	this.Shutdown ();
 	return false;
     }
 
     /* check if the channel has received handler */
     if (channel.receivedHandler == null) {
-	console.log ("VortexConnection._onRead: received a frame for a channel without received handler. Discarding frame.");
+	console.warn ("VortexConnection._onRead: received a frame for a channel without received handler. Discarding frame.");
 	return false;
     }
 
@@ -163,7 +163,7 @@ VortexConnection.prototype._send = function (content) {
 
     /* check connection status */
     if (! this.isOk ()) {
-	console.log ("VortexChannel._sned: unable to send content, connection is not ready.");
+	console.warn ("VortexChannel._sned: unable to send content, connection is not ready.");
 	return false;
     }
 

@@ -134,7 +134,7 @@ VortexEngine.parseMimeHeaders = function (mimeHeaders, data) {
 	console.log ("VortexEngine.parseMimeHeaders: header content found: '" + mimeContent + "'");
 
 	/* store mime header into the array */
-	mimeHeader = new VortexMimeHeader (mimeHead, mimeContent);
+	var mimeHeader = new VortexMimeHeader (mimeHead, mimeContent);
 	mimeHeaders.push (mimeHeader);
 
 	/* skip header found */
@@ -197,8 +197,8 @@ VortexEngine.getFrame = function (connection, data) {
 
     /* now check BEEP header end */
     if (data[this.position] != '\r' || data[this.position + 1] != '\n') {
-	console.log ("VortexEngine: ERROR: position: " + this.position);
-	console.log ("VortexEngine: ERROR: expected to find \\r\\n BEEP header trailer, but not found: " + Number (data[this.position]) + ", " + Number (data[this.position + 1]));
+	console.error ("VortexEngine: ERROR: position: " + this.position);
+	console.error ("VortexEngine: ERROR: expected to find \\r\\n BEEP header trailer, but not found: " + Number (data[this.position]) + ", " + Number (data[this.position + 1]));
 	return null;
     }
 
@@ -246,7 +246,7 @@ VortexEngine.channel0Received = function (frame) {
 	    else
 		this.connection.createdHandler.apply (this.connection, [this.connection]);
 	} else {
-	    console.log ("VortexEngine.channel0Received: WARNING connection notification not defined!");
+	    console.warn ("VortexEngine.channel0Received: WARNING connection notification not defined!");
 	    console.dir (this.connection);
 	} /* end if */
 	return;
@@ -270,7 +270,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
 
     /* check frame type */
     if (frame.type != "RPY") {
-	console.log ("VortexEngine.channel0PrepareConnection: received a non-positive greetings, closing BEEP session");
+	console.error ("VortexEngine.channel0PrepareConnection: received a non-positive greetings, closing BEEP session");
 	this.connection.Shutdown ();
 	return false;
     }
@@ -280,6 +280,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
 
     /* check result (node reference) */
     if (node == null) {
+	console.error ("VortexEngine.channel0PrepareConnection: failed to parse initial <greeting>");
 	this.connection.Shutdown ();
 	return false;
     }
@@ -289,7 +290,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
 
     /* check content received */
     if (node.name != "greeting") {
-	console.log ("VortexEngine.channel0PrepareConnection: expected to find <greeting> node on BEEP greetings, but found: " + node.name);
+	console.error ("VortexEngine.channel0PrepareConnection: expected to find <greeting> node on BEEP greetings, but found: " + node.name);
 	this.connection.Shutdown ();
 	return false;
     }
@@ -305,7 +306,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
 
 	    /* check <profile> node found inside <greeting> */
 	    if (node.childs[tag].name != 'profile') {
-		console.log ("VortexEngine.channel0PrepareConnection: expected to find <profile> node on BEEP greetings");
+		console.error ("VortexEngine.channel0PrepareConnection: expected to find <profile> node on BEEP greetings");
 		this.connection.Shutdown ();
 		return false;
 	    } /* end if */
@@ -315,7 +316,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
 
 		/* check uri attribute */
 		if (node.childs[tag].attrs[attr].name != 'uri') {
-		    console.log ("VortexEngine.channel0PrepareConnection: expected to find 'uri' attribute on <profile> node on BEEP greetings");
+		    console.error ("VortexEngine.channel0PrepareConnection: expected to find 'uri' attribute on <profile> node on BEEP greetings");
 		    this.connection.Shutdown ();
 		    return false;
 		}
