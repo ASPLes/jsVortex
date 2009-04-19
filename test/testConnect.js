@@ -44,7 +44,7 @@ function runTest (testName) {
     return;
 }
 
-runTest ();
+
 
 
 
