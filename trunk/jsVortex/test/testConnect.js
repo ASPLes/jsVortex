@@ -14,7 +14,7 @@ function testConnectResult (conn) {
     } else {
 	document.write ("<div class='error'>Regression test failed!</div>");
     }
-    
+
     return true;
 };
 
@@ -31,20 +31,32 @@ function testConnect () {
 
 function runTest (testName) {
 
-    /* check to run a particular test */
-    if (typeof testName != "undefined") {
-	testName ();
-	return;
-    }
-
     /* run all tests */
-    document.write ("<h1>jsVortex: running all regression tests..</h1>");
-    testConnect ();
+    /* document.write ("<h1>jsVortex: running all regression tests..</h1>"); */
+    /* testConnect (); */
+    var host = dojo.byId ("host").value;
+    var port = dojo.byId ("port").value;
+    console.log ("Running all tests: " + host + ":" + port);
+
+
+
 
     return;
 }
 
+function prepareTest () {
+    /* connect clicked signal */
+    dojo.connect (dojo.byId("run-test"), "click", runTest);
 
+    /* configure default connection values */
+    dojo.byId ("host").value = "localhost";
+
+    /* configure default connection port value */
+    dojo.byId ("port").value = "44010";
+}
+
+/* register our function in dojo */
+dojo.addOnLoad (prepareTest);
 
 
 
