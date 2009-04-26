@@ -20,6 +20,9 @@ function VortexTCPTransport () {
 
 	/* define default close method */
 	this.close    = VortexFirefoxClose;
+
+	/* do not require permissions */
+	this.requirePerms = true;
 };
 
 /**
@@ -32,8 +35,20 @@ function VortexTCPTransport () {
  */
 function VortexFirefoxConnect (host, port) {
 
+    /* set unconfigured value */
+    this.socket = -1;
+
     /* acquire priviledges */
-    netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
+    if (this.requirePerms) {
+	try {
+	    console.log ("VortexFirefoxConnect: requesting permission to connect XPComponents");
+	    netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
+	} catch (e) {
+	    /* report error found */
+	    this._reportError ("VortexFireFoxConnect: Unable to connect remote host " + host + ":" + port + ", user have denied permission. Error found: " + e.message);
+	    return this.socket;
+	}
+    }
 
     /* acquire reference to the socket transport
      * service */
@@ -44,6 +59,7 @@ function VortexFirefoxConnect (host, port) {
 
     /* create output stream for write operations */
     this.outstream = this.socket.openOutputStream (0, 0, 0);
+
 
     /* create pump object to get notifications for data
      * ready to be read */
@@ -71,14 +87,28 @@ function VortexFirefoxConnect (host, port) {
  * and pending to be sent.
  */
 function VortexFirefoxWrite (data, length) {
+    /* acquire priviledges */
+    if (this.requirePerms) {
+	try {
+	    console.log ("VortexFirefoxWrite: requesting permission to connect XPComponents");
+	    netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
+	} catch (e) {
+	    /* report error found */
+	    this._reportError ("VortexFireFoxWrite: Unable to acquire permission to write to the socket. Error found: " + e.message);
+	    return false;
+	}
+    } /* end acquire priviledges */
 
     var result = this.outstream.write (data, length);
     return (result == length);
 };
 
 function VortexFirefoxIsOk () {
+
     /* acquire priviledges */
-    netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
+    if (this.requirePerms) {
+	netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
+    } /* end if */
 
     /* check for null reference */
     if (this.socket == null)
@@ -106,7 +136,9 @@ VortexTCPTransport.prototype.onStopRequest   = function (request, context, statu
 VortexTCPTransport.prototype.onDataAvailable = function (request, context, inputStream, offset, count) {
 
     /* request permission */
-    netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
+    if (this.requirePerms) {
+	netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
+    }
 
     var instream = Components.classes["@mozilla.org/scriptableinputstream;1"].createInstance(Components.interfaces.nsIScriptableInputStream);
     instream.init(inputStream);
@@ -118,7 +150,68 @@ VortexTCPTransport.prototype.onDataAvailable = function (request, context, input
     this.onReadHandler.apply (this.onReadObject, [this.onReadObject, data]);
 };
 
+/**
+ * @brief Public method that allows to register a callback (handler)
+ * that is called under the context of object when data was received
+ * in the connection.
+ *
+ * The handler to be configured must have the following form:
+ *
+ * function (connection, data);
+ *
+ * WHERE: connection is the connection where that is available
+ * and data is the data received.
+ *
+ * @param object The context under which the handler will be executed
+ *  (special reference this will point to this object).
+ *
+ * @param handler The method that is executed when the data is available.
+ */
 VortexTCPTransport.prototype.onRead = function (object, handler) {
     this.onReadObject  = object;
     this.onReadHandler = handler;
 };
+
+/**
+ * @brief Public method that allows to registar a callback (handler)
+ * that is called under the context of object when some error was
+ * found during the transport function.
+ *
+ * The handler to be configured must have the following form:
+ *
+ * function (error);
+ *
+ * WHERE: connection is the connection where that is available
+ * and data is the data received.
+ *
+ * @param object The context under which the handler will be executed
+ *  (special reference this will point to this object).
+ *
+ * @param handler The method that is executed when the data is available.
+ */
+VortexTCPTransport.prototype.onError = function (object, handler) {
+    this.onErrorObject  = object;
+    this.onErrorHandler = handler;
+};
+
+/**
+ * @internal Function used to report an error found through onError
+ * handler configured.
+ *
+ * @param error to be reported.
+ */
+VortexTCPTransport.prototype._reportError = function (error) {
+    /* report console error */
+    console.error (error);
+
+    /* report error through the handler */
+    if (this.onErrorObject != null)  {
+	this.onErrorHandler.apply (this.onErrorObject, [error]);
+	return;
+    }
+
+    /* report error without defining this reference */
+    this.onErrorHandler.apply (null, [error]);
+    return;
+};
+
