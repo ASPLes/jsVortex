@@ -1,0 +1,9 @@
+IMPORTANT NOTE: In the case you are using jsVortex from a firefox you
+must check the following value to be activated in the user preferences
+until it is found a better solution:
+
+   signed.applets.codebase_principal_support = true
+
+To configure this value type the URL: about:config, then write signed
+and find the entry to double-click on it. Please if you find a better.
+ 
