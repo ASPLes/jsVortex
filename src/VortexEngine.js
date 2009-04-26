@@ -233,22 +233,15 @@ VortexEngine.getFrame = function (connection, data) {
  */
 VortexEngine.channel0Received = function (frame) {
 
-    if (! this.connection.isReady) {
+    /* check if the connection is still waiting for greetings */
+    if (this.connection.greetingsPending) {
+	
 	/* call to process incoming content to prepare the connection */
 	console.log ("VortexEngine.channel0Received: connection is not ready, process greetings and prepare connection");
 	VortexEngine.channel0PrepareConnection.apply (this, [frame]);
 
 	/* report connection creation status (only if handler defined) */
-	if (this.connection.createdHandler != null) {
-	    /* report using a particular context if defined */
-	    if (this.connection.createdContext != null)
-		this.connection.createdHandler.apply (this.connection.createdContext, [this.connection]);
-	    else
-		this.connection.createdHandler.apply (this.connection, [this.connection]);
-	} else {
-	    console.warn ("VortexEngine.channel0Received: WARNING connection notification not defined!");
-	    console.dir (this.connection);
-	} /* end if */
+	this.connection.reportConnCreated ();
 	return;
     } /* end if */
 
@@ -286,7 +279,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
     }
 
     /* OPTIONAL: print document */
-    VortexXMLEngine.dumpXML (node, 0);
+    /* VortexXMLEngine.dumpXML (node, 0); */
 
     /* check content received */
     if (node.name != "greeting") {
@@ -329,13 +322,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
     } /* end if */
 
     /* flag connection as ready */
-    this.connection.isReady = true;
-
-    /* flag channel as ready */
-    this.isReady = true;
-
-    /* send greetings reply */
-    this.sendRPY ("<greeting />\r\n");
+    this.connection.greetingsPending = false;
 
     return true;
 };

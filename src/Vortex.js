@@ -63,6 +63,7 @@ if (typeof console == "undefined") {
  * The following code tries to figure the baseurl used to load Vortex.js
  * so the rest of files can be loaded.
  */
+console.log ("Vortex: found vortex header, loading rest of files..");
 var scripts = document.getElementsByTagName("script");
 var rePkg = /Vortex\.js(\W|$)/i;
 for (var iterator = 0; iterator < scripts.length; iterator++) {

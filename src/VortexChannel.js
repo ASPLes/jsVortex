@@ -63,8 +63,9 @@ function VortexChannel (connection,
      */
     this.sendQueue = new Array ();
 
-    /* channel status */
-    this.isReady   = false;
+    /* channel status (if channel number if 0, it is ready,
+     * otherwise it is pending to be fully opened) */
+    this.isReady   = (num == 0);
 };
 
 /**
@@ -149,7 +150,7 @@ VortexChannel.prototype.sendRPY = function (content, mimeHeaders) {
     this.nextPeerSeqno += content.length;
 
     /* send the content */
-    return this.connection._send.apply (this.connection, [frame]);
+    return (this.connection._send.apply (this.connection, [frame]));
 };
 
 /**
