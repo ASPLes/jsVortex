@@ -1,0 +1,4 @@
+# chrome registration with support for firefox 3.0
+content     jsvortex    chrome/content/   contentaccessible=yes
+# chrome registration with support for firefox 2.0
+content     jsvortex    chrome/content/

@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
+         xmlns:NC="http://home.netscape.com/NC-rdf#"
+         xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <RDF:Description RDF:about="urn:mozilla:extension:file:"
+                   em:package="content/" />
+  <RDF:Description RDF:about="rdf:#$00MlV1"
+                   em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
+                   em:minVersion="1.5.0.*"
+                   em:maxVersion="3.0.*" />
+  <RDF:Description RDF:about="urn:mozilla:install-manifest"
+                   em:id="chromejsvortex@aspl.es"
+                   em:name="jsVortex"
+                   em:version="0.1"
+                   em:creator="(ASPL) Advanced Software Production Line, S.L."
+                   em:description="Open source BEEP javascript implementation"
+                   em:homepageURL="http://www.aspl.es/vortex"
+                   em:aboutURL="http://www.aspl.es"
+                   em:contributor="Francis Brosnan Blázquez">
+    <em:targetApplication RDF:resource="rdf:#$00MlV1"/>
+    <em:file RDF:resource="urn:mozilla:extension:file:"/>
+  </RDF:Description>
+</RDF:RDF>
