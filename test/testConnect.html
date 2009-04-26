@@ -6,9 +6,6 @@
 <title>jsVortex: regression test</title>
 
 
-<!-- include jsVortex files -->
-<script src="../src/Vortex.js" type="text/javascript"></script>
-
 <!-- include dojo files -->
 <style type="text/css">
    @import "/test/dojoroot/dijit/themes/tundra/tundra.css";
@@ -24,7 +21,11 @@
   dojo.require("dijit.layout.BorderContainer");
   dojo.require("dijit.form.ValidationTextBox");
   dojo.require("dijit.form.Button");
+  dojo.require("dijit.Dialog");
 </script>
+
+<!-- include jsVortex files -->
+<script src="chrome://jsvortex/content/Vortex.js" type="text/javascript"></script>
 
 <!-- include regression test files -->
 <script type="text/javascript" src="testConnect.js"></script>
@@ -41,6 +42,7 @@
 Host: <div dojoType="dijit.form.ValidationTextBox" id="host" required="true" regExp="(\d|\w|\.|\-)+"></div> 
 Port: <div dojoType="dijit.form.ValidationTextBox" id="port" required="true" regExp="(\d)+"></div>
 <div id="run-test" dojoType="dijit.form.Button">Run test!</div>
+<div id="clear-log" dojoType="dijit.form.Button">Clear log</div>
 
 </div> <!-- main form -->
 <div dojoType="dijit.layout.BorderContainer" design="headline" class="global-container" liveSizing="false">
@@ -49,7 +51,7 @@ Port: <div dojoType="dijit.form.ValidationTextBox" id="port" required="true" reg
 
   </div>  
          
-  <div dojoType="dijit.layout.ContentPane" region="center" >
+  <div dojoType="dijit.layout.ContentPane" region="center" id="log-panel">
 
   </div> 
 </div>
