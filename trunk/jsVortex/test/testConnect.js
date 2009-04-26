@@ -1,32 +1,121 @@
 function testConnectResult (conn) {
 
     if (! conn.isOk ()) {
-	document.write ("<div class='error'>Failed to connect..</div>");
+	log ("error", "Failed to connect..");
+
+	/* check errors */
+	while (conn.hasErrors ()) {
+	    log ("error", conn.popError ());
+	} /* end while */
+
 	return false;
-    } else {
-	document.write ("Connected OK!!<br>");
     }
 
-    document.write ("Connected to host: " + conn.host + ", port: " + conn.port + "<br>");
-
+    /* check connection */
     if (conn.isOk ()) {
-	document.write ("<div class='ok'>All tests ok!</div>");
+	log ("ok", "Connected to host: " + conn.host + ", port: " + conn.port);
     } else {
-	document.write ("<div class='error'>Regression test failed!</div>");
+	log ("error", "Regression test failed!");
+	return false;
     }
+
+    /* check connection greetings */
+    if (conn.greetingsPending) {
+	log ("error", "found connection with pending greetings (flag activated)");
+	return false;
+    }
+
+    /* check channels opened */
+    if (conn.channels.length != 1) {
+	log ("error", "Expected to find 1 channel opened in the connection, but found: " + conn.channels.length);
+	return false;
+    }
+
+    /* check profiles supported */
+    if (conn.profiles.length != 29) {
+	log ("error", "Expected to find 29 profiles registered");
+	return false;
+    }
+
+
+    /* call for the next test */
+    this.nextTest ();
 
     return true;
 };
 
 function testConnect () {
 
-    document.write ("<h2>jsVortex-01: testing basic BEEP connect..</h1>");
-
-    document.write ("Connecting to localhost:44010<br>");
-    var conn = new VortexConnection ("localhost", "44010",
+    log ("ok", "Connecting to " + this.host + ":" + this.port);
+    var conn = new VortexConnection (this.host,
+				     this.port,
 				     new VortexTCPTransport (),
-				     this.testConnectResult, null);
+				     testConnectResult, this);
     return true;
+}
+
+/**
+ * @brief Constructor function that creates a new regression test.
+ *
+ * @param host The host	location of the regression test listener.
+ * @param port The port location of the regression test listener.
+ */
+function RegressionTest (host, port) {
+
+    /* initialize next test to execute */
+    this.nextTestId = -1;
+
+    /* record host and port */
+    this.host       = host;
+    this.port       = port;
+
+    /* do not return nothing */
+};
+
+/**
+ * @brief Method that runs the next test.
+ */
+RegressionTest.prototype.nextTest = function () {
+
+    /* select next test to execute */
+    this.nextTestId++;
+
+    /* check available tests */
+    if (this.tests.length == this.nextTestId) {
+	log ("final-ok", "All regression tests finished OK!");
+	return;
+    } else if (this.tests.lenght < this.nextTestId) {
+	log ("error", "regression test is calling to next test too many times: " + this.nextTestId);
+	return;
+    }
+
+    /* call next test */
+    console.log ("INFO: running test-" + this.nextTestId);
+    log ("info", "Running TEST-" + this.nextTestId + ": " + this.tests[this.nextTestId].name);
+    this.tests[this.nextTestId].testHandler.apply (this);
+    return;
+};
+
+/* list of regression test available with its
+ * associated test to show */
+RegressionTest.prototype.tests = [
+    {name: "BEEP basic connection test", testHandler: testConnect}
+];
+
+
+function log (status, log) {
+
+    /* create the node that wild hold the content to log */
+    var newNode = document.createElement ("p");
+    dojo.addClass (newNode, "log-line");
+    dojo.addClass (newNode, status);
+
+    /* configure log line into the node */
+    newNode.innerHTML = log;
+
+    /* place the node into the panel */
+    var logpanel = dojo.byId ("log-panel");
+    dojo.place (newNode, logpanel);
 }
 
 function runTest (testName) {
@@ -36,17 +125,30 @@ function runTest (testName) {
     /* testConnect (); */
     var host = dojo.byId ("host").value;
     var port = dojo.byId ("port").value;
-    console.log ("Running all tests: " + host + ":" + port);
 
+    /* not required to check host and port here, already done by the form */
 
+    log ("ok", "Running all tests: " + host + ":" + port);
 
+    /* create a regression test */
+    var regTest = new RegressionTest (host, port);
+
+    /* run tests */
+    regTest.nextTest();
 
     return;
+}
+
+function clearLog () {
+    /* clear log panel */
+    var logpanel = dojo.byId ("log-panel");
+    logpanel.innerHTML = "";
 }
 
 function prepareTest () {
     /* connect clicked signal */
     dojo.connect (dojo.byId("run-test"), "click", runTest);
+    dojo.connect (dojo.byId ("clear-log"), "click", clearLog);
 
     /* configure default connection values */
     dojo.byId ("host").value = "localhost";
