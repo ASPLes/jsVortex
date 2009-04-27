@@ -1,4 +1,9 @@
 /**
+ ** Copyright (C) 2009 Advanced Software Production Line, S.L.
+ ** See license.txt or http://www.aspl.es/vortex
+ **/
+
+/**
  * @brief Creates a new BEEP session against the remote
  * host and port configured. The constructor requires a
  * transport object that implements the particular details
@@ -69,14 +74,14 @@ function VortexConnection (host,
     /* check errors here */
     if (this._transport.socket == -1) {
 	/* report we have failed to create connection */
-	this.reportConnCreated ();
+	this._reportConnCreated ();
     } /* end if */
 
     /* send greetings reply before receiving listener greetings */
     if (! this.channels[0].sendRPY ("<greeting />\r\n")) {
 	console.error ("Unable to send initial RPY with channel 0 greetings, notifying connection lost");
 	/* report we have failed to send greetings */
-	this.reportConnCreated ();
+	this._reportConnCreated ();
     }
 }
 
@@ -104,6 +109,7 @@ VortexConnection.prototype.isOk = function () {
 
 };
 
+
 /**
  * @brief Closes the transport connection without doing
  * BEEP close negotiation phase.
@@ -118,6 +124,26 @@ VortexConnection.prototype.Shutdown = function () {
 
     /* nullify transport reference */
     this._transport = null;
+};
+
+/**
+ * @brief Allows to check if there are pending error messages to check.
+ *
+ * @return true if there are pending error messages, otherwise false
+ * is returned.
+ */
+VortexConnection.prototype.hasErrors = function () {
+    /* check if there are at least one message to check */
+    return this.stackError.length > 0;
+};
+
+/**
+ * @brief Allows to get the next error message found on this
+ * connection.
+ */
+VortexConnection.prototype.popError = function () {
+    /* return next element */
+    return this.stackError.shift ();
 };
 
 /**
@@ -206,7 +232,7 @@ VortexConnection.prototype._onError = function (error) {
  * of creating a connection (either if the connection was or
  * not created).
  */
-VortexConnection.prototype.reportConnCreated = function () {
+VortexConnection.prototype._reportConnCreated = function () {
 
     /* check if the connection handler notification is defined */
     if (this.createdHandler != null) {
@@ -222,22 +248,3 @@ VortexConnection.prototype.reportConnCreated = function () {
     return;
 };
 
-/**
- * @brief Allows to check if there are pending error messages to check.
- *
- * @return true if there are pending error messages, otherwise false
- * is returned.
- */
-VortexConnection.prototype.hasErrors = function () {
-    /* check if there are at least one message to check */
-    return this.stackError.length > 0;
-};
-
-/**
- * @brief Allows to get the next error message found on this
- * connection.
- */
-VortexConnection.prototype.popError = function () {
-    /* return next element */
-    return this.stackError.shift ();
-};

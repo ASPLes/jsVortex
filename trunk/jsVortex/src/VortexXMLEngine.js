@@ -1,3 +1,8 @@
+/**
+ ** Copyright (C) 2009 Advanced Software Production Line, S.L.
+ ** See license.txt or http://www.aspl.es/vortex
+ **/
+
 if (typeof VortexXMLEngine == "undefined") {
     var VortexXMLEngine = {
 	/**
@@ -207,7 +212,7 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 	this.position = iterator + 1;
 
     } /* end if (node.haveChilds) */
-  
+
     console.log ("VortexXMLEngine.parseXMLNode: finished node parsing for: " + node.name);
 
     /* return node created */

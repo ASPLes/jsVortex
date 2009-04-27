@@ -46,13 +46,71 @@ function testConnectResult (conn) {
 
 function testConnect () {
 
-    log ("ok", "Connecting to " + this.host + ":" + this.port);
+    log ("info", "Connecting to " + this.host + ":" + this.port);
     var conn = new VortexConnection (this.host,
 				     this.port,
 				     new VortexTCPTransport (),
 				     testConnectResult, this);
     return true;
 }
+
+function testIntraestructure () {
+    log ("info", "Checking VortexEngine.checkReference..");
+
+    /* check null reference */
+    if (VortexEngine.checkReference (null)) {
+	log ("error", "Expected to find a failure while passing a null reference");
+	return false;
+    }
+
+    /* check undefined reference */
+    if (VortexEngine.checkReference (undefined)) {
+	log ("error", "Expected to find a failure while passing a null reference");
+	return false;
+    }
+
+    var object = {};
+
+    /* check defined reference */
+    if (! VortexEngine.checkReference (object)) {
+	log ("error", "Expected to find a success while passing a defined empty reference");
+	return false;
+    }
+
+    /* check defined reference but with an undefined attribute */
+    if (VortexEngine.checkReference (object, "value")) {
+	log ("error", "Expected to find a failure while passing a defined empty reference with a check of an undefined attribute");
+	return false;
+    }
+
+    /* define the value */
+    object.value = "this is a test";
+
+    /* check defined reference but with an undefined attribute */
+    if (! VortexEngine.checkReference (object, "value")) {
+	log ("error", "Expected to find a success while passing a defined reference with a check of a defined attribute (value)");
+	return false;
+    }
+
+    /* call for the next test */
+    this.nextTest ();
+
+    return true;
+};
+
+function testjsVortexAvailable () {
+
+    log ("info", "Checking if jsVortex is available on this system");
+
+    if (typeof(VortexEngine) == undefined || VortexEngine == null) {
+	log ("error", "jsVortex installation not available");
+	return false;
+    }
+
+    /* engine available */
+    this.nextTest ();
+    return true;
+};
 
 /**
  * @brief Constructor function that creates a new regression test.
@@ -77,6 +135,11 @@ function RegressionTest (host, port) {
  */
 RegressionTest.prototype.nextTest = function () {
 
+    /* drop an ok message to signal test ok */
+    if (this.nextTestId != -1) {
+	log ("ok", "TEST-" + this.nextTestId + " : OK");
+    }
+
     /* select next test to execute */
     this.nextTestId++;
 
@@ -99,6 +162,8 @@ RegressionTest.prototype.nextTest = function () {
 /* list of regression test available with its
  * associated test to show */
 RegressionTest.prototype.tests = [
+    {name: "Check if jsVortex is available", testHandler: testjsVortexAvailable},
+    {name: "Library infraestructure check", testHandler: testIntraestructure},
     {name: "BEEP basic connection test", testHandler: testConnect}
 ];
 
@@ -127,8 +192,10 @@ function runTest (testName) {
     var port = dojo.byId ("port").value;
 
     /* not required to check host and port here, already done by the form */
-
     log ("ok", "Running all tests: " + host + ":" + port);
+
+    /* clear log */
+    dojo.byId ("log-panel").innerHTML = "";
 
     /* create a regression test */
     var regTest = new RegressionTest (host, port);
