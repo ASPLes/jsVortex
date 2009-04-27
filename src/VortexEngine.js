@@ -1,3 +1,8 @@
+/**
+ ** Copyright (C) 2009 Advanced Software Production Line, S.L.
+ ** See license.txt or http://www.aspl.es/vortex
+ **/
+
 if (typeof VortexEngine == "undefined") {
     /* define engine module */
     var VortexEngine = {
@@ -16,6 +21,48 @@ if (typeof VortexEngine == "undefined") {
 	mimeHeadersSize : 0
     };
 }
+
+/**
+ * @brief Allows to check if the object reference
+ * received is not null or undefined. The function also
+ * checks the attribute to be present in the object.
+ *
+ * @param object The reference to check.
+ *
+ * @param attr Optional attribute to check. null to skip attribute check.
+ * This can be used check if the object is really the reference expected by
+ * selected a particular attribute that should be available.
+ *
+ * @param msg Optional error message to register in the case of error.
+ *
+ * @return true If the reference is ok, therwise false is returned.
+ */
+VortexEngine.checkReference = function (object, attr, msg) {
+
+    /* check for null reference */
+    if (object == null || typeof(object) == undefined) {
+	if (msg) {
+	    console.error ("Undefined reference found at: " + arguments.callee.caller.name + ", " + msg);
+	} else {
+	    console.error ("Undefined reference found at: " + arguments.callee.caller.name);
+	}
+	return false;
+    }
+
+    if (attr != null && typeof(attr) != undefined) {
+	if (object[attr] == null || object[attr] == undefined) {
+	    if (msg) {
+		console.error ("Undefined attribute [" + attr + "] expected to be found found at: " + arguments.callee.caller.name + ", " + msg);
+	    } else {
+		console.error ("Undefined attribute [" + attr + "] expected to be found found at: " + arguments.callee.caller.name);
+	    }
+	    return false;
+	} /* end if */
+    } /* end if */
+
+    /* attribute ok */
+    return true;
+};
 
 /**
  * @internal Function that allows to get the next number inside
@@ -235,13 +282,13 @@ VortexEngine.channel0Received = function (frame) {
 
     /* check if the connection is still waiting for greetings */
     if (this.connection.greetingsPending) {
-	
+
 	/* call to process incoming content to prepare the connection */
 	console.log ("VortexEngine.channel0Received: connection is not ready, process greetings and prepare connection");
 	VortexEngine.channel0PrepareConnection.apply (this, [frame]);
 
 	/* report connection creation status (only if handler defined) */
-	this.connection.reportConnCreated ();
+	this.connection._reportConnCreated ();
 	return;
     } /* end if */
 

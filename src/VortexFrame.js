@@ -1,4 +1,9 @@
 /**
+ ** Copyright (C) 2009 Advanced Software Production Line, S.L.
+ ** See license.txt or http://www.aspl.es/vortex
+ **/
+
+/**
  * @brief Creates a a new frame with the type configured
  * by the string received.
  *
