@@ -222,6 +222,35 @@ function prepareTest () {
 
     /* configure default connection port value */
     dojo.byId ("port").value = "44010";
+
+    /* fill all tests available */
+    var tests              = RegressionTest.prototype.tests;
+    var testAvailablePanel = dijit.byId("test-available-panel");
+    var checkBox;
+    for (test in tests) {
+	console.log ("Test available: " + tests[test].name);
+
+	/* create check box */
+	checkBox = new dijit.form.CheckBox (
+	    {name: tests[test].name,
+	     id: tests[test].name,
+	     checked: true});
+
+	/* add to the panel */
+	dojo.place(checkBox.domNode, testAvailablePanel.domNode);
+
+	/* create the label to be associated to the checkBox */
+	var label = document.createElement ("label");
+	label.for = tests[test].name;
+	label.innerHTML = "TEST-" + test + ": " + tests[test].name;
+
+	/* add to the panel */
+	dojo.place (label, testAvailablePanel.domNode);
+
+	/* add to the panel a line break */
+	dojo.place (document.createElement ("br"), testAvailablePanel.domNode);
+
+    }
 }
 
 /* register our function in dojo */
