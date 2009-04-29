@@ -1,2 +1,4 @@
 * [fix] Add regression test to check how behaves and if we receieve
   an error when we connect to an unknown host.
+
+* [fix] Properly implement BEEP session close.

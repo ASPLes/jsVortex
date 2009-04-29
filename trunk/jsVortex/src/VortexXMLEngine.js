@@ -41,7 +41,7 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 
     /* find node name start tag */
     if (data[iterator] != '<') {
-	console.error ("VortexXMLEngine.parseXMLNode: expected to find XML start tag '<' NOT FOUND: '" + data[iterator] + "'");
+	Vortex.error ("VortexXMLEngine.parseXMLNode: expected to find XML start tag '<' NOT FOUND: '" + data[iterator] + "'");
 	return null;
     }
     /* record position */
@@ -56,12 +56,12 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 
     /* check termination code */
     if (iterator == data.length) {
-	console.error ("VortexXMLEngine.parseXMLNode: expected to find XML end tag '>' NOT FOUND while reading input");
+	Vortex.error ("VortexXMLEngine.parseXMLNode: expected to find XML end tag '>' NOT FOUND while reading input");
 	return null;
     }
 
     var stringAux = data.substring (this.position + 1, iterator);
-    console.log ("VortexXMLEngine.parseXMLNode: node name found: '" + stringAux + "'");
+    Vortex.log ("VortexXMLEngine.parseXMLNode: node name found: '" + stringAux + "'");
 
     /* create the result node */
     var node = {
@@ -71,7 +71,7 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
     };
 
     /* now parse attributes */
-    console.log ("VortexXMLEngine.parseXMLNode: parsing attributes: iterator=" + iterator + ", data.length=" + data.length);
+    Vortex.log ("VortexXMLEngine.parseXMLNode: parsing attributes: iterator=" + iterator + ", data.length=" + data.length);
     while (iterator < data.length) {
 
 	/* now consume spaces */
@@ -108,12 +108,12 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 	} /* end while */
 
 	var attrName = data.substring (this.position, iterator);
-	console.log ("VortexXMLEngine.parseXMLNode: found xml node attribute: '" + attrName + "'");
+	Vortex.log ("VortexXMLEngine.parseXMLNode: found xml node attribute: '" + attrName + "'");
 
 	/* check proper attribute value def */
 	iterator++;
 	if (data[iterator] != "'" && data[iterator] != "\"") {
-	    console.error ("VortexXMLEngine.parseXMLNode: expected to find XML node attribute content definition start (either \" or ') but found NONE of them.");
+	    Vortex.error ("VortexXMLEngine.parseXMLNode: expected to find XML node attribute content definition start (either \" or ') but found NONE of them.");
 	    return null;
 	}
 	iterator++;
@@ -125,12 +125,12 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 
 	/* check termination condition */
 	if (iterator == data.length) {
-	    console.error ("VortexXMLEngine.parseXMLNode: expected to find XML node attribute content termination but found end of stream.");
+	    Vortex.error ("VortexXMLEngine.parseXMLNode: expected to find XML node attribute content termination but found end of stream.");
 	    return null;
 	}
 
 	var attrValue = data.substring (this.position, iterator);
-	console.log ("VortexXMLEngine.parseXMLNode: found xml node attribute content: '" + attrValue + "'");
+	Vortex.log ("VortexXMLEngine.parseXMLNode: found xml node attribute content: '" + attrValue + "'");
 
 	/* store attributes inside the node */
 	var attr = {
@@ -146,17 +146,17 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
     }
 
     this.position = iterator;
-    console.log ("(0) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position);
+    Vortex.log ("(0) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position);
 
     /* consume more whitespaces */
     iterator      = VortexXMLEngine.consumeWhiteSpaces (data, iterator);
     this.position = iterator;
 
-    console.log ("(1) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position + ", data: " + data[iterator] + data[iterator + 1]);
+    Vortex.log ("(1) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position + ", data: " + data[iterator] + data[iterator + 1]);
 
     /* process childs inside */
     if (node.haveChilds) {
-	console.log ("VortexXMLEngine.parseXMLNode: found pending childs for node <" + node.name + ">");
+	Vortex.log ("VortexXMLEngine.parseXMLNode: found pending childs for node <" + node.name + ">");
 
 	do {
 	    /* read childs */
@@ -171,10 +171,10 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 
 	    /* consume more whitespaces */
 	    iterator = this.position;
-	    console.log ("(2) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position + ", data: " + data[iterator] + data[iterator + 1]);
+	    Vortex.log ("(2) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position + ", data: " + data[iterator] + data[iterator + 1]);
 	    iterator      = VortexXMLEngine.consumeWhiteSpaces (data, iterator);
 	    this.position = iterator;
-	    console.log ("(3) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position + ", data: " + data[iterator] + data[iterator + 1]);
+	    Vortex.log ("(3) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position + ", data: " + data[iterator] + data[iterator + 1]);
 
 	    if (data[iterator] == '<' && data[iterator + 1] == '/')
 		break;
@@ -184,7 +184,7 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 	/* read node termination */
 	iterator = VortexXMLEngine.consumeWhiteSpaces (data, iterator);
 	if (data[iterator] != '<' || data[iterator + 1] != '/') {
-	    console.error ("VortexXMLEngine.parseXMLNode: expected to find XML node termination </, but found: " + data[iterator] + data[iterator + 1]);
+	    Vortex.error ("VortexXMLEngine.parseXMLNode: expected to find XML node termination </, but found: " + data[iterator] + data[iterator + 1]);
 	    return null;
 	} /* end if */
 
@@ -195,16 +195,16 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 
 	/* check termination */
 	if (data.length < iterator) {
-	    console.error ("VortexXMLEngine.parseXMLNode: expected to find XML node termination >, but found end of stream");
+	    Vortex.error ("VortexXMLEngine.parseXMLNode: expected to find XML node termination >, but found end of stream");
 	    return null;
 	}
 
 	/* get termination node */
 	stringAux = data.substring (this.position + 2, iterator);
-	console.log ("VortexXMLEngine.parseXMLNode: found node termination: " + stringAux);
+	Vortex.log ("VortexXMLEngine.parseXMLNode: found node termination: " + stringAux);
 
 	if (stringAux != node.name) {
-	    console.error ("VortexXMLEngine.parseXMLNode: expected to find node termination for: " + node.name + ", but found: " + stringAux);
+	    Vortex.error ("VortexXMLEngine.parseXMLNode: expected to find node termination for: " + node.name + ", but found: " + stringAux);
 	    return null;
 	} /* end if */
 
@@ -213,7 +213,7 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 
     } /* end if (node.haveChilds) */
 
-    console.log ("VortexXMLEngine.parseXMLNode: finished node parsing for: " + node.name);
+    Vortex.log ("VortexXMLEngine.parseXMLNode: finished node parsing for: " + node.name);
 
     /* return node created */
     return node;
@@ -258,13 +258,13 @@ VortexXMLEngine.dumpXML = function (document, tabs)
     }
 
     if (document.haveChilds) {
-	console.log (string + "<" + document.name + " " + VortexXMLEngine.dumpAttrs (document) + ">");
+	Vortex.log (string + "<" + document.name + " " + VortexXMLEngine.dumpAttrs (document) + ">");
 	for (node in document.childs) {
 	    VortexXMLEngine.dumpXML (document.childs[node], tabs + 2);
 	}
-	console.log (string + "</" + document.name + ">");
+	Vortex.log (string + "</" + document.name + ">");
     } else {
-	console.log (string + "<" + document.name + " " + VortexXMLEngine.dumpAttrs (document) + " />");
+	Vortex.log (string + "<" + document.name + " " + VortexXMLEngine.dumpAttrs (document) + " />");
 	return;
     }
 

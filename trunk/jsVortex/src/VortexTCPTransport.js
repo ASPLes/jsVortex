@@ -46,7 +46,7 @@ function VortexFirefoxConnect (host, port) {
     /* acquire priviledges */
     if (this.requirePerms) {
 	try {
-	    console.log ("VortexFirefoxConnect: requesting permission to connect XPComponents");
+	    Vortex.log ("VortexFirefoxConnect: requesting permission to connect XPComponents");
 	    netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
 	} catch (e) {
 	    /* report error found */
@@ -96,7 +96,7 @@ function VortexFirefoxWrite (data, length) {
     /* acquire priviledges */
     if (this.requirePerms) {
 	try {
-	    console.log ("VortexFirefoxWrite: requesting permission to connect XPComponents");
+	    Vortex.log ("VortexFirefoxWrite: requesting permission to connect XPComponents");
 	    netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
 	} catch (e) {
 	    /* report error found */
@@ -215,7 +215,7 @@ VortexTCPTransport.prototype.onError = function (object, handler) {
  */
 VortexTCPTransport.prototype._reportError = function (error) {
     /* report console error */
-    console.error (error);
+    Vortex.error (error);
 
     /* report error through the handler */
     if (this.onErrorObject != null)  {

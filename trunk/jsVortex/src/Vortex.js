@@ -4,12 +4,59 @@
  **/
 
 /**
+ * @internal Definition to define empty console.log members in the
+ * case we don't have firebug.
+ */
+if (typeof console == "undefined") {
+    this.console = {
+	log: function () {},
+	error: function () {},
+	warn: function () {}
+    };
+}
+
+/**
+ * @brief Check for console log to define it. This is done because
+ * having firebug disabled causes to stop processing the rest of the
+ * document.
+ */
+if (typeof Vortex == "undefined") {
+    this.Vortex = {
+	log: function (message) {
+	    /* check if log is enabled */
+	    if (! Vortex.logEnabled)
+		return;
+	    /* do log */
+	    console.log (message);
+	},
+	error: function (message) {
+	    /* check if log is enabled */
+	    if (! Vortex.logEnabled)
+		return;
+	    /* do log */
+	    console.error (message);
+	},
+	warn: function (message) {
+	    /* check if log is enabled */
+	    if (! Vortex.logEnabled)
+		return;
+	    /* do log */
+	    console.warn (message);
+	},
+	/**
+	 * @brief Default configuration, log disabled. 
+	 */
+	logEnabled : true
+    };
+}
+
+/**
  * @brief Loads all required vortex sources.
  *
  * @param basepath [string] is the base location where
  * all jsVortex sources are located.
  */
-function VortexLoad (basepath) {
+Vortex.Load = function (basepath) {
     /**
      * @internal function used by load method to load rest of
      * files associated to jsVortex.
@@ -43,32 +90,13 @@ function VortexLoad (basepath) {
     VortexLoadJs (basepath + "VortexMimeHeader.js");
 
     return;
-}
-
-/**
- * @brief Check for console log to define it. This is done because
- * having firebug disabled causes to stop processing the rest of the
- * document.
- */
-if (typeof console == "undefined") {
-    this.console = {
-	log: function () {
-	/* do something here */
-	},
-	error: function () {
-	/* do something here */
-	},
-	warn: function () {
-	/* do something here */
-	}
-    };
-}
+};
 
 /**
  * The following code tries to figure the baseurl used to load Vortex.js
  * so the rest of files can be loaded.
  */
-console.log ("Vortex: found vortex header, loading rest of files..");
+Vortex.log ("Vortex: found vortex header, loading rest of files..");
 var scripts = document.getElementsByTagName("script");
 var rePkg = /Vortex\.js(\W|$)/i;
 for (var iterator = 0; iterator < scripts.length; iterator++) {
@@ -76,15 +104,15 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
     var src = scripts[iterator].getAttribute("src");
     if(!src)
 	continue;
-    console.log ("Vortex: found src: " + src);
+    Vortex.log ("Vortex: found src: " + src);
 
     var match = src.match(rePkg);
     if (match) {
 	var baseurl = src.substring(0, match.index);
-	console.log ("Vortex base path: " + baseurl);
+	Vortex.log ("Vortex base path: " + baseurl);
 
 	/* now load rest of Vortex components */
-	VortexLoad (baseurl);
+	Vortex.Load (baseurl);
 	break;
     }
 } /* end for */
