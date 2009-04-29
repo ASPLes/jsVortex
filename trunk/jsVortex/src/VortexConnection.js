@@ -75,15 +75,18 @@ function VortexConnection (host,
     if (this._transport.socket == -1) {
 	/* report we have failed to create connection */
 	this._reportConnCreated ();
-    } /* end if */
+	return this;
+    }
 
     /* send greetings reply before receiving listener greetings */
     if (! this.channels[0].sendRPY ("<greeting />\r\n")) {
 	console.error ("Unable to send initial RPY with channel 0 greetings, notifying connection lost");
 	/* report we have failed to send greetings */
 	this._reportConnCreated ();
+	return this;
     }
-}
+    return this;
+};
 
 /**
  * @brief Allows to check if the connection is
@@ -233,7 +236,7 @@ VortexConnection.prototype._onError = function (error) {
  * not created).
  */
 VortexConnection.prototype._reportConnCreated = function () {
-
+    console.log ("reporting reportConnCreated, status: " + this.isOk ());
     /* check if the connection handler notification is defined */
     if (this.createdHandler != null) {
 	/* report using a particular context if defined */
