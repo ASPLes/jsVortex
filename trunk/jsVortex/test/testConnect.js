@@ -140,23 +140,31 @@ RegressionTest.prototype.nextTest = function () {
 	log ("ok", "TEST-" + this.nextTestId + " : OK");
     }
 
-    /* select next test to execute */
-    this.nextTestId++;
+    while (true) {
+	/* select next test to execute */
+	this.nextTestId++;
 
-    /* check available tests */
-    if (this.tests.length == this.nextTestId) {
-	log ("final-ok", "All regression tests finished OK!");
-	return;
-    } else if (this.tests.lenght < this.nextTestId) {
-	log ("error", "regression test is calling to next test too many times: " + this.nextTestId);
-	return;
-    }
+	/* check available tests */
+	if (this.tests.length == this.nextTestId) {
+	    log ("final-ok", "All regression tests finished OK!");
+	    return;
+	} else if (this.tests.lenght < this.nextTestId) {
+	    log ("error", "regression test is calling to next test too many times: " + this.nextTestId);
+	    return;
+	}
 
-    /* call next test */
-    console.log ("INFO: running test-" + this.nextTestId);
-    log ("info", "Running TEST-" + this.nextTestId + ": " + this.tests[this.nextTestId].name);
-    this.tests[this.nextTestId].testHandler.apply (this);
-    return;
+	/* check if the test is available */
+	if (! this.tests[this.nextTestId].runIt) {
+	    /* skip test */
+	    continue;
+	}
+
+	/* call next test */
+	console.log ("INFO: running test-" + this.nextTestId);
+	log ("info", "Running TEST-" + this.nextTestId + ": " + this.tests[this.nextTestId].name);
+	this.tests[this.nextTestId].testHandler.apply (this);
+	return;
+    } /* end while */
 };
 
 /* list of regression test available with its
@@ -212,6 +220,22 @@ function clearLog () {
     logpanel.innerHTML = "";
 }
 
+/**
+ * @internal Function called when a test check box is clicked.
+ */
+function testClicked (event) {
+    var status = event.currentTarget.checked;
+    var id     = event.currentTarget.id;
+    var tests  = RegressionTest.prototype.tests;
+    for (position in tests) {
+	if (tests[position].name == id) {
+	    /* flag the test to be runned or not */
+	    tests[position].runIt = status;
+	    break;
+	} /* end if */
+    }
+}
+
 function prepareTest () {
     /* connect clicked signal */
     dojo.connect (dojo.byId("run-test"), "click", runTest);
@@ -230,11 +254,16 @@ function prepareTest () {
     for (test in tests) {
 	console.log ("Test available: " + tests[test].name);
 
+	/* flag the test to be runned */
+	tests[test].runIt = true;
+
 	/* create check box */
 	checkBox = new dijit.form.CheckBox (
-	    {name: tests[test].name,
-	     id: tests[test].name,
-	     checked: true});
+	    {id: tests[test].name,
+	     checked: true,
+	     position: test});
+	/* configure onClick handler */
+	checkBox.onClick = testClicked;
 
 	/* add to the panel */
 	dojo.place(checkBox.domNode, testAvailablePanel.domNode);
