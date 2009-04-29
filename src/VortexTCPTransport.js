@@ -50,7 +50,8 @@ function VortexFirefoxConnect (host, port) {
 	    netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
 	} catch (e) {
 	    /* report error found */
-	    this._reportError ("VortexFireFoxConnect: Unable to connect remote host " + host + ":" + port + ", user have denied permission. Error found: " + e.message);
+	    this._reportError ("VortexFireFoxConnect: Unable to connect remote host " + host + ":" + port + ", user have denied permission. Error found: " + e.message +
+		". Did you config signed.applets.codebase_principal_support = true");
 	    return this.socket;
 	}
     }
@@ -99,7 +100,8 @@ function VortexFirefoxWrite (data, length) {
 	    netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
 	} catch (e) {
 	    /* report error found */
-	    this._reportError ("VortexFireFoxWrite: Unable to acquire permission to write to the socket. Error found: " + e.message);
+	    this._reportError ("VortexFireFoxWrite: Unable to acquire permission to write to the socket. Error found: " + e.message +
+		". Did you config signed.applets.codebase_principal_support = true");
 	    return false;
 	}
     } /* end acquire priviledges */
@@ -110,13 +112,19 @@ function VortexFirefoxWrite (data, length) {
 
 function VortexFirefoxIsOk () {
 
-    /* acquire priviledges */
-    if (this.requirePerms) {
-	netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
-    } /* end if */
+    try {
+	/* acquire priviledges */
+	if (this.requirePerms) {
+	    netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
+	} /* end if */
+    } catch (e) {
+	this._reportError ("VortexFireFoxIsOK: Unable to acquire permissions to check socket. Error found: " + e.message +
+	    ". Did you config signed.applets.codebase_principal_support = true");
+	return false;
+    }
 
     /* check for null reference */
-    if (this.socket == null)
+    if (this.socket == null || this.socket == -1)
 	return false;
 
     /* check if the socket is alive */
