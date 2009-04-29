@@ -1,3 +1,7 @@
+/**
+ ** Copyright (C) 2009 Advanced Software Production Line, S.L.
+ ** See license.txt or http://www.aspl.es/vortex
+ **/
 const REGRESSION_URI = 'http://iana.org/beep/transient/vortex-regression';
 
 function testChannelsResult (conn) {
@@ -10,15 +14,19 @@ function testChannelsResult (conn) {
 
 	return false;
     }
-    
+
     /* ok, now check profiles available */
     if (! conn.isProfileSupported (REGRESSION_URI)) {
 	log ("error", "Expected to find profile supported: " + REGRESSION_URI);
 	return false;
     }
-    
+
     /* now open a channel here to do some useful work */
-    
+    conn.openChannel ({
+	profile: REGRESSION_URI,
+	channelNumber: 0
+    });
+
     /* call for the next test */
     this.nextTest ();
 
@@ -38,7 +46,7 @@ function testChannels () {
 	this.stopTests = true;
     }
     return true;
-    
+
 }
 
 function testConnectResult (conn) {
@@ -79,7 +87,7 @@ function testConnectResult (conn) {
 	log ("error", "Expected to find 29 profiles registered");
 	return false;
     }
-    
+
     /* close the conection */
     conn.Shutdown ();
 
@@ -175,7 +183,7 @@ function RegressionTest (host, port) {
     /* record host and port */
     this.host       = host;
     this.port       = port;
-    
+
     /* signal if tests must be stoped */
     this.stopTests  = false;
 
@@ -186,11 +194,11 @@ function RegressionTest (host, port) {
  * @brief Method that runs the next test.
  */
 RegressionTest.prototype.nextTest = function () {
-    
+
     /* check to stop tests */
-    if (this.stopTests) 
+    if (this.stopTests)
 	return;
-    
+
     /* drop an ok message to signal test ok */
     if (this.nextTestId != -1) {
 	log ("ok", "TEST-" + this.nextTestId + " : OK");

@@ -114,13 +114,13 @@ VortexConnection.prototype.isOk = function () {
 
 /**
  * @brief Allows to check if the provided connection supports the
- * profile. This function allows to check if in the greetings phase 
+ * profile. This function allows to check if in the greetings phase
  * the profile was advised as supported by the remote BEEP peer.
- * 
+ *
  * Keep also in mind that some BEEP peers may hide profiles the really
  * support, acepting or denying them at channel start request.
- * 
- * @param profile The profile to check to be supported by remote BEEP 
+ *
+ * @param profile The profile to check to be supported by remote BEEP
  * peer.
  */
 VortexConnection.prototype.isProfileSupported = function (profile) {
@@ -130,6 +130,119 @@ VortexConnection.prototype.isProfileSupported = function (profile) {
     } /* end while */
     return false;
 };
+
+/**
+ * @brief Allows to create a new BEEP channel in the provided BEEP
+ * session (connection).
+ *
+ * @param channelNumber [int] (Optional) The BEEP channel number that
+ * is requested. You can use 0 to request jsVortex to asign the next
+ * available channel number.
+ *
+ * @param serverName [string] The serverName token. Configuring this
+ * value request the remote BEEP peer to act as the value provided by
+ * serverName. The first channel completely created that request this
+ * value will be the serverName value for all channels in the
+ * connection. From RFC3080: "The serverName attribute for the first
+ * successful "start" element received by a BEEP peer is meaningful
+ * for the duration of the BEEP session. If present, the BEEP peer
+ * decides whether to operate as the indicated "serverName"; if not,
+ * an "error" element is sent in a negative reply.
+ *
+ * @param profile [string] The BEEP profile identification string.
+ *
+ * @param profileContent [string] Optional content to be configured as
+ * content for the channel start request.
+ *
+ * @param profileContentEncoding [int] Optional	profileContent encoding.
+ * This is used to notify remote BEEP peer which is the encoding
+ * used for the profileContent configured. In the case you are not using
+ * profileContent, use 0 for this variable. Allowed values are:
+ * - 0: not defined,
+ * - 1: none,
+ * - 2: base64
+ *
+ * @param closeHandler [handler] Optional handler that is used by
+ * jsVortex engine to notify that a channel close request was received
+ * and a confirmation or refusal is required. If the handler is not
+ * configured it is used default handler installed on the
+ * connection. If the connection have no handler it is used global
+ * handler which accept the channel to be closed.
+ *
+ * @param closeContext [object] Optional object used to run the
+ * handler under the context (this reference) of this object. Use null
+ * to not configure any context (do not use "this" reference under
+ * such case).
+ *
+ * @param receivedHandler [handler] Optional handler that is used by
+ * jsVortex engine to notify that a frame was received. If the handler
+ * is not configured the default handler configured in the connection
+ * will be used. In the case This handler is also not configured, it
+ * is used global handler configured. If no handler is found in that
+ * chain the frame is dropped.
+ *
+ * @param receivedContext [object] Optional object used to run the
+ * handler under the context ("this" reference) of this object. Use
+ * null to not configure any context (do not use "this" reference
+ * under such case).
+ *
+ * @param onChannelCreatedHandler [handler] Optional handler that is
+ * used by jsVortex engine to notify that the channel creation process
+ * has finished, reporting either a failure or a sucess. If this
+ * handler is not configured, the connection handler configured is
+ * used. If this is also not defined, it is used configured global
+ * handler. If no handler is configured, channel creation termination
+ * status is not notified.
+ *
+ * @param onChannelCreatedContext [object] Optional object used to run
+ * the handler under the context ("this" reference) of this
+ * object. Use null to not configure any context (do not use "this"
+ * reference under such case).
+ *
+ * @return true if the method has issued the request to start the channel,
+ * otherwise false is returned. Check errors found at the connection
+ * stack error (\ref VortexConnection.hasErrors and
+ * \ref VortexConnection.popError).
+ */
+VortexConnection.prototype.openChannel = function (params) {
+
+    /* check the connection status before continue */
+    if (! VortexEngine.checkReference (params, "profile", "Expected profile to be used to request channel start"))
+	return false;
+
+    /* check channel number to use */
+    if (params.channelNumber == undefined || params.channelNumber == 0)
+	params.channelNumber = this._getNextChannelNumber ();
+    else {
+	/* check if the channel number request is already in use */
+	if (this.channels[params.channelNumber] != undefined) {
+	    this._onError (
+		"Requested to open a channel that is already opened (" + params.channelNumber + "), running profile: " +
+		this.channels[params.channelNumber].profile);
+	    return false;
+	} /* end if */
+    } /* end if */
+
+    Vortex.log ("requesting to start channel=" + params.channelNumber + ", with profile: " + params.profile);
+
+    /* build start request operation */
+    var message = "<start number='" + params.channelNumber + "'>\r\n" +
+	"    <profile uri='" + params.profile + "' />\r\n" +
+	"</start>\r\n";
+
+    /* fill channel and connection about to be created */
+    params.connection = this;
+
+    /* acquire channel 0 to send request */
+    if (! conn.channels[0].sendMSG (message)) {
+	this._onError ("Failed to send start request");
+	return false;
+    } /* end if */
+
+    Vortex.log ("start request sent, now wait for reply to continue");
+    return true;
+};
+
 
 /**
  * @brief Closes the transport connection without doing
@@ -267,5 +380,23 @@ VortexConnection.prototype._reportConnCreated = function () {
     } /* end if */
 
     return;
+};
+
+/**
+ * @internal Function that tracks channel numbers that are
+ * automatically assignated to created channels.
+ *
+ * @return Next channel number to be used.
+ */
+VortexConnection.prototype._getNextChannelNumber = function () {
+    if (this.nextChannelNum == undefined) {
+	this.nextChannelNum = 1;
+	return this.nextChannelNum;
+    }
+
+    /* increase two units */
+    this.nextChannelNum += 2;
+
+    return this.nextChannelNum;
 };
 
