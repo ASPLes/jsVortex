@@ -37,6 +37,8 @@ function testConnectResult (conn) {
 	return false;
     }
 
+    /* close the conection properly */
+    /* conn.sessionClose (); */
 
     /* call for the next test */
     this.nextTest ();
