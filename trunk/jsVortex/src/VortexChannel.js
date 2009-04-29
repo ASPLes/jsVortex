@@ -74,6 +74,16 @@ function VortexChannel (connection,
 };
 
 /**
+ * @brief Allows to send a message over the channe selected.
+ *
+ * @param message The message to be sent over this channel
+ */
+VortexChannel.prototype.sendMSG = function (content, mimeHeaders) {
+    /* use common implementation */
+    return this.sendCommon (content, mimeHeaders, "MSG");
+};
+
+/**
  * @brief Sends content the provided over the channel. The method checks
  * if the connection is ready and the transport available.
  *
@@ -88,8 +98,30 @@ function VortexChannel (connection,
  * (no SEQ no is available to send content).
  */
 VortexChannel.prototype.sendRPY = function (content, mimeHeaders) {
+    /* use common implementation */
+    return this.sendCommon (content, mimeHeaders, "RPY");
+};
+
+/**
+ * @internal Method used as a base implementation for
+ * VortexChannel.sendRPY and VortexChannel.sendMSG.
+ *
+ * @param content [string] The content to be sent.
+ *
+ * @param mimeHeaders [array of VortexMimeHeader] An array containing
+ * a list of VortexMimeHeader objects having the list of mime headers
+ * to configure. In the case null is provided, no MIME header is
+ * placed on the frame sent.
+ *
+ * @return 1 if the case the content was queued to be sent, otherwise
+ * 0 is returned. The function returns 2 in the case the channel is
+ * stale (no SEQ no is available to send content).
+ *
+ */
+VortexChannel.prototype.sendCommon = function (content, mimeHeaders, type) {
+
     if (! this.isReady) {
-	Vortex.warn ("VortexChannel.send: unable to send content, connection is not ready.");
+	Vortex.warn ("VortexChannel.sendCommon (" + type + "): unable to send content, connection is not ready.");
 	return false;
     }
 
@@ -110,11 +142,11 @@ VortexChannel.prototype.sendRPY = function (content, mimeHeaders) {
     /* now check how much from this content we can send assuming
      * remote allowed seqno (maxAllowedPeerSeqno) */
     var allowedSize = (this.maxAllowedPeerSeqno - this.nextPeerSeqno);
-    Vortex.log ("VortexChannel.sendRPY: doing a send operation, allowed bytes: " + allowedSize + ", content size: " + content.length);
+    Vortex.log ("VortexChannel.sendCommon (" + type + "): doing a send operation, allowed bytes: " + allowedSize + ", content size: " + content.length);
 
     /* check channel stalled */
     if (allowedSize == 0) {
-	Vortex.warn ("VortexChannel.sendRPY: channel is stalled, queueing content");
+	Vortex.warn ("VortexChannel.sendCommon (" + type + "): channel is stalled, queueing content");
 
 	/* add the content at the begining of the queue to
 	 * handle it first on the next operation. */
@@ -146,8 +178,18 @@ VortexChannel.prototype.sendRPY = function (content, mimeHeaders) {
 
     /* build the frame to sent */
     var _mimeHeaders = this.getMimeHeaders (mimeHeaders);
-    var frame        = "RPY " + this.num + " " + this.nextReplyMsgno + " " +
-	(isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + (content.length + _mimeHeaders.length + 2) + "\r\n" + this.getMimeHeaders (mimeHeaders) + "\r\n" + content + "END\r\n";
+    var frame;
+    if (type == "RPY") {
+	/* RPY frames */
+	frame        = "RPY " + this.num + " " + this.nextReplyMsgno + " " +
+	    (isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + (content.length + _mimeHeaders.length + 2) + "\r\n" +
+	    this.getMimeHeaders (mimeHeaders) + "\r\n" + content + "END\r\n";
+    } else {
+	/* MSG frames */
+	frame        = "MSG " + this.num + " " + this.nextMsgno + " " +
+	    (isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + (content.length + _mimeHeaders.length + 2) + "\r\n" +
+	    this.getMimeHeaders (mimeHeaders) + "\r\n" + content + "END\r\n";
+    }
 
     /* Vortex.log ("VortexChanenl.sendRPY: sending frame: " + frame); */
 
@@ -156,98 +198,6 @@ VortexChannel.prototype.sendRPY = function (content, mimeHeaders) {
 
     /* send the content */
     return (this.connection._send.apply (this.connection, [frame]));
-};
-
-/**
- * @brief Allows to create a new BEEP channel in the provided
- * connection.
- *
- * @param connection [VortexConnection] The BEEP session where the channel will be created.
- *
- * @param channelNumber [int] The BEEP channel number	that is requested.
- * You can use 0 to request jsVortex to asign the next available channel
- * number.
- *
- * @param serverName [string] The serverName token. Configuring this value request
- * the remote BEEP peer to act as the value provided by serverName. The
- * first channel completely created that request this value will be the
- * serverName value for all channels in the connection. From RFC3080:
- * "The serverName attribute for the first successful "start" element
- * received by a BEEP peer is meaningful for the duration of the BEEP
- * session. If present, the BEEP peer decides whether to operate as the
- * indicated "serverName"; if not, an "error" element is sent in a
- * negative reply.
- *
- * @param profile [string] The BEEP profile identification string.
- *
- * @param profileContent [string] Optional content to be configured as
- * content for the channel start request.
- *
- * @param profileContentEncoding [int] Optional	profileContent encoding.
- * This is used to notify remote BEEP peer which is the encoding
- * used for the profileContent configured. In the case you are not using
- * profileContent, use 0 for this variable. Allowed values are:
- * - 0: not defined,
- * - 1: none,
- * - 2: base64
- *
- * @param closeHandler [handler] Optional handler that is used by
- * jsVortex engine to notify that a channel close request was received
- * and a confirmation or refusal is required. If the handler is not
- * configured it is used default handler installed on the
- * connection. If the connection have no handler it is used global
- * handler which accept the channel to be closed.
- *
- * @param closeContext [object] Optional object used to run the
- * handler under the context (this reference) of this object. Use null
- * to not configure any context (do not use "this" reference under
- * such case).
- *
- * @param receivedHandler [handler] Optional handler that is used by
- * jsVortex engine to notify that a frame was received. If the handler
- * is not configured the default handler configured in the connection
- * will be used. In the case This handler is also not configured, it
- * is used global handler configured. If no handler is found in that
- * chain the frame is dropped.
- *
- * @param receivedContext [object] Optional object used to run the
- * handler under the context ("this" reference) of this object. Use
- * null to not configure any context (do not use "this" reference
- * under such case).
- *
- * @param onChannelCreatedHandler [handler] Optional handler that is
- * used by jsVortex engine to notify that the channel creation process
- * has finished, reporting either a failure or a sucess. If this
- * handler is not configured, the connection handler configured is
- * used. If this is also not defined, it is used configured global
- * handler. If no handler is configured, channel creation termination
- * status is not notified.
- *
- * @param onChannelCreatedContext [object] Optional object used to run
- * the handler under the context ("this" reference) of this
- * object. Use null to not configure any context (do not use "this"
- * reference under such case).
- *
- * @return true if the method has issued the request to start the channel,
- * otherwise false is returned. Check errors found at the connection
- * stack error (\ref VortexConnection.hasErrors and
- *  \ref VortexConnection.popError).
- */
-VortexChannel.prototype.createChannel = function (connection,
-						  channelNumber,
-						  serverName,
-						  profile,
-						  profileContent,
-						  profileContentEncoding,
-					          closeHandler,            closeContext,
-						  receivedHandler,         receivedContext,
-						  onChannelCreatedHandler, onChannelCreatedContext) {
-    /* check the connection status before continue */
-    if (VortexEngine.checkReference (connection, "host"))
-	return false;
-
-
-    return true;
 };
 
 /**
