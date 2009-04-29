@@ -48,7 +48,7 @@ function VortexConnection (host,
     /* save handlers */
     this.createdHandler = connectionCreatedHandler;
     this.createdContext = connectionCreatedContext;
-    console.log ("VortexConnection.ctor: requesting to create a connection to " + host + ":" + port);
+    Vortex.log ("VortexConnection.ctor: requesting to create a connection to " + host + ":" + port);
 
     /* PUBLIC: store properties */
     this.host      = host;
@@ -67,9 +67,9 @@ function VortexConnection (host,
     ];
 
     /* do TCP connect */
-    console.log ("Doing TCP connect to: " + host + ", port: " + port);
+    Vortex.log ("Doing TCP connect to: " + host + ", port: " + port);
     this._transport.connect (host, port);
-    console.log ("Socket status after connection: " + this._transport.socket);
+    Vortex.log ("Socket status after connection: " + this._transport.socket);
 
     /* check errors here */
     if (this._transport.socket == -1) {
@@ -80,7 +80,7 @@ function VortexConnection (host,
 
     /* send greetings reply before receiving listener greetings */
     if (! this.channels[0].sendRPY ("<greeting />\r\n")) {
-	console.error ("Unable to send initial RPY with channel 0 greetings, notifying connection lost");
+	Vortex.error ("Unable to send initial RPY with channel 0 greetings, notifying connection lost");
 	/* report we have failed to send greetings */
 	this._reportConnCreated ();
 	return this;
@@ -103,7 +103,7 @@ VortexConnection.prototype.isOk = function () {
 
     /* call to transport is ok implementation */
     if (! this._transport.isOk ()) {
-	console.warn ("VortexConnection.isOk: connection transport is not available.");
+	Vortex.warn ("VortexConnection.isOk: connection transport is not available.");
 	return false;
     }
 
@@ -112,6 +112,24 @@ VortexConnection.prototype.isOk = function () {
 
 };
 
+/**
+ * @brief Allows to check if the provided connection supports the
+ * profile. This function allows to check if in the greetings phase 
+ * the profile was advised as supported by the remote BEEP peer.
+ * 
+ * Keep also in mind that some BEEP peers may hide profiles the really
+ * support, acepting or denying them at channel start request.
+ * 
+ * @param profile The profile to check to be supported by remote BEEP 
+ * peer.
+ */
+VortexConnection.prototype.isProfileSupported = function (profile) {
+    while (position in this.profiles)  {
+	if (this.profiles[position] == profile)
+	    return true;
+    } /* end while */
+    return false;
+};
 
 /**
  * @brief Closes the transport connection without doing
@@ -162,7 +180,7 @@ VortexConnection.prototype.popError = function () {
  */
 VortexConnection.prototype._onRead = function (connection, data) {
     /* handle data received from the transport */
-    console.log ("VortexConnection._onRead, data received: " + data);
+    Vortex.log ("VortexConnection._onRead, data received: " + data);
 
     /* create the frame */
     var frame = VortexEngine.getFrame (connection, data);
@@ -175,21 +193,21 @@ VortexConnection.prototype._onRead = function (connection, data) {
 
     /* check if channel is available on the connection */
     if (channel == null) {
-	console.error ("VortexConnection._onRead: found frame for a channel no available. Protocol violation.");
+	Vortex.error ("VortexConnection._onRead: found frame for a channel no available. Protocol violation.");
 	this.Shutdown ();
 	return false;
     }
 
     /* check if the channel has received handler */
     if (channel.receivedHandler == null) {
-	console.warn ("VortexConnection._onRead: received a frame for a channel without received handler. Discarding frame.");
+	Vortex.warn ("VortexConnection._onRead: received a frame for a channel without received handler. Discarding frame.");
 	return false;
     }
 
     /* notify frame */
     channel.receivedHandler.apply (channel, [frame]);
 
-    console.log ("VortexConnection._onRead: frame delivered");
+    Vortex.log ("VortexConnection._onRead: frame delivered");
     return true;
 };
 
@@ -209,7 +227,7 @@ VortexConnection.prototype._send = function (content) {
     try {
 	/* check connection status */
 	if (! this.isOk ()) {
-	    console.warn ("VortexConnection._send: unable to send content, connection is not ready.");
+	    Vortex.warn ("VortexConnection._send: unable to send content, connection is not ready.");
 	    return false;
 	}
 	/* send content */
@@ -236,7 +254,7 @@ VortexConnection.prototype._onError = function (error) {
  * not created).
  */
 VortexConnection.prototype._reportConnCreated = function () {
-    console.log ("reporting reportConnCreated, status: " + this.isOk ());
+    Vortex.log ("reporting reportConnCreated, status: " + this.isOk ());
     /* check if the connection handler notification is defined */
     if (this.createdHandler != null) {
 	/* report using a particular context if defined */
@@ -245,7 +263,7 @@ VortexConnection.prototype._reportConnCreated = function () {
 	else
 	    this.createdHandler.apply (this, [this]);
     } else {
-	console.warn ("Vortex: WARNING connection notification not defined!");
+	Vortex.warn ("Vortex: WARNING connection notification not defined!");
     } /* end if */
 
     return;

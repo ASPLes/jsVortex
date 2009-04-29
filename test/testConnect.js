@@ -1,3 +1,46 @@
+const REGRESSION_URI = 'http://iana.org/beep/transient/vortex-regression';
+
+function testChannelsResult (conn) {
+    if (! conn.isOk ()) {
+	log ("error", "Expected to find proper connection to check channels");
+	/* check errors */
+	while (conn.hasErrors ()) {
+	    log ("error", conn.popError ());
+	} /* end while */
+
+	return false;
+    }
+    
+    /* ok, now check profiles available */
+    if (! conn.isProfileSupported (REGRESSION_URI)) {
+	log ("error", "Expected to find profile supported: " + REGRESSION_URI);
+	return false;
+    }
+    
+    /* now open a channel here to do some useful work */
+    
+    /* call for the next test */
+    this.nextTest ();
+
+    return true;
+};
+
+function testChannels () {
+    /* do a connection */
+    log ("info", "Connecting to " + this.host + ":" + this.port);
+    var conn = new VortexConnection (this.host,
+				     this.port,
+				     new VortexTCPTransport (),
+				     testChannelsResult, this);
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+    
+}
+
 function testConnectResult (conn) {
 
     if (! conn.isOk ()) {
@@ -36,9 +79,9 @@ function testConnectResult (conn) {
 	log ("error", "Expected to find 29 profiles registered");
 	return false;
     }
-
-    /* close the conection properly */
-    /* conn.sessionClose (); */
+    
+    /* close the conection */
+    conn.Shutdown ();
 
     /* call for the next test */
     this.nextTest ();
@@ -60,6 +103,7 @@ function testIntraestructure () {
     log ("info", "Checking VortexEngine.checkReference..");
 
     /* check null reference */
+    Vortex.logEnabled = false;
     if (VortexEngine.checkReference (null)) {
 	log ("error", "Expected to find a failure while passing a null reference");
 	return false;
@@ -74,12 +118,14 @@ function testIntraestructure () {
     var object = {};
 
     /* check defined reference */
+    Vortex.logEnabled = true;
     if (! VortexEngine.checkReference (object)) {
 	log ("error", "Expected to find a success while passing a defined empty reference");
 	return false;
     }
 
     /* check defined reference but with an undefined attribute */
+    Vortex.logEnabled = false;
     if (VortexEngine.checkReference (object, "value")) {
 	log ("error", "Expected to find a failure while passing a defined empty reference with a check of an undefined attribute");
 	return false;
@@ -89,6 +135,7 @@ function testIntraestructure () {
     object.value = "this is a test";
 
     /* check defined reference but with an undefined attribute */
+    Vortex.logEnabled = true;
     if (! VortexEngine.checkReference (object, "value")) {
 	log ("error", "Expected to find a success while passing a defined reference with a check of a defined attribute (value)");
 	return false;
@@ -128,6 +175,9 @@ function RegressionTest (host, port) {
     /* record host and port */
     this.host       = host;
     this.port       = port;
+    
+    /* signal if tests must be stoped */
+    this.stopTests  = false;
 
     /* do not return nothing */
 };
@@ -136,7 +186,11 @@ function RegressionTest (host, port) {
  * @brief Method that runs the next test.
  */
 RegressionTest.prototype.nextTest = function () {
-
+    
+    /* check to stop tests */
+    if (this.stopTests) 
+	return;
+    
     /* drop an ok message to signal test ok */
     if (this.nextTestId != -1) {
 	log ("ok", "TEST-" + this.nextTestId + " : OK");
@@ -174,7 +228,8 @@ RegressionTest.prototype.nextTest = function () {
 RegressionTest.prototype.tests = [
     {name: "Check if jsVortex is available", testHandler: testjsVortexAvailable},
     {name: "Library infraestructure check", testHandler: testIntraestructure},
-    {name: "BEEP basic connection test", testHandler: testConnect}
+    {name: "BEEP basic connection test", testHandler: testConnect},
+    {name: "BEEP basic channel management test", testHandler: testChannels}
 ];
 
 

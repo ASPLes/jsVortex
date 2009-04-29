@@ -89,7 +89,7 @@ function VortexChannel (connection,
  */
 VortexChannel.prototype.sendRPY = function (content, mimeHeaders) {
     if (! this.isReady) {
-	console.warn ("VortexChannel.send: unable to send content, connection is not ready.");
+	Vortex.warn ("VortexChannel.send: unable to send content, connection is not ready.");
 	return false;
     }
 
@@ -110,11 +110,11 @@ VortexChannel.prototype.sendRPY = function (content, mimeHeaders) {
     /* now check how much from this content we can send assuming
      * remote allowed seqno (maxAllowedPeerSeqno) */
     var allowedSize = (this.maxAllowedPeerSeqno - this.nextPeerSeqno);
-    console.log ("VortexChannel.sendRPY: doing a send operation, allowed bytes: " + allowedSize + ", content size: " + content.length);
+    Vortex.log ("VortexChannel.sendRPY: doing a send operation, allowed bytes: " + allowedSize + ", content size: " + content.length);
 
     /* check channel stalled */
     if (allowedSize == 0) {
-	console.warn ("VortexChannel.sendRPY: channel is stalled, queueing content");
+	Vortex.warn ("VortexChannel.sendRPY: channel is stalled, queueing content");
 
 	/* add the content at the begining of the queue to
 	 * handle it first on the next operation. */
@@ -149,7 +149,7 @@ VortexChannel.prototype.sendRPY = function (content, mimeHeaders) {
     var frame        = "RPY " + this.num + " " + this.nextReplyMsgno + " " +
 	(isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + (content.length + _mimeHeaders.length + 2) + "\r\n" + this.getMimeHeaders (mimeHeaders) + "\r\n" + content + "END\r\n";
 
-    /* console.log ("VortexChanenl.sendRPY: sending frame: " + frame); */
+    /* Vortex.log ("VortexChanenl.sendRPY: sending frame: " + frame); */
 
     /* update channel status */
     this.nextPeerSeqno += content.length;

@@ -42,9 +42,9 @@ VortexEngine.checkReference = function (object, attr, msg) {
     /* check for null reference */
     if (object == null || typeof(object) == undefined) {
 	if (msg) {
-	    console.error ("Undefined reference found at: " + arguments.callee.caller.name + ", " + msg);
+	    Vortex.error ("Undefined reference found at: " + arguments.callee.caller.name + ", " + msg);
 	} else {
-	    console.error ("Undefined reference found at: " + arguments.callee.caller.name);
+	    Vortex.error ("Undefined reference found at: " + arguments.callee.caller.name);
 	}
 	return false;
     }
@@ -52,9 +52,9 @@ VortexEngine.checkReference = function (object, attr, msg) {
     if (attr != null && typeof(attr) != undefined) {
 	if (object[attr] == null || object[attr] == undefined) {
 	    if (msg) {
-		console.error ("Undefined attribute [" + attr + "] expected to be found found at: " + arguments.callee.caller.name + ", " + msg);
+		Vortex.error ("Undefined attribute [" + attr + "] expected to be found found at: " + arguments.callee.caller.name + ", " + msg);
 	    } else {
-		console.error ("Undefined attribute [" + attr + "] expected to be found found at: " + arguments.callee.caller.name);
+		Vortex.error ("Undefined attribute [" + attr + "] expected to be found found at: " + arguments.callee.caller.name);
 	    }
 	    return false;
 	} /* end if */
@@ -108,7 +108,7 @@ VortexEngine.getNumber = function (data) {
     }
 
     /* report a log */
-    console.log ("Getting value from " + this.position + ", to " + iterator);
+    Vortex.log ("Getting value from " + this.position + ", to " + iterator);
 
     /* update number of items read */
     this.itemsRead = iterator - this.position;
@@ -151,7 +151,7 @@ VortexEngine.parseMimeHeaders = function (mimeHeaders, data) {
 
 	/* get mime head */
 	mimeHead = data.substring (this.position, this.position + iterator);
-	console.log ("VortexEngine.parseMimeHeaders: header found: '" + mimeHead + "'");
+	Vortex.log ("VortexEngine.parseMimeHeaders: header found: '" + mimeHead + "'");
 
 	/* update position */
 	this.position += iterator + 1;
@@ -178,7 +178,7 @@ VortexEngine.parseMimeHeaders = function (mimeHeaders, data) {
 	/* get mime content */
 	mimeContent = data.substring (this.position, this.position + iterator);
 
-	console.log ("VortexEngine.parseMimeHeaders: header content found: '" + mimeContent + "'");
+	Vortex.log ("VortexEngine.parseMimeHeaders: header content found: '" + mimeContent + "'");
 
 	/* store mime header into the array */
 	var mimeHeader = new VortexMimeHeader (mimeHead, mimeContent);
@@ -192,7 +192,7 @@ VortexEngine.parseMimeHeaders = function (mimeHeaders, data) {
     this.position += 2;
     this.mimeHeadersSize = this.position - this.mimeHeadersSize;
 
-    console.log ("VortexEngine.parseMimeHeaders: MIME parse finished at: " + this.position + ", MIME headers size: " + this.mimeHeadersSize);
+    Vortex.log ("VortexEngine.parseMimeHeaders: MIME parse finished at: " + this.position + ", MIME headers size: " + this.mimeHeadersSize);
 
     return;
 };
@@ -210,31 +210,31 @@ VortexEngine.getFrame = function (connection, data) {
 
     /* get frame type */
     var strType = data.substring (0,3);
-    console.log ("Received frame type: " + strType + ", length: " + strType.length);
+    Vortex.log ("Received frame type: " + strType + ", length: " + strType.length);
 
     /* configure initial position for this parse operation */
     this.position = 4;
 
     /* get the frame channel number */
     var channel  = this.getNumber (data);
-    console.log ("channel: " + channel);
+    Vortex.log ("channel: " + channel);
 
     /* get the frame msgno */
     var msgno = this.getNumber (data);
-    console.log ("msgno: " + msgno);
+    Vortex.log ("msgno: " + msgno);
 
     /* get more character */
     var more  =	data[this.position + 1] == '*';
     this.position += 2;
-    console.log ("more: " + more);
+    Vortex.log ("more: " + more);
 
     /* get seqno value */
     var seqno = this.getNumber (data);
-    console.log ("seqno: " + seqno);
+    Vortex.log ("seqno: " + seqno);
 
     /* get size value */
     var size = this.getNumber (data);
-    console.log ("size: " + size);
+    Vortex.log ("size: " + size);
 
     /* check if we have to read ansno value */
     var ansno;
@@ -244,13 +244,13 @@ VortexEngine.getFrame = function (connection, data) {
 
     /* now check BEEP header end */
     if (data[this.position] != '\r' || data[this.position + 1] != '\n') {
-	console.error ("VortexEngine: ERROR: position: " + this.position);
-	console.error ("VortexEngine: ERROR: expected to find \\r\\n BEEP header trailer, but not found: " + Number (data[this.position]) + ", " + Number (data[this.position + 1]));
+	Vortex.error ("VortexEngine: ERROR: position: " + this.position);
+	Vortex.error ("VortexEngine: ERROR: expected to find \\r\\n BEEP header trailer, but not found: " + Number (data[this.position]) + ", " + Number (data[this.position + 1]));
 	return null;
     }
 
     /* update position to MIME headers */
-    console.log ("VortexEngine.getFrame: parsing MIME at: " + this.position);
+    Vortex.log ("VortexEngine.getFrame: parsing MIME at: " + this.position);
     this.position += 2;
 
     /* parse here all MIME headers */
@@ -258,12 +258,12 @@ VortexEngine.getFrame = function (connection, data) {
     this.parseMimeHeaders (mimeHeaders, data);
 
     var content = data.substring (this.position, this.position + size - this.mimeHeadersSize);
-    console.log ("Content found (size: " + size + ", position: " + this.position + ", length: " + data.length + "): '" + content + "'");
+    Vortex.log ("Content found (size: " + size + ", position: " + this.position + ", length: " + data.length + "): '" + content + "'");
 
     /* call to create frame object */
     var frame = new VortexFrame (strType, channel, msgno, more, seqno, size, ansno, mimeHeaders, content);
 
-    console.log ("Frame type: " + frame.getFrameType ());
+    Vortex.log ("Frame type: " + frame.getFrameType ());
 
     /* return frame object */
     return frame;
@@ -284,7 +284,7 @@ VortexEngine.channel0Received = function (frame) {
     if (this.connection.greetingsPending) {
 
 	/* call to process incoming content to prepare the connection */
-	console.log ("VortexEngine.channel0Received: connection is not ready, process greetings and prepare connection");
+	Vortex.log ("VortexEngine.channel0Received: connection is not ready, process greetings and prepare connection");
 	VortexEngine.channel0PrepareConnection.apply (this, [frame]);
 
 	/* report connection creation status (only if handler defined) */
@@ -310,7 +310,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
 
     /* check frame type */
     if (frame.type != "RPY") {
-	console.error ("VortexEngine.channel0PrepareConnection: received a non-positive greetings, closing BEEP session");
+	Vortex.error ("VortexEngine.channel0PrepareConnection: received a non-positive greetings, closing BEEP session");
 	this.connection.Shutdown ();
 	return false;
     }
@@ -320,7 +320,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
 
     /* check result (node reference) */
     if (node == null) {
-	console.error ("VortexEngine.channel0PrepareConnection: failed to parse initial <greeting>");
+	Vortex.error ("VortexEngine.channel0PrepareConnection: failed to parse initial <greeting>");
 	this.connection.Shutdown ();
 	return false;
     }
@@ -330,7 +330,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
 
     /* check content received */
     if (node.name != "greeting") {
-	console.error ("VortexEngine.channel0PrepareConnection: expected to find <greeting> node on BEEP greetings, but found: " + node.name);
+	Vortex.error ("VortexEngine.channel0PrepareConnection: expected to find <greeting> node on BEEP greetings, but found: " + node.name);
 	this.connection.Shutdown ();
 	return false;
     }
@@ -346,7 +346,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
 
 	    /* check <profile> node found inside <greeting> */
 	    if (node.childs[tag].name != 'profile') {
-		console.error ("VortexEngine.channel0PrepareConnection: expected to find <profile> node on BEEP greetings");
+		Vortex.error ("VortexEngine.channel0PrepareConnection: expected to find <profile> node on BEEP greetings");
 		this.connection.Shutdown ();
 		return false;
 	    } /* end if */
@@ -356,13 +356,13 @@ VortexEngine.channel0PrepareConnection = function (frame)
 
 		/* check uri attribute */
 		if (node.childs[tag].attrs[attr].name != 'uri') {
-		    console.error ("VortexEngine.channel0PrepareConnection: expected to find 'uri' attribute on <profile> node on BEEP greetings");
+		    Vortex.error ("VortexEngine.channel0PrepareConnection: expected to find 'uri' attribute on <profile> node on BEEP greetings");
 		    this.connection.Shutdown ();
 		    return false;
 		}
 
 		/* register profile */
-		console.log ("VortexEngine.channel0PrepareConnection: registering profile: " + node.childs[tag].attrs[attr].value);
+		Vortex.log ("VortexEngine.channel0PrepareConnection: registering profile: " + node.childs[tag].attrs[attr].value);
 		this.connection.profiles.push (node.childs[tag].attrs[attr].value);
 	    } /* end for */
 	} /* end for */
