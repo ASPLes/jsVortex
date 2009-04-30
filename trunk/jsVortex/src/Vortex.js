@@ -29,6 +29,13 @@ if (typeof Vortex == "undefined") {
 	    /* do log */
 	    console.log (message);
 	},
+	log2: function (message) {
+	    /* check if log is enabled */
+	    if (! Vortex.log2Enabled)
+		return;
+	    /* do log */
+	    console.log (message);
+	},
 	error: function (message) {
 	    /* check if log is enabled */
 	    if (! Vortex.logEnabled)
@@ -44,9 +51,13 @@ if (typeof Vortex == "undefined") {
 	    console.warn (message);
 	},
 	/**
-	 * @brief Default configuration, log disabled. 
+	 * @brief Default configuration, log disabled.
 	 */
-	logEnabled : true
+	logEnabled : true,
+	/**
+	 * @brief By default second level log disabled.
+	 */
+	log2Enabled : false
     };
 }
 
