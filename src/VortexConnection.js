@@ -62,9 +62,9 @@ function VortexConnection (host,
     this._transport.onError (this, this._onError);
 
     /* create a channel 0 for this new connection */
-    this.channels = [
-	new VortexChannel (this, 0, "N/A", VortexEngine.channel0Received, null)
-    ];
+    this.channels = {
+	0 : new VortexChannel (this, 0, "N/A", VortexEngine.channel0Received, null)
+    };
 
     /* do TCP connect */
     Vortex.log ("Doing TCP connect to: " + host + ", port: " + port);
@@ -124,7 +124,7 @@ VortexConnection.prototype.isOk = function () {
  * peer.
  */
 VortexConnection.prototype.isProfileSupported = function (profile) {
-    while (position in this.profiles)  {
+    for (position in this.profiles)  {
 	if (this.profiles[position] == profile)
 	    return true;
     } /* end while */
@@ -211,7 +211,7 @@ VortexConnection.prototype.openChannel = function (params) {
 	return false;
 
     /* check channel number to use */
-    if (params.channelNumber == undefined || params.channelNumber == 0)
+    if (params.channelNumber == undefined || params.channelNumber <= 0)
 	params.channelNumber = this._getNextChannelNumber ();
     else {
 	/* check if the channel number request is already in use */
@@ -226,21 +226,18 @@ VortexConnection.prototype.openChannel = function (params) {
     Vortex.log ("requesting to start channel=" + params.channelNumber + ", with profile: " + params.profile);
 
     /* check to create channel start reply handlers to notify callers */
-    if (conn.channels[0].startHandlers == undefined) {
+    if (this.channels[0].startHandlers == undefined) {
 	/* init an empty hash to hold all data associated to fully
 	 * perfom a notification to the application level that the
 	 * channel was created. */
-	conn.channels[0].startHandlers = {};
-    }
-
-    /* check that the channel number is not in transit of being created */
-    if (conn.channels[0].startHandlers[params.channelNumber] != undefined) {
-	this._onError ("Requested to open a channel that is already in transit of being opened (" + params.channelNumber + ")");
-	return false;
+	this.channels[0].startHandlers = [];
     }
 
     /* store start handler handler */
-    conn.channels[0].startHandlers[params.channels] =  params;
+    this.channels[0].startHandlers.push (params);
+
+    /* record channel reference being created */
+    params.channel = new VortexChannel (this, params.channelNumber, params.profile);
 
     /* build start request operation */
     var message = "<start number='" + params.channelNumber + "'>\r\n" +
@@ -248,12 +245,20 @@ VortexConnection.prototype.openChannel = function (params) {
 	"</start>\r\n";
 
     /* acquire channel 0 to send request */
-    if (! conn.channels[0].sendMSG (message)) {
+    if (! this.channels[0].sendMSG (message)) {
 	this._onError ("Failed to send start request");
 	return false;
     } /* end if */
 
     Vortex.log ("start request sent, now wait for reply to continue");
+
+    /* check connection at this point */
+    if (! this.isOk ()) {
+	Vortex.error ("after sending start request, broken connection was found");
+	VortexEngine.Apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [this, null]);
+	return false;
+    }
+
     return true;
 };
 
@@ -307,7 +312,7 @@ VortexConnection.prototype.popError = function () {
  */
 VortexConnection.prototype._onRead = function (connection, data) {
     /* handle data received from the transport */
-    Vortex.log ("VortexConnection._onRead, data received: " + data);
+    Vortex.log2 ("VortexConnection._onRead, data received: " + data);
 
     /* create the frame */
     var frame = VortexEngine.getFrame (connection, data);
@@ -366,9 +371,14 @@ VortexConnection.prototype._send = function (content) {
 };
 
 /**
- * @internal Handler that is called to save all errors
- * founc during processing to allow user to retrieve the
- * error found.
+ * @internal Handler that is called to save all errors founc during
+ * processing to allow user to retrieve the error found.
+ *
+ * jsVortex internals report errors using this method to allow the
+ * application level to later retrieve these errors by using
+ * VortexConnection.hasErrors and VortexConnection.popError
+ *
+ * @param error The error to report (and queue)
  */
 VortexConnection.prototype._onError = function (error) {
     /* push error into the stack */

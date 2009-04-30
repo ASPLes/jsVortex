@@ -194,7 +194,7 @@ VortexChannel.prototype.sendCommon = function (content, mimeHeaders, type) {
     /* Vortex.log ("VortexChanenl.sendRPY: sending frame: " + frame); */
 
     /* update channel status */
-    this.nextPeerSeqno += content.length;
+    this.nextPeerSeqno += (content.length + _mimeHeaders.length + 2);
 
     /* send the content */
     return (this.connection._send.apply (this.connection, [frame]));

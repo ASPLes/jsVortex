@@ -65,6 +65,53 @@ VortexEngine.checkReference = function (object, attr, msg) {
 };
 
 /**
+ * @brief Support function that allows to notify on the handler
+ * provided, running optionally on the context provided, the list of
+ * arguments provided. In the case the context is not provided, the
+ * handler is executed with no context (this keyword points to null).
+ *
+ * @param handler [function] The handler to executed.
+ *
+ * @param context [object] Optional reference to the context that is
+ * required to run the handler on. In the case of null or undefined is
+ * provided, the 'this' keyword will be the global object.
+ *
+ * @param arguments [array] A list of arguments to provided to the
+ * handler. In the case of no arguments, do provide nothing (or null
+ * or undefined).
+ *
+ * @return The function returns the value returned by the application
+ * if the handler, with the arguments provided, under the optional
+ * context.
+ *
+ */
+VortexEngine.Apply = function (handler, context, arguments) {
+    /* check handler */
+    if (typeof handler == undefined || handler == null)
+	return false;
+
+    /* check context */
+    return handler.apply (context, arguments);
+};
+
+/**
+ * @brief Allows to count the number of items that are stored
+ * in the provided object. This function is useful if the object
+ * is used as an associative array.
+ *
+ * @param object The object that is required to return the number
+ * of properties or items stored.
+ *
+ * @return 0 or the number of items stored.
+ */
+VortexEngine.count = function (object) {
+    var size = 0;
+    for (item in object)
+	size++;
+    return size;
+}
+
+/**
  * @internal Function that allows to get the next number inside
  * the stream referenced by data.
  *
@@ -258,12 +305,12 @@ VortexEngine.getFrame = function (connection, data) {
     this.parseMimeHeaders (mimeHeaders, data);
 
     var content = data.substring (this.position, this.position + size - this.mimeHeadersSize);
-    Vortex.log ("Content found (size: " + size + ", position: " + this.position + ", length: " + data.length + "): '" + content + "'");
+    Vortex.log2 ("Content found (size: " + size + ", position: " + this.position + ", length: " + data.length + "): '" + content + "'");
 
     /* call to create frame object */
     var frame = new VortexFrame (strType, channel, msgno, more, seqno, size, ansno, mimeHeaders, content);
 
-    Vortex.log ("Frame type: " + frame.getFrameType ());
+    Vortex.log2 ("Frame type: " + frame.getFrameType ());
 
     /* return frame object */
     return frame;
@@ -293,6 +340,42 @@ VortexEngine.channel0Received = function (frame) {
     } /* end if */
 
     /* normal processing for BEEP channel 0 */
+    var node = VortexXMLEngine.parseFromString (frame.content);
+
+    if (node.name == "start") {
+	/* received a start request */
+    } else if (node.name == "close") {
+	/* received a close request */
+    } else if (node.name == "profile") {
+	/* received a profile reply, check it */
+	Vortex.log ("Received profile reply, checking: ");
+	if (frame.type != "RPY") {
+	    /* close the connection */
+	    this.connection.Shutdown ();
+	    this.connection._onError ("Expected to reply a RPY frame type for a <profile> message but found: " + frame.type);
+	    return;
+	} /* end if */
+
+	/* get the next	handler (the most older pending request) */
+	var params = this.startHandlers.shift ();
+	if (! VortexEngine.checkReference (params)){
+	    Vortex.Error ("Expected to find handlers required to finish channel close and notify, but nothing was found");
+	    return;
+	} /* end if */
+
+	/* flag as ready the channel */
+	Vortex.log ("Channel start reply received for channel: " + params.channelNumber + ", running profile: " + params.profile);
+	params.channel.isReady = true;
+
+	/* add it to the connection */
+	this.connection.channels[params.channelNumber] = params.channel;
+
+	/* notify the channel crated */
+	VortexEngine.Apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [this.connection, params.channel]);
+	return;
+    }
+
+
     return;
 };
 
@@ -362,7 +445,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
 		}
 
 		/* register profile */
-		Vortex.log ("VortexEngine.channel0PrepareConnection: registering profile: " + node.childs[tag].attrs[attr].value);
+		Vortex.log2 ("VortexEngine.channel0PrepareConnection: registering profile: " + node.childs[tag].attrs[attr].value);
 		this.connection.profiles.push (node.childs[tag].attrs[attr].value);
 	    } /* end for */
 	} /* end for */
