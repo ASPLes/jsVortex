@@ -4,6 +4,12 @@
  **/
 const REGRESSION_URI = 'http://iana.org/beep/transient/vortex-regression';
 
+function testChannelResultCreated (channel) {
+    Vortex.log ("Received reply to our channel creation request");
+
+    return false;
+}
+
 function testChannelsResult (conn) {
     if (! conn.isOk ()) {
 	log ("error", "Expected to find proper connection to check channels");
@@ -24,7 +30,9 @@ function testChannelsResult (conn) {
     /* now open a channel here to do some useful work */
     conn.openChannel ({
 	profile: REGRESSION_URI,
-	channelNumber: 0
+	channelNumber: 0,
+	onChannelCreatedHandler : testChannelResultCreated,
+	onChannelCreatedContext : this
     });
 
     /* call for the next test */

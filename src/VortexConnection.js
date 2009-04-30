@@ -225,13 +225,27 @@ VortexConnection.prototype.openChannel = function (params) {
 
     Vortex.log ("requesting to start channel=" + params.channelNumber + ", with profile: " + params.profile);
 
+    /* check to create channel start reply handlers to notify callers */
+    if (conn.channels[0].startHandlers == undefined) {
+	/* init an empty hash to hold all data associated to fully
+	 * perfom a notification to the application level that the
+	 * channel was created. */
+	conn.channels[0].startHandlers = {};
+    }
+
+    /* check that the channel number is not in transit of being created */
+    if (conn.channels[0].startHandlers[params.channelNumber] != undefined) {
+	this._onError ("Requested to open a channel that is already in transit of being opened (" + params.channelNumber + ")");
+	return false;
+    }
+
+    /* store start handler handler */
+    conn.channels[0].startHandlers[params.channels] =  params;
+
     /* build start request operation */
     var message = "<start number='" + params.channelNumber + "'>\r\n" +
 	"    <profile uri='" + params.profile + "' />\r\n" +
 	"</start>\r\n";
-
-    /* fill channel and connection about to be created */
-    params.connection = this;
 
     /* acquire channel 0 to send request */
     if (! conn.channels[0].sendMSG (message)) {
