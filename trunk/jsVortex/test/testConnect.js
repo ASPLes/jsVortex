@@ -4,10 +4,44 @@
  **/
 const REGRESSION_URI = 'http://iana.org/beep/transient/vortex-regression';
 
-function testChannelResultCreated (channel) {
+function testChannelResultCreated (conn, channel) {
     Vortex.log ("Received reply to our channel creation request");
+    if (channel == null) {
+	log ("error", "Expected to find proper channel reference, but found null. Errors found are:");
+	while (conn.hasErrors ()) {
+	    log ("error", conn.popError ());
+	};
+	return false;
+    }
 
-    return false;
+    /* check the channel to be created and ready */
+    if (! channel.isReady) {
+	log ("error", "Expected to find proper channel creation, but found not ready channel");
+	return false;
+    }
+
+    /* check channel profile */
+    if (channel.profile != REGRESSION_URI) {
+	log ("error", "Expected to find channel created under URI " + REGRESSION_URI + ", but found: " + channel.profile);
+	return false;
+    }
+
+    /* check connection references */
+    if (channel.connection != conn) {
+	log ("error", "Expected to find channel's connection reference to be equal to reference notified");
+	return false;
+    }
+
+    /* check number of channels opened */
+    if (VortexEngine.count (conn.channels) != 2) {
+	log ("error", "Expected to find 2 channels opened but found: " + VortexEngine.count (conn.channels));
+	return false;
+    }
+
+    /* call to trigger next test */
+    this.nextTest ();
+
+    return true;
 }
 
 function testChannelsResult (conn) {
@@ -34,9 +68,6 @@ function testChannelsResult (conn) {
 	onChannelCreatedHandler : testChannelResultCreated,
 	onChannelCreatedContext : this
     });
-
-    /* call for the next test */
-    this.nextTest ();
 
     return true;
 };
@@ -85,8 +116,8 @@ function testConnectResult (conn) {
     }
 
     /* check channels opened */
-    if (conn.channels.length != 1) {
-	log ("error", "Expected to find 1 channel opened in the connection, but found: " + conn.channels.length);
+    if (VortexEngine.count (conn.channels) != 1) {
+	log ("error", "Expected to find 1 channel opened in the connection, but found: " + VortexEngine.count (conn.channels));
 	return false;
     }
 
@@ -113,6 +144,27 @@ function testConnect () {
 				     new VortexTCPTransport (),
 				     testConnectResult, this);
     return true;
+}
+
+function checkApply (value) {
+    if (this != testIntraestructure) {
+	log ("error", "Expected to find proper this reference, but found something different");
+	return;
+    } /* end if */
+
+    /* accumulate value received */
+    this.value += value;
+    return;
+}
+
+function checkApply2 (value, value2) {
+    if (this == null) {
+	log ("error", "Expected to not find null for 'this' reference, but found it");
+	return -1;
+    } /* end if */
+
+    /* accumulate value received */
+    return value + value2;
 }
 
 function testIntraestructure () {
@@ -154,6 +206,20 @@ function testIntraestructure () {
     Vortex.logEnabled = true;
     if (! VortexEngine.checkReference (object, "value")) {
 	log ("error", "Expected to find a success while passing a defined reference with a check of a defined attribute (value)");
+	return false;
+    }
+
+    /* now check VortexEngine.Apply */
+    testIntraestructure.value = 1;
+    VortexEngine.Apply (checkApply, testIntraestructure, [3]);
+    if (testIntraestructure.value != 4) {
+	log ("error", "Expected to find value 4 but found: " + testIntraestructure.value);
+	return false;
+    }
+    /* now check it without context */
+    var value = VortexEngine.Apply (checkApply2, null, [4, 8]);
+    if (value != 12) {
+	log ("error", "Expected to find value 12 but found: " + value);
 	return false;
     }
 
@@ -209,7 +275,7 @@ RegressionTest.prototype.nextTest = function () {
 
     /* drop an ok message to signal test ok */
     if (this.nextTestId != -1) {
-	log ("ok", "TEST-" + this.nextTestId + " : OK");
+	log ("ok", "TEST-" + this.nextTestId + " " + this.tests[this.nextTestId].name + ": OK");
     }
 
     while (true) {
