@@ -85,7 +85,7 @@ VortexEngine.checkReference = function (object, attr, msg) {
  * context.
  *
  */
-VortexEngine.Apply = function (handler, context, arguments) {
+VortexEngine.apply = function (handler, context, arguments) {
     /* check handler */
     if (typeof handler == undefined || handler == null)
 	return false;
@@ -357,9 +357,9 @@ VortexEngine.channel0Received = function (frame) {
 	} /* end if */
 
 	/* get the next	handler (the most older pending request) */
-	var params = this.startHandlers.shift ();
+	var params = this.connection.startHandlers.shift ();
 	if (! VortexEngine.checkReference (params)){
-	    Vortex.Error ("Expected to find handlers required to finish channel close and notify, but nothing was found");
+	    Vortex.error ("Expected to find a handler required to finish channel start and notify, but nothing was found");
 	    return;
 	} /* end if */
 
@@ -371,8 +371,54 @@ VortexEngine.channel0Received = function (frame) {
 	this.connection.channels[params.channelNumber] = params.channel;
 
 	/* notify the channel crated */
-	VortexEngine.Apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [this.connection, params.channel]);
+	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [this.connection, params.channel]);
 	return;
+    } else if (node.name == "ok") {
+	/* received afirmative reply, this means we have to handle pending close request */
+	if (frame.type != "RPY") {
+	    /* close the connection */
+	    this.connection.Shutdown ("Channel close reply received but frame type expected is RPY, closing connection.");
+	    return;
+	}
+
+	/* check for pending close request */
+	var params = this.connection.closeHandlers.shift ();
+	if (! VortexEngine.checkReference (params)){
+	    Vortex.error ("Expected to find a handler required to finish channel close and notify, but nothing was found");
+	    return;
+	} /* end if */
+
+	/* get a reference to the channel being closed */
+	var channel = this.connection.channels[params.channelNumber];
+
+	/* remove reference from the connection to the channel */
+	delete channel.connection.channels[channel.number];
+	/* remove reference from channel to connection */
+	delete channel.connection;
+
+	/* discarding channel close notification */
+	if (! VortexEngine.checkReference (params.channelCloseHandler))
+	    return;
+
+	/* create reply data to be passed to the handler */
+	var replyData = {
+	    /* connection where the channel was operating */
+	    conn: this.connection,
+	    /* channel closed */
+	    status: true,
+	    replyMsg : "Channel properly closed"
+	};
+
+	/* now notify */
+	VortexEngine.apply (
+	    params.channelCloseHandler,
+	    params.channelCloseContext,
+	    [replyData]);
+
+	return;
+    } else if (node.name == "error") {
+	/* received negative reply */
+	Vortex.error ("Received error reply, checking: " + frame.type + ", stil not handled");
     }
 
 

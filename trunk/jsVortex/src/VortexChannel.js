@@ -4,15 +4,32 @@
  **/
 
 function VortexChannel (connection,
-			num,
+			number,
 			profile,
 			receivedHandler,
 			closeHandler) {
 
+    /**
+     * @brief Channel's connection.
+     */
     this.connection      = connection;
-    this.num             = num;
+
+    /**
+     * @brief Channel number.
+     */
+    this.number          = number;
+    /**
+     * @brief Channel profile
+     */
     this.profile         = profile;
+    /**
+     * @brief Channel received handler.
+     */
     this.receivedHandler = receivedHandler;
+
+    /**
+     * @brief Channel close handler.
+     */
     this.closeHandler    = closeHandler;
 
     /* configure initial window size */
@@ -70,7 +87,7 @@ function VortexChannel (connection,
 
     /* channel status (if channel number if 0, it is ready,
      * otherwise it is pending to be fully opened) */
-    this.isReady   = (num == 0);
+    this.isReady   = (number == 0);
 };
 
 /**
@@ -181,12 +198,12 @@ VortexChannel.prototype.sendCommon = function (content, mimeHeaders, type) {
     var frame;
     if (type == "RPY") {
 	/* RPY frames */
-	frame        = "RPY " + this.num + " " + this.nextReplyMsgno + " " +
+	frame        = "RPY " + this.number + " " + this.nextReplyMsgno + " " +
 	    (isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + (content.length + _mimeHeaders.length + 2) + "\r\n" +
 	    this.getMimeHeaders (mimeHeaders) + "\r\n" + content + "END\r\n";
     } else {
 	/* MSG frames */
-	frame        = "MSG " + this.num + " " + this.nextMsgno + " " +
+	frame        = "MSG " + this.number + " " + this.nextMsgno + " " +
 	    (isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + (content.length + _mimeHeaders.length + 2) + "\r\n" +
 	    this.getMimeHeaders (mimeHeaders) + "\r\n" + content + "END\r\n";
     }
@@ -212,7 +229,7 @@ VortexChannel.prototype.sendCommon = function (content, mimeHeaders, type) {
 VortexChannel.prototype.getMimeHeaders = function (mimeHeaders) {
 
     /* mime headers for channel 0 */
-    if (this.num == 0) {
+    if (this.number == 0) {
 	return "Content-Type: application/beep+xml\r\n";
     }
 

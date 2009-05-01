@@ -226,26 +226,24 @@ VortexConnection.prototype.openChannel = function (params) {
     Vortex.log ("requesting to start channel=" + params.channelNumber + ", with profile: " + params.profile);
 
     /* check to create channel start reply handlers to notify callers */
-    if (this.channels[0].startHandlers == undefined) {
-	/* init an empty hash to hold all data associated to fully
-	 * perfom a notification to the application level that the
-	 * channel was created. */
-	this.channels[0].startHandlers = [];
+    if (this.startHandlers == undefined) {
+	/* init an empty list to hold pending start handlers */
+	this.startHandlers = [];
     }
 
     /* store start handler handler */
-    this.channels[0].startHandlers.push (params);
+    this.startHandlers.push (params);
 
     /* record channel reference being created */
     params.channel = new VortexChannel (this, params.channelNumber, params.profile);
 
     /* build start request operation */
-    var message = "<start number='" + params.channelNumber + "'>\r\n" +
+    var _message = "<start number='" + params.channelNumber + "'>\r\n" +
 	"    <profile uri='" + params.profile + "' />\r\n" +
 	"</start>\r\n";
 
     /* acquire channel 0 to send request */
-    if (! this.channels[0].sendMSG (message)) {
+    if (! this.channels[0].sendMSG (_message)) {
 	this._onError ("Failed to send start request");
 	return false;
     } /* end if */
@@ -255,7 +253,107 @@ VortexConnection.prototype.openChannel = function (params) {
     /* check connection at this point */
     if (! this.isOk ()) {
 	Vortex.error ("after sending start request, broken connection was found");
-	VortexEngine.Apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [this, null]);
+	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [this, null]);
+	return false;
+    }
+
+    return true;
+};
+
+/**
+ * @brief Close the channel configured in the params object,
+ * optionally doing a notification on the application level handler
+ * provided.
+ *
+ * @param channelNumber [int] Number of the channel to close on the
+ * connection. If the channel is not available, the method reports
+ * error found.
+ *
+ * @param channelCloseHandler [handler] The handler that is used by
+ * the method to notify the caller with the termination status. On
+ * this method is notified either if the channel was closed or the
+ * error found.
+ *
+ * @param channelCloseContext [object] The context object under which
+ * the handler will be executed.
+ *
+ * @return true in the case the close operation start without incident
+ * (request to close the message sent waiting for reply). Otherwise
+ * false is returned indicating the close operation was not
+ * started. You can safely skip value returned by the function and
+ * handle all cases at the notification handler (channelCloseHandler).
+ *
+ */
+VortexConnection.prototype.closeChannel = function (params) {
+
+    /* check we have atleast defined channelNumber */
+    if (! VortexEngine.checkReference (params, "channelNumber")) {
+	/* create reply data */
+	var replyData = {
+	    conn : this,
+	    status : false,
+	    replyMsg  : "Received request to close a channel without providing the channel number to close"
+	};
+	/* notify user */
+	VortexEngine.apply (params.channelCloseHandler, params.channelCloseContext, [replyData]);
+	return false;
+    }
+
+    /* check if the channel exists */
+    if (! VortexEngine.checkReference (this.channels[params.channelNumber], "number")) {
+	/* create reply data */
+	var replyData = {
+	    conn : this,
+	    status : false,
+	    replyMsg  : "Received a request to close channel: " + params.channelNumber + ", but that channel is not available on the connection"
+	};
+	/* notify user */
+	VortexEngine.apply (params.channelCloseHandler, params.channelCloseContext, [replyData]);
+	return false;
+    }
+
+    /* get a reference to the channel to better work from here */
+    var channel = this.channels[params.channelNumber];
+    if (channel._isBeingClosed) {
+	/* create reply data */
+	var replyData = {
+	    conn : this,
+	    status : false,
+	    replyMsg  : "Received a request to close channel: " + params.channelNumber + ", but that channel is already in process of being closed"
+	};
+	/* notify user */
+	VortexEngine.apply (params.channelCloseHandler, params.channelCloseContext, [replyData]);
+	return false;
+    }
+
+    /* flag the channel as closed */
+    channel._isBeingClosed = true;
+
+    if (this.closeHandlers == undefined) {
+	/* init empty list to hold pending close handlers */
+	this.closeHandlers = [];
+    }
+
+    /* store request as pending */
+    this.closeHandlers.push (params);
+
+    Vortex.log ("VortexConnection.closeChannel: requested to close channel: " +
+		channel.number + ", running profile: " + channel.profile);
+
+    /* build close message */
+    var _message = "<close number='" + channel.number + "' code='200' />\r\n";
+
+    if (! this.channels[0].sendMSG (_message)) {
+	this._onError ("Failed to send close message");
+	return false;
+    }
+
+    Vortex.log ("VortexConnection.closeChannel: close request for channel " + channel.number + " sent ok");
+
+    /* check connection at this point */
+    if (! this.isOk ()) {
+	Vortex.error ("after sending start request, broken connection was found");
+	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [this, null]);
 	return false;
     }
 
@@ -264,10 +362,15 @@ VortexConnection.prototype.openChannel = function (params) {
 
 
 /**
- * @brief Closes the transport connection without doing
- * BEEP close negotiation phase.
+ * @brief Closes the transport connection without doing BEEP close
+ * negotiation phase.
+ *
+ * @param error [string] Optional message to report as error. If
+ * defined, this value will be queued to be retrieved by the users
+ * using VortexConnection.hasErrors () method.
+ *
  */
-VortexConnection.prototype.Shutdown = function () {
+VortexConnection.prototype.Shutdown = function (error) {
     /* call to close on transport */
     if (this._transport != null)
 	this._transport.close ();
@@ -277,6 +380,10 @@ VortexConnection.prototype.Shutdown = function () {
 
     /* nullify transport reference */
     this._transport = null;
+
+    /* push message if defined */
+    if (typeof error != undefined)
+	conn._onError (error);
 };
 
 /**
@@ -381,8 +488,20 @@ VortexConnection.prototype._send = function (content) {
  * @param error The error to report (and queue)
  */
 VortexConnection.prototype._onError = function (error) {
+
+    /* check and configure default error limit to store */
+    if (this.errorLimit == undefined)
+	this.errorLimit = 10;
+
     /* push error into the stack */
     this.stackError.push (error);
+
+    /* shift all ancient messages until stacked errors are less that
+     the allows value. This allows to keep errors stacked controlled */
+    while (this.stackError.length > this.errorLimit)
+	this.stackError.shift ();
+
+    return;
 };
 
 /**
