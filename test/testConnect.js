@@ -4,13 +4,40 @@
  **/
 const REGRESSION_URI = 'http://iana.org/beep/transient/vortex-regression';
 
+function testChannelCloseResult (replyData) {
+
+    Vortex.log ("Received channel close reply");
+    if (! replyData.status ){
+	log ("error", "Expected to find proper channel close, but found a failure. Error received: " +
+	     replyData.replyCode + ": " + replyData.replyMsg);
+	showErrors (conn);
+	return false;
+    }
+
+    /* check here the connection status */
+    if (! replyData.conn.isOk ()) {
+	log ("error", "Expected to find proper channel close, but the connection supporting the channel is not opened");
+	showErrors (replyData.conn);
+	return false;
+    }
+
+    /* check here the number of channels opened */
+    if (VortexEngine.count (replyData.conn.channels) != 1) {
+	log ("error", "Expected to find 1 channel opened, but found: " + Vortex.count (replyData.conn.channels));
+	return false;
+    }
+
+    /* call to trigger next test */
+    this.nextTest ();
+
+    return true;
+}
+
 function testChannelResultCreated (conn, channel) {
     Vortex.log ("Received reply to our channel creation request");
     if (channel == null) {
 	log ("error", "Expected to find proper channel reference, but found null. Errors found are:");
-	while (conn.hasErrors ()) {
-	    log ("error", conn.popError ());
-	};
+	showErrors (conn);
 	return false;
     }
 
@@ -38,8 +65,13 @@ function testChannelResultCreated (conn, channel) {
 	return false;
     }
 
-    /* call to trigger next test */
-    this.nextTest ();
+    /* now close the channel */
+    log ("info", "channel created, now requesting to close it");
+    conn.closeChannel ({
+	    channelNumber: channel.number,
+	    channelCloseHandler: testChannelCloseResult,
+	    channelCloseContext: this
+    });
 
     return true;
 }
@@ -47,11 +79,7 @@ function testChannelResultCreated (conn, channel) {
 function testChannelsResult (conn) {
     if (! conn.isOk ()) {
 	log ("error", "Expected to find proper connection to check channels");
-	/* check errors */
-	while (conn.hasErrors ()) {
-	    log ("error", conn.popError ());
-	} /* end while */
-
+	showErrors (conn);
 	return false;
     }
 
@@ -92,12 +120,7 @@ function testConnectResult (conn) {
 
     if (! conn.isOk ()) {
 	log ("error", "Failed to connect..");
-
-	/* check errors */
-	while (conn.hasErrors ()) {
-	    log ("error", conn.popError ());
-	} /* end while */
-
+	showErrors (conn);
 	return false;
     }
 
@@ -242,6 +265,19 @@ function testjsVortexAvailable () {
     this.nextTest ();
     return true;
 };
+
+function showErrors (conn) {
+
+    /* check for pending errors */
+    if (! conn.hasErrors ())
+	return;
+
+    /* log all errors */
+    log ("error", "Connection errors found follows: ");
+    while (conn.hasErrors ())
+	log ("error", conn.popError ());
+    return;
+}
 
 /**
  * @brief Constructor function that creates a new regression test.
