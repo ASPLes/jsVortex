@@ -41,9 +41,27 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 
     /* find node name start tag */
     if (data[iterator] != '<') {
-	Vortex.error ("VortexXMLEngine.parseXMLNode: expected to find XML start tag '<' NOT FOUND: '" + data[iterator] + "'");
+
+	/* check we have parent */
+	if (parentNode == null) {
+	    Vortex.error ("VortexXMLEngine.parseXMLNode: found PCDATA but no parent to assign it. Input looks like invalid XML");
+	    return null;
+	} /* end if */
+
+	/* find node termination */
+	while (iterator < data.length) {
+	    if (data[iterator] == '<')
+		break;
+	    iterator++;
+	} /* end while */
+
+	/* configure content found */
+	parentNode.content = data.substring (this.position, iterator);
+	this.position      = iterator;
+	Vortex.log2 ("VortexXMLEngine.parseXMLNode: Found xml PC content for node '" + parentNode.name + "': " + parentNode.content);
 	return null;
     }
+
     /* record position */
     this.position = iterator;
 
@@ -164,7 +182,7 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 
 	    /* stop processing if found an error */
 	    if (child == null)
-		return null;
+		break;
 
 	    /* store child read */
 	    node.childs.push (child);
@@ -182,7 +200,7 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 	} while (true);
 
 	/* read node termination */
-	iterator = VortexXMLEngine.consumeWhiteSpaces (data, iterator);
+	iterator = VortexXMLEngine.consumeWhiteSpaces (data, this.position);
 	if (data[iterator] != '<' || data[iterator + 1] != '/') {
 	    Vortex.error ("VortexXMLEngine.parseXMLNode: expected to find XML node termination </, but found: " + data[iterator] + data[iterator + 1]);
 	    return null;
@@ -210,7 +228,6 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 
 	/* update parser position */
 	this.position = iterator + 1;
-
     } /* end if (node.haveChilds) */
 
     Vortex.log2 ("VortexXMLEngine.parseXMLNode: finished node parsing for: " + node.name);

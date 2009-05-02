@@ -342,17 +342,22 @@ VortexEngine.channel0Received = function (frame) {
     /* normal processing for BEEP channel 0 */
     var node = VortexXMLEngine.parseFromString (frame.content);
 
+    /* check result returned before continue */
+    if (node == null) {
+	Vortex.error ("VortexEngine.channel0Received: failed to parse document received over channel 0, closing session");
+	this.connection.Shutdown ("VortexEngine.channel0Received: failed to parse document received over channel 0, closing session");
+	return;
+    } /* end if */
+
     if (node.name == "start") {
 	/* received a start request */
     } else if (node.name == "close") {
 	/* received a close request */
     } else if (node.name == "profile") {
 	/* received a profile reply, check it */
-	Vortex.log ("Received profile reply, checking: ");
 	if (frame.type != "RPY") {
 	    /* close the connection */
-	    this.connection.Shutdown ();
-	    this.connection._onError ("Expected to reply a RPY frame type for a <profile> message but found: " + frame.type);
+	    this.connection.Shutdown ("Expected to reply a RPY frame type for a <profile> message but found: " + frame.type);
 	    return;
 	} /* end if */
 
@@ -367,11 +372,22 @@ VortexEngine.channel0Received = function (frame) {
 	Vortex.log ("Channel start reply received for channel: " + params.channelNumber + ", running profile: " + params.profile);
 	params.channel.isReady = true;
 
+	/* remove on disconnect */
+	this.connection.uninstallOnDisconnect (params.onDisconnectId);
+
 	/* add it to the connection */
 	this.connection.channels[params.channelNumber] = params.channel;
 
+	/* create replyData to notify failure */
+	var replyData = {
+	    conn : this.connection,
+	    channel : params.channel,
+	    replyCode : "200",
+	    replyMsg : "Channel started ok"
+	};
+
 	/* notify the channel crated */
-	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [this.connection, params.channel]);
+	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
 	return;
     } else if (node.name == "ok") {
 	/* received afirmative reply, this means we have to handle pending close request */
@@ -387,6 +403,9 @@ VortexEngine.channel0Received = function (frame) {
 	    Vortex.error ("Expected to find a handler required to finish channel close and notify, but nothing was found");
 	    return;
 	} /* end if */
+
+	/* remove on disconnect */
+	this.connection.uninstallOnDisconnect (params.onDisconnectId);
 
 	/* get a reference to the channel being closed */
 	var channel = this.connection.channels[params.channelNumber];
@@ -406,7 +425,7 @@ VortexEngine.channel0Received = function (frame) {
 	    conn: this.connection,
 	    /* channel closed */
 	    status: true,
-	    replyMsg : "Channel properly closed"
+	    replyMsg: "Channel properly closed"
 	};
 
 	/* now notify */
@@ -417,12 +436,58 @@ VortexEngine.channel0Received = function (frame) {
 
 	return;
     } else if (node.name == "error") {
-	/* received negative reply */
-	Vortex.error ("Received error reply, checking: " + frame.type + ", stil not handled");
+	if (frame.type != "ERR") {
+	    /* close the connection */
+	    this.connection.Shutdown ("Expected to reply a RPY frame type for a <profile> message but found: " + frame.type);
+	    return;
+	} /* end if */
+
+	/* get the next	handler (the most older pending request) */
+	var params = this.connection.startHandlers.shift ();
+	if (! VortexEngine.checkReference (params)){
+	    Vortex.error ("Expected to find a handler required to finish channel start and notify, but nothing was found");
+	    return;
+	} /* end if */
+
+	/* remove on disconnect */
+	this.connection.uninstallOnDisconnect (params.onDisconnectId);
+
+	/* create replyData to notify failure */
+	var replyData = {
+	    /* connection where the channel was tried to be opened */
+	    conn : this.connection,
+	    /* null reference to signal that the channel was not opened */
+	    channel : null,
+	    /* reply error code received by remote BEEP peer */
+	    replyCode :	VortexEngine._getErrorCode (node),
+	    /* human readable error message, textual diagnostic */
+	    replyMsg : node.content
+	};
+
+	/* notify the channel crated */
+	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
+	return;
     }
 
-
     return;
+};
+
+/**
+ * @internal Function used to find and return error code returned by
+ * <error> element used by BEEP channel management.
+ *
+ * @param node The xml document containing an BEEP <error> node.
+ */
+VortexEngine._getErrorCode = function (node) {
+
+    /* iterate over all attrirbutes finding code */
+    for (iterator in node.attrs) {
+	if (node.attrs[iterator].name == 'code')
+	    return node.attrs[iterator].value;
+    } /* end for */
+
+    Vortex.error ("VortexEngine._getErrorCode: Unable to error code in XML document");
+    return "554";
 };
 
 /**
