@@ -203,12 +203,38 @@ VortexConnection.prototype.isProfileSupported = function (profile) {
  * otherwise false is returned. Check errors found at the connection
  * stack error (\ref VortexConnection.hasErrors and
  * \ref VortexConnection.popError).
+ *
+ * onChannelCreatedHandler is called with an object argument that
+ * contains the following attributes:
+ *
+ * - conn [VortexConnection] : the connection where the channel was created.
+ *
+ * - channel [VortexChannel] : channel reference that was created. If
+ * channel is null channel was not created. Check replyCode and
+ * replyMsg for additional information. In the case a connection error
+ * is found, see VortexConnection.hasErrors and
+ * VortexConnection.popError
+ *
+ * - replyCode [string] : A tree digit error code as defined by
+ * section 8 from RFC 3080. Error code 200 means operation ok. Other
+ * codes means error, detailed at replyMsg.
+ *
+ * - replyMsg [string] : A textual diagnostic error describing replyCode.
+ *
  */
 VortexConnection.prototype.openChannel = function (params) {
 
     /* check the connection status before continue */
-    if (! VortexEngine.checkReference (params, "profile", "Expected profile to be used to request channel start"))
+    if (! VortexEngine.checkReference (params, "profile", "Expected profile to be used to request channel start")) {
+	var replyData = {
+	    conn : this,
+	    channel : null,
+	    replyCode : "504",
+	    replyMsg : "Caller didn't define profile to start."
+	};
+	Vortex.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
 	return false;
+    }
 
     /* check channel number to use */
     if (params.channelNumber == undefined || params.channelNumber <= 0)
@@ -216,9 +242,21 @@ VortexConnection.prototype.openChannel = function (params) {
     else {
 	/* check if the channel number request is already in use */
 	if (this.channels[params.channelNumber] != undefined) {
-	    this._onError (
-		"Requested to open a channel that is already opened (" + params.channelNumber + "), running profile: " +
-		this.channels[params.channelNumber].profile);
+	    /* create message */
+	    var errMsg = "Requested to open a channel that is already opened (" + params.channelNumber + "), running profile: " +
+		this.channels[params.channelNumber].profile;
+
+	    /* stack it */
+	    this._onError (errMsg);
+
+	    /* create replyData to notify failure */
+	    var replyData = {
+		conn : this,
+		channel : null,
+		replyCode : "550",
+		replyMsg : errMsg
+	    };
+	    Vortex.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
 	    return false;
 	} /* end if */
     } /* end if */
@@ -230,6 +268,32 @@ VortexConnection.prototype.openChannel = function (params) {
 	/* init an empty list to hold pending start handlers */
 	this.startHandlers = [];
     }
+
+    /* install onDisconnect handler to get a notification if the
+     connection is closed during the transit of closing the channel */
+    var onDisconnectId = this.onDisconnect (
+	function (conn) {
+	    /* create replyData to notify failure */
+	    var replyData = {
+		conn : conn,
+		channel : null,
+		replyCode : "451",
+		replyMsg : "During channel start operation a failure was found (connection lost)"
+	    };
+
+	    /* notify params=this */
+	    VortexEngine.apply (
+		this.onChannelCreatedHandler,
+		this.onChannelCreatedContext,
+		[replyData]);
+
+	    /* nothing more */
+	    return;
+	}, params);
+
+    /* do a log */
+    Vortex.log ("VortexConnection.openChannel: created onDisconnect identifier: " + onDisconnectId);
+    params.onDisconnectId = onDisconnectId;
 
     /* store start handler handler */
     this.startHandlers.push (params);
@@ -245,6 +309,15 @@ VortexConnection.prototype.openChannel = function (params) {
     /* acquire channel 0 to send request */
     if (! this.channels[0].sendMSG (_message)) {
 	this._onError ("Failed to send start request");
+
+	/* create replyData to notify failure */
+	var replyData = {
+	    conn : this,
+	    channel : null,
+	    replyCode : "451",
+	    replyMsg : "Failed to send start request"
+	};
+	Vortex.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
 	return false;
     } /* end if */
 
@@ -253,7 +326,15 @@ VortexConnection.prototype.openChannel = function (params) {
     /* check connection at this point */
     if (! this.isOk ()) {
 	Vortex.error ("after sending start request, broken connection was found");
-	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [this, null]);
+
+	/* create replyData to notify failure */
+	var replyData = {
+	    conn : this,
+	    channel : null,
+	    replyCode : "451",
+	    replyMsg : "After sneding start request, broken connection was found"
+	};
+	Vortex.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
 	return false;
     }
 
@@ -334,6 +415,33 @@ VortexConnection.prototype.closeChannel = function (params) {
 	this.closeHandlers = [];
     }
 
+    /* install onDisconnect handler to get a notification if the
+     connection is closed during the transit of closing the channel */
+    var onDisconnectId = this.onDisconnect (
+	function (conn) {
+	    /* build reply data */
+	    var replyData = {
+		/* connection closed but required to be notified */
+		conn: conn,
+		/* channel was not closed */
+		status: false,
+		replyMsg: "Channel was not closed because it was found a connection close during the operation. Check connection errors."
+	    };
+
+	    /* notify params=this */
+	    VortexEngine.apply (
+		this.channelCloseHandler,
+		this.channelCloseContext,
+		[replyData]);
+
+	    /* nothing more */
+	    return;
+	}, params);
+
+    /* do a log */
+    Vortex.log ("VortexConnection.closeChannel: created onDisconnect identifier: " + onDisconnectId);
+    params.onDisconnectId = onDisconnectId;
+
     /* store request as pending */
     this.closeHandlers.push (params);
 
@@ -360,6 +468,81 @@ VortexConnection.prototype.closeChannel = function (params) {
     return true;
 };
 
+/**
+ * @brief Allows to configure a handler and a context to run on, to
+ * enable the caller getting a notification when the connection is
+ * closed either because a failure found (BEEP channel management
+ * protocol violation) or because remote BEEP peer have closed the
+ * connection.
+ *
+ * @param onDisconnectHandler The handler to be executed when the
+ * disconnect operation is found.
+ *
+ * @param onDisconnectContext The context object to run the handler on.
+ *
+ * @return true if handler were installed, otherwise false is
+ * returned.  The method can only return false if handler provided is
+ * null or undefined.
+ *
+ */
+VortexConnection.prototype.onDisconnect = function (onDisconnectHandler, onDisconnectContext) {
+
+    /* check handler */
+    if (! VortexEngine.checkReference (onDisconnectHandler))
+	return false;
+
+    /* check and initialize onDisconnect handlers id */
+    if (this.onDisconnect.nextId == undefined)
+	this.onDisconnect.nextId = 0;
+    /* produce next id */
+    this.onDisconnect.nextId++;
+
+    /* store content */
+    var handlers = {
+	handler : onDisconnectHandler,
+	context : onDisconnectContext,
+	id : this.onDisconnect.nextId
+    };
+
+    /* define list of handlers */
+    if (this.onDisconnectHandlers == undefined)
+	this.onDisconnectHandlers = [];
+
+    /* store the pair handler/context */
+    this.onDisconnectHandlers.push (handlers);
+
+    return this.onDisconnect.nextId;
+};
+
+/**
+ * @brief Allows to uinstall a configured onDisconnect handler by
+ * providing the onDisconnectId (value returned by
+ * VortexConnection.onDisconnect as the result of handler
+ * configuration).
+ *
+ * @param onDisconnectId The handler unique identifier to remove.
+ *
+ * @return true if handler was removed, otherwise false is returned.
+ */
+VortexConnection.prototype.uninstallOnDisconnect = function (onDisconnectId) {
+
+    /* check value received */
+    if (! VortexEngine.checkReference (onDisconnectId))
+	return false;
+
+    for (iterator in this.onDisconnectHandlers) {
+	if (this.onDisconnectHandlers[iterator].id == onDisconnectId) {
+	    /* remove item */
+	    this.onDisconnectHandlers.splice (iterator, 1);
+
+	    /* item removed, notify caller */
+	    return true;
+	} /* end if */
+    } /* end for */
+
+    return false;
+};
+
 
 /**
  * @brief Closes the transport connection without doing BEEP close
@@ -383,7 +566,18 @@ VortexConnection.prototype.Shutdown = function (error) {
 
     /* push message if defined */
     if (typeof error != undefined)
-	conn._onError (error);
+	this._onError (error);
+
+    /* now check and notify disconnect */
+    if (this.onDisconnectHandlers != undefined) {
+	while (this.onDisconnectHandlers.length > 0) {
+	    /* get next element a call to notify */
+	    var handlers = this.onDisconnectHandlers.shift ();
+	    VortexEngine.apply (handlers.handler, handlers.context, [this]);
+	} /* end while */
+    }
+
+    return;
 };
 
 /**

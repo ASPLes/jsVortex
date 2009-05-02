@@ -8,7 +8,7 @@
 
 <!-- include dojo files -->
 <style type="text/css">
-   @import "/test/dojoroot/dijit/themes/tundra/tundra.css";
+   @import "/test/dojoroot/dijit/themes/soria/soria.css";
    @import "/test/dojoroot/dojo/resources/dojo.css";
    @import "/test/testConnect.css";
 </style> 
@@ -32,7 +32,7 @@
 <script type="text/javascript" src="testConnect.js"></script>
 </head>
 
-<body class="tundra">
+<body class="soria">
 <div class="vortex-regtest-header">
   <h1>jsVortex: Open source Javascript BEEP regression test suite</h1>
 </div>
@@ -44,6 +44,15 @@ Host: <div dojoType="dijit.form.ValidationTextBox" id="host" required="true" reg
 Port: <div dojoType="dijit.form.ValidationTextBox" id="port" required="true" regExp="(\d)+"></div>
 <div id="run-test" dojoType="dijit.form.Button">Run test!</div>
 <div id="clear-log" dojoType="dijit.form.Button">Clear log</div>
+
+<!-- check box for first level log configuration -->
+<div id="logEnabled" dojoType="dijit.form.CheckBox"></div>
+<label for="logEnabled">Enable first level debug</label>
+
+<!-- check box for second level log configuration -->
+<div id="log2Enabled" dojoType="dijit.form.CheckBox"></div>
+<label for="log2Enabled">Enable second level debug</label>
+
 
 </div> <!-- main form -->
 <div dojoType="dijit.layout.BorderContainer" design="headline" class="global-container" liveSizing="false">

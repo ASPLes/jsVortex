@@ -2,9 +2,197 @@
  ** Copyright (C) 2009 Advanced Software Production Line, S.L.
  ** See license.txt or http://www.aspl.es/vortex
  **/
-const REGRESSION_URI = 'http://iana.org/beep/transient/vortex-regression';
 
-function testChannelCloseResult (replyData) {
+/**
+ * @brief Basic profile which allows to open channels
+ * and send content that is replied by remote side. This is an
+ * echo profile.
+ */
+const REGRESSION_URI      = 'http://iana.org/beep/transient/vortex-regression';
+/**
+ * @brief Profile used to check channel start denial.
+ */
+const REGRESSION_URI_DENY = "http://iana.org/beep/transient/vortex-regression/deny";
+
+/******* BEGIN: testChannelsDeny ******/
+/**
+ * @brief Allows to check support to detect and notify that a channel
+ * creation was denied.
+ */
+function testChannelsDeny () {
+    /* do a connection */
+    log ("info", "Connecting to " + this.host + ":" + this.port);
+    var conn = new VortexConnection (this.host,
+				     this.port,
+				     new VortexTCPTransport (),
+				     testChannelsDeny.Result, this);
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+}
+
+testChannelsDeny.Result = function (conn) {
+    if (! conn.isOk ()) {
+	log ("erro", "Expected connection ok to test channel denial, but found an error:");
+	showErrors (conn);
+	return false;
+    } /* end if */
+
+    /* try to create a channel which is
+     * going to be denied by remote side */
+    conn.openChannel ({
+	profile: REGRESSION_URI_DENY,
+	channelNumber: 0,
+	onChannelCreatedHandler: testChannelsDeny.ResultCreated,
+	onChannelCreatedContext: this
+    });
+
+    /* wait for reply */
+    return true;
+};
+
+testChannelsDeny.ResultCreated = function (replyData) {
+
+    if (replyData.channel != null) {
+	log ("error", "Expected to find channel creation failure, but found a proper reference");
+	return false;
+    }
+
+    /* check here code replied */
+    log ("info", "Received reply code: " + replyData.replyCode + ", message: " + replyData.replyMsg);
+
+    /* check error code */
+    if (replyData.replyCode != '554') {
+	log ("error", "Expected transaction failed error (unable to start channel) for a profile that always deny creating a channel. Error code expected: 554, but found: " +
+	    replyData.replyCode +", message: " + replyData.replyMsg);
+	showErrors (replyData.conn);
+	return false;
+    } /* end if */
+
+    /* close the conection */
+    replyData.conn.Shutdown ();
+
+    /* call for the next test */
+    this.nextTest ();
+
+    return true;
+};
+
+/******* END: testChannelsDeny ******/
+
+/******* BEGIN: testChannels ******/
+function testChannels () {
+    /* do a connection */
+    log ("info", "Connecting to " + this.host + ":" + this.port);
+    var conn = new VortexConnection (this.host,
+				     this.port,
+				     new VortexTCPTransport (),
+				     testChannels.Result, this);
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+}
+
+testChannels.Result = function (conn) {
+    if (! conn.isOk ()) {
+	log ("error", "Expected to find proper connection to check channels");
+	showErrors (conn);
+	return false;
+    }
+
+    /* ok, now check profiles available */
+    if (! conn.isProfileSupported (REGRESSION_URI)) {
+	log ("error", "Expected to find profile supported: " + REGRESSION_URI);
+	return false;
+    }
+
+    /* now open a channel here to do some useful work */
+    conn.openChannel ({
+	profile: REGRESSION_URI,
+	channelNumber: 0,
+	onChannelCreatedHandler : testChannels.ResultCreated,
+	onChannelCreatedContext : this
+    });
+
+    return true;
+};
+
+testChannels.ResultCreated = function (replyData) {
+    /* log data received */
+    log ("info", "Channel start reply code received: " +
+	 replyData.replyCode + ", message: " + replyData.replyMsg);
+    /* check reference */
+    if (replyData.channel == null) {
+	log ("error", "Expected to find proper channel reference, but found null. Errors found are:");
+	showErrors (conn);
+	return false;
+    }
+
+    /* check reply code */
+    if (replyData.replyCode != "200") {
+	log ("error", "Expected to find reply code to start channel equal to '200' but found: " + replyData.replyCode);
+	return false;
+    }
+
+    /* check that the message is defined */
+    if (typeof replyData.replyMsg == undefined) {
+	log ("error", "Expected to find defined replyMsg, but found undefined value");
+	return false;
+    }
+
+    /* get channel reference */
+    var channel = replyData.channel;
+    var conn = replyData.conn;
+
+    /* check the channel to be created and ready */
+    if (! channel.isReady) {
+	log ("error", "Expected to find proper channel creation, but found not ready channel");
+	return false;
+    }
+
+    /* check channel profile */
+    if (channel.profile != REGRESSION_URI) {
+	log ("error", "Expected to find channel created under URI " + REGRESSION_URI + ", but found: " + channel.profile);
+	return false;
+    }
+
+    /* check connection references */
+    if (channel.connection != conn) {
+	log ("error", "Expected to find channel's connection reference to be equal to reference notified");
+	return false;
+    }
+
+    /* check number of channels opened */
+    if (VortexEngine.count (conn.channels) != 2) {
+	log ("error", "Expected to find 2 channels opened but found: " + VortexEngine.count (conn.channels));
+	return false;
+    }
+
+    /* check that all onDisconnect content was removed */
+    if (conn.onDisconnectHandlers.length != 0) {
+	log ("error", "Expected to find on disconnect handlers to be removed from the connection (0) but found: " +
+	     conn.onDisconnectHandlers.length);
+	return false;
+    } /* end if */
+
+    /* now close the channel */
+    log ("info", "channel created, now requesting to close it");
+    conn.closeChannel ({
+	    channelNumber: channel.number,
+	    channelCloseHandler: testChannels.CloseResult,
+	    channelCloseContext: this
+    });
+
+    return true;
+};
+
+testChannels.CloseResult = function (replyData) {
 
     Vortex.log ("Received channel close reply");
     if (! replyData.status ){
@@ -31,90 +219,8 @@ function testChannelCloseResult (replyData) {
     this.nextTest ();
 
     return true;
-}
-
-function testChannelResultCreated (conn, channel) {
-    Vortex.log ("Received reply to our channel creation request");
-    if (channel == null) {
-	log ("error", "Expected to find proper channel reference, but found null. Errors found are:");
-	showErrors (conn);
-	return false;
-    }
-
-    /* check the channel to be created and ready */
-    if (! channel.isReady) {
-	log ("error", "Expected to find proper channel creation, but found not ready channel");
-	return false;
-    }
-
-    /* check channel profile */
-    if (channel.profile != REGRESSION_URI) {
-	log ("error", "Expected to find channel created under URI " + REGRESSION_URI + ", but found: " + channel.profile);
-	return false;
-    }
-
-    /* check connection references */
-    if (channel.connection != conn) {
-	log ("error", "Expected to find channel's connection reference to be equal to reference notified");
-	return false;
-    }
-
-    /* check number of channels opened */
-    if (VortexEngine.count (conn.channels) != 2) {
-	log ("error", "Expected to find 2 channels opened but found: " + VortexEngine.count (conn.channels));
-	return false;
-    }
-
-    /* now close the channel */
-    log ("info", "channel created, now requesting to close it");
-    conn.closeChannel ({
-	    channelNumber: channel.number,
-	    channelCloseHandler: testChannelCloseResult,
-	    channelCloseContext: this
-    });
-
-    return true;
-}
-
-function testChannelsResult (conn) {
-    if (! conn.isOk ()) {
-	log ("error", "Expected to find proper connection to check channels");
-	showErrors (conn);
-	return false;
-    }
-
-    /* ok, now check profiles available */
-    if (! conn.isProfileSupported (REGRESSION_URI)) {
-	log ("error", "Expected to find profile supported: " + REGRESSION_URI);
-	return false;
-    }
-
-    /* now open a channel here to do some useful work */
-    conn.openChannel ({
-	profile: REGRESSION_URI,
-	channelNumber: 0,
-	onChannelCreatedHandler : testChannelResultCreated,
-	onChannelCreatedContext : this
-    });
-
-    return true;
 };
-
-function testChannels () {
-    /* do a connection */
-    log ("info", "Connecting to " + this.host + ":" + this.port);
-    var conn = new VortexConnection (this.host,
-				     this.port,
-				     new VortexTCPTransport (),
-				     testChannelsResult, this);
-    /* check object returned */
-    if (! VortexEngine.checkReference (conn, "host")) {
-	log ("error", "Expected to find a connection object after connection operation");
-	this.stopTests = true;
-    }
-    return true;
-
-}
+/******* END: testChannels ******/
 
 function testConnectResult (conn) {
 
@@ -126,7 +232,7 @@ function testConnectResult (conn) {
 
     /* check connection */
     if (conn.isOk ()) {
-	log ("ok", "Connected to host: " + conn.host + ", port: " + conn.port);
+	log ("info", "Connected to host: " + conn.host + ", port: " + conn.port);
     } else {
 	log ("error", "Regression test failed!");
 	return false;
@@ -170,7 +276,7 @@ function testConnect () {
 }
 
 function checkApply (value) {
-    if (this != testIntraestructure) {
+    if (this != testInfraestructure) {
 	log ("error", "Expected to find proper this reference, but found something different");
 	return;
     } /* end if */
@@ -190,7 +296,8 @@ function checkApply2 (value, value2) {
     return value + value2;
 }
 
-function testIntraestructure () {
+function testInfraestructure () {
+    var currentlog = Vortex.logEnabled;
     log ("info", "Checking VortexEngine.checkReference..");
 
     /* check null reference */
@@ -232,19 +339,22 @@ function testIntraestructure () {
 	return false;
     }
 
-    /* now check VortexEngine.Apply */
-    testIntraestructure.value = 1;
-    VortexEngine.Apply (checkApply, testIntraestructure, [3]);
-    if (testIntraestructure.value != 4) {
-	log ("error", "Expected to find value 4 but found: " + testIntraestructure.value);
+    /* now check VortexEngine.apply */
+    testInfraestructure.value = 1;
+    VortexEngine.apply (checkApply, testInfraestructure, [3]);
+    if (testInfraestructure.value != 4) {
+	log ("error", "Expected to find value 4 but found: " + testInfraestructure.value);
 	return false;
     }
     /* now check it without context */
-    var value = VortexEngine.Apply (checkApply2, null, [4, 8]);
+    var value = VortexEngine.apply (checkApply2, null, [4, 8]);
     if (value != 12) {
 	log ("error", "Expected to find value 12 but found: " + value);
 	return false;
     }
+
+    /* restore log level */
+    Vortex.logEnabled = currentlog;
 
     /* call for the next test */
     this.nextTest ();
@@ -334,7 +444,7 @@ RegressionTest.prototype.nextTest = function () {
 	}
 
 	/* call next test */
-	console.log ("INFO: running test-" + this.nextTestId);
+	Vortex.log ("INFO: running test-" + this.nextTestId);
 	log ("info", "Running TEST-" + this.nextTestId + ": " + this.tests[this.nextTestId].name);
 	this.tests[this.nextTestId].testHandler.apply (this);
 	return;
@@ -345,9 +455,10 @@ RegressionTest.prototype.nextTest = function () {
  * associated test to show */
 RegressionTest.prototype.tests = [
     {name: "Check if jsVortex is available", testHandler: testjsVortexAvailable},
-    {name: "Library infraestructure check", testHandler: testIntraestructure},
+    {name: "Library infraestructure check", testHandler: testInfraestructure},
     {name: "BEEP basic connection test", testHandler: testConnect},
-    {name: "BEEP basic channel management test", testHandler: testChannels}
+    {name: "BEEP basic channel management test", testHandler: testChannels},
+    {name: "BEEP basic channel management test (DENY)", testHandler: testChannelsDeny}
 ];
 
 
@@ -379,6 +490,17 @@ function runTest (testName) {
 
     /* clear log */
     dojo.byId ("log-panel").innerHTML = "";
+
+    /* check if regression tests are enabled */
+    var checkBox = dijit.byId ("log2Enabled");
+    Vortex.log2Enabled = checkBox.checked;
+
+    checkBox = dijit.byId ("logEnabled");
+    Vortex.logEnabled  = checkBox.checked;
+
+    log ("info", "Running tests with log status [first level: " + Vortex.logEnabled + ", second level: " + Vortex.log2Enabled + "]");
+    Vortex.log ("First level log check");
+    Vortex.log2 ("Second level log check");
 
     /* create a regression test */
     var regTest = new RegressionTest (host, port);
@@ -427,7 +549,6 @@ function prepareTest () {
     var testAvailablePanel = dijit.byId("test-available-panel");
     var checkBox;
     for (test in tests) {
-	console.log ("Test available: " + tests[test].name);
 
 	/* flag the test to be runned */
 	tests[test].runIt = true;
@@ -453,8 +574,10 @@ function prepareTest () {
 
 	/* add to the panel a line break */
 	dojo.place (document.createElement ("br"), testAvailablePanel.domNode);
-
     }
+
+    /* default configuration for first level log */
+    dijit.byId ("logEnabled").attr ("checked", true);
 }
 
 /* register our function in dojo */

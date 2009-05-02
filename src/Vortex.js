@@ -67,22 +67,7 @@ if (typeof Vortex == "undefined") {
  * @param basepath [string] is the base location where
  * all jsVortex sources are located.
  */
-Vortex.Load = function (basepath) {
-    /**
-     * @internal function used by load method to load rest of
-     * files associated to jsVortex.
-     */
-    function VortexLoadJs (filename){
-	var fileref  = document.createElement('script');
-	fileref.type = "text/javascript";
-	fileref.src  = filename;
-
-	console.log ("Vortex: loading file: " + filename + ", status: " + (typeof fileref));
-
-	if (typeof fileref != "undefined")
-	    document.getElementsByTagName("head")[0].appendChild(fileref);
-	return;
-    } /* end vortexLoadJs */
+Vortex.load = function (basepath) {
 
     /** start **/
     if (basepath == "undefined") {
@@ -91,15 +76,34 @@ Vortex.Load = function (basepath) {
 	basepath = basepath + "/";
     }
 
-    console.log ("Vortex: loading jsVortex from: " + basepath);
-    VortexLoadJs (basepath + "VortexTCPTransport.js");
-    VortexLoadJs (basepath + "VortexConnection.js");
-    VortexLoadJs (basepath + "VortexChannel.js");
-    VortexLoadJs (basepath + "VortexEngine.js");
-    VortexLoadJs (basepath + "VortexXMLEngine.js");
-    VortexLoadJs (basepath + "VortexFrame.js");
-    VortexLoadJs (basepath + "VortexMimeHeader.js");
+    /* store base path */
+    Vortex.basepath = basepath;
 
+    console.log ("Vortex: loading jsVortex from: " + Vortex.basepath);
+    Vortex.loadJs (basepath + "VortexTCPTransport.js");
+    Vortex.loadJs (basepath + "VortexConnection.js");
+    Vortex.loadJs (basepath + "VortexChannel.js");
+    Vortex.loadJs (basepath + "VortexEngine.js");
+    Vortex.loadJs (basepath + "VortexXMLEngine.js");
+    Vortex.loadJs (basepath + "VortexFrame.js");
+    Vortex.loadJs (basepath + "VortexMimeHeader.js");
+
+    return;
+};
+
+/**
+ * @internal function used by load method to load rest of
+ * files associated to jsVortex.
+ */
+Vortex.loadJs = function (filename){
+    var fileref  = document.createElement('script');
+    fileref.type = "text/javascript";
+    fileref.src  = filename;
+
+    console.log ("Vortex: loading file: " + filename + ", status: " + (typeof fileref));
+
+    if (typeof fileref != "undefined")
+	document.getElementsByTagName("head")[0].appendChild(fileref);
     return;
 };
 
@@ -123,7 +127,7 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
 	Vortex.log ("Vortex base path: " + baseurl);
 
 	/* now load rest of Vortex components */
-	Vortex.Load (baseurl);
+	Vortex.load (baseurl);
 	break;
     }
 } /* end for */
