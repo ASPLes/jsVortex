@@ -350,19 +350,33 @@ VortexConnection.prototype.openChannel = function (params) {
  * connection. If the channel is not available, the method reports
  * error found.
  *
- * @param channelCloseHandler [handler] The handler that is used by
+ * @param onChannelCloseHandler [handler] The handler that is used by
  * the method to notify the caller with the termination status. On
  * this method is notified either if the channel was closed or the
  * error found.
  *
- * @param channelCloseContext [object] The context object under which
+ * @param onChannelCloseContext [object] The context object under which
  * the handler will be executed.
  *
  * @return true in the case the close operation start without incident
  * (request to close the message sent waiting for reply). Otherwise
  * false is returned indicating the close operation was not
  * started. You can safely skip value returned by the function and
- * handle all cases at the notification handler (channelCloseHandler).
+ * handle all cases at the notification handler (onChannelCloseHandler).
+ *
+ * onChannelCloseHandler receives an object with the following
+ * attributes:
+ *
+ * - conn : the connection where the channel was closed.
+ *
+ * - status : true to signal that the channel was closed, otherwise
+ * false is returned.
+ *
+ * - replyCode : tree digit error code indicating the motive to deny
+ * channel close operation.
+ *
+ * - replyMsg : Human readable textual diagnostic reporting motivy to
+ * deny channel close operation (or faillure found).
  *
  */
 VortexConnection.prototype.closeChannel = function (params) {
@@ -376,7 +390,7 @@ VortexConnection.prototype.closeChannel = function (params) {
 	    replyMsg  : "Received request to close a channel without providing the channel number to close"
 	};
 	/* notify user */
-	VortexEngine.apply (params.channelCloseHandler, params.channelCloseContext, [replyData]);
+	VortexEngine.apply (params.onChannelCloseHandler, params.onChannelCloseContext, [replyData]);
 	return false;
     }
 
@@ -389,7 +403,7 @@ VortexConnection.prototype.closeChannel = function (params) {
 	    replyMsg  : "Received a request to close channel: " + params.channelNumber + ", but that channel is not available on the connection"
 	};
 	/* notify user */
-	VortexEngine.apply (params.channelCloseHandler, params.channelCloseContext, [replyData]);
+	VortexEngine.apply (params.onChannelCloseHandler, params.onChannelCloseContext, [replyData]);
 	return false;
     }
 
@@ -403,7 +417,7 @@ VortexConnection.prototype.closeChannel = function (params) {
 	    replyMsg  : "Received a request to close channel: " + params.channelNumber + ", but that channel is already in process of being closed"
 	};
 	/* notify user */
-	VortexEngine.apply (params.channelCloseHandler, params.channelCloseContext, [replyData]);
+	VortexEngine.apply (params.onChannelCloseHandler, params.onChannelCloseContext, [replyData]);
 	return false;
     }
 
@@ -430,8 +444,8 @@ VortexConnection.prototype.closeChannel = function (params) {
 
 	    /* notify params=this */
 	    VortexEngine.apply (
-		this.channelCloseHandler,
-		this.channelCloseContext,
+		this.onChannelCloseHandler,
+		this.onChannelCloseContext,
 		[replyData]);
 
 	    /* nothing more */
