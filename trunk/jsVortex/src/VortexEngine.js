@@ -345,7 +345,7 @@ VortexEngine.channel0Received = function (frame) {
     /* check result returned before continue */
     if (node == null) {
 	Vortex.error ("VortexEngine.channel0Received: failed to parse document received over channel 0, closing session");
-	this.connection.Shutdown ("VortexEngine.channel0Received: failed to parse document received over channel 0, closing session");
+	this.connection.shutdown ("VortexEngine.channel0Received: failed to parse document received over channel 0, closing session");
 	return;
     } /* end if */
 
@@ -357,7 +357,7 @@ VortexEngine.channel0Received = function (frame) {
 	/* received a profile reply, check it */
 	if (frame.type != "RPY") {
 	    /* close the connection */
-	    this.connection.Shutdown ("Expected to reply a RPY frame type for a <profile> message but found: " + frame.type);
+	    this.connection.shutdown ("Expected to reply a RPY frame type for a <profile> message but found: " + frame.type);
 	    return;
 	} /* end if */
 
@@ -393,7 +393,7 @@ VortexEngine.channel0Received = function (frame) {
 	/* received afirmative reply, this means we have to handle pending close request */
 	if (frame.type != "RPY") {
 	    /* close the connection */
-	    this.connection.Shutdown ("Channel close reply received but frame type expected is RPY, closing connection.");
+	    this.connection.shutdown ("Channel close reply received but frame type expected is RPY, closing connection.");
 	    return;
 	}
 
@@ -438,7 +438,7 @@ VortexEngine.channel0Received = function (frame) {
     } else if (node.name == "error") {
 	if (frame.type != "ERR") {
 	    /* close the connection */
-	    this.connection.Shutdown ("Expected to reply a RPY frame type for a <profile> message but found: " + frame.type);
+	    this.connection.shutdown ("Expected to reply a RPY frame type for a <profile> message but found: " + frame.type);
 	    return;
 	} /* end if */
 
@@ -505,7 +505,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
     /* check frame type */
     if (frame.type != "RPY") {
 	Vortex.error ("VortexEngine.channel0PrepareConnection: received a non-positive greetings, closing BEEP session");
-	this.connection.Shutdown ();
+	this.connection.shutdown ();
 	return false;
     }
 
@@ -515,7 +515,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
     /* check result (node reference) */
     if (node == null) {
 	Vortex.error ("VortexEngine.channel0PrepareConnection: failed to parse initial <greeting>");
-	this.connection.Shutdown ();
+	this.connection.shutdown ();
 	return false;
     }
 
@@ -525,7 +525,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
     /* check content received */
     if (node.name != "greeting") {
 	Vortex.error ("VortexEngine.channel0PrepareConnection: expected to find <greeting> node on BEEP greetings, but found: " + node.name);
-	this.connection.Shutdown ();
+	this.connection.shutdown ();
 	return false;
     }
 
@@ -541,7 +541,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
 	    /* check <profile> node found inside <greeting> */
 	    if (node.childs[tag].name != 'profile') {
 		Vortex.error ("VortexEngine.channel0PrepareConnection: expected to find <profile> node on BEEP greetings");
-		this.connection.Shutdown ();
+		this.connection.shutdown ();
 		return false;
 	    } /* end if */
 
@@ -551,7 +551,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
 		/* check uri attribute */
 		if (node.childs[tag].attrs[attr].name != 'uri') {
 		    Vortex.error ("VortexEngine.channel0PrepareConnection: expected to find 'uri' attribute on <profile> node on BEEP greetings");
-		    this.connection.Shutdown ();
+		    this.connection.shutdown ();
 		    return false;
 		}
 

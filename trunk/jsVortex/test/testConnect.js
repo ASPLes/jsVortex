@@ -73,7 +73,7 @@ testChannelsDeny.ResultCreated = function (replyData) {
     } /* end if */
 
     /* close the conection */
-    replyData.conn.Shutdown ();
+    replyData.conn.shutdown ();
 
     /* call for the next test */
     this.nextTest ();
@@ -215,6 +215,9 @@ testChannels.CloseResult = function (replyData) {
 	return false;
     }
 
+    /* call to shutdown connection */
+    replyData.conn.shutdown ();
+
     /* call to trigger next test */
     this.nextTest ();
 
@@ -222,7 +225,18 @@ testChannels.CloseResult = function (replyData) {
 };
 /******* END: testChannels ******/
 
-function testConnectResult (conn) {
+/******* BEGIN: testConnect ******/
+function testConnect () {
+
+    log ("info", "Connecting to " + this.host + ":" + this.port);
+    var conn = new VortexConnection (this.host,
+				     this.port,
+				     new VortexTCPTransport (),
+				     testConnect.Result, this);
+    return true;
+}
+
+testConnect.Result = function (conn) {
 
     if (! conn.isOk ()) {
 	log ("error", "Failed to connect..");
@@ -257,23 +271,14 @@ function testConnectResult (conn) {
     }
 
     /* close the conection */
-    conn.Shutdown ();
+    conn.shutdown ();
 
     /* call for the next test */
     this.nextTest ();
 
     return true;
 };
-
-function testConnect () {
-
-    log ("info", "Connecting to " + this.host + ":" + this.port);
-    var conn = new VortexConnection (this.host,
-				     this.port,
-				     new VortexTCPTransport (),
-				     testConnectResult, this);
-    return true;
-}
+/******* END: testConnect ******/
 
 function checkApply (value) {
     if (this != testInfraestructure) {

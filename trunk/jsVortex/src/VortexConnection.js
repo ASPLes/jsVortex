@@ -553,7 +553,7 @@ VortexConnection.prototype.uninstallOnDisconnect = function (onDisconnectId) {
  * using VortexConnection.hasErrors () method.
  *
  */
-VortexConnection.prototype.Shutdown = function (error) {
+VortexConnection.prototype.shutdown = function (error) {
     /* call to close on transport */
     if (this._transport != null)
 	this._transport.close ();
@@ -626,8 +626,7 @@ VortexConnection.prototype._onRead = function (connection, data) {
 
     /* check if channel is available on the connection */
     if (channel == null) {
-	Vortex.error ("VortexConnection._onRead: found frame for a channel no available. Protocol violation.");
-	this.Shutdown ();
+	this.shutdown ("VortexConnection._onRead: found frame for a channel no available. Protocol violation.");
 	return false;
     }
 
