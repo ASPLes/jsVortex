@@ -416,7 +416,7 @@ VortexEngine.channel0Received = function (frame) {
 	delete channel.connection;
 
 	/* discarding channel close notification */
-	if (! VortexEngine.checkReference (params.channelCloseHandler))
+	if (! VortexEngine.checkReference (params.onChannelCloseHandler))
 	    return;
 
 	/* create reply data to be passed to the handler */
@@ -430,8 +430,8 @@ VortexEngine.channel0Received = function (frame) {
 
 	/* now notify */
 	VortexEngine.apply (
-	    params.channelCloseHandler,
-	    params.channelCloseContext,
+	    params.onChannelCloseHandler,
+	    params.onChannelCloseContext,
 	    [replyData]);
 
 	return;

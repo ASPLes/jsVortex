@@ -185,8 +185,8 @@ testChannels.ResultCreated = function (replyData) {
     log ("info", "channel created, now requesting to close it");
     conn.closeChannel ({
 	    channelNumber: channel.number,
-	    channelCloseHandler: testChannels.CloseResult,
-	    channelCloseContext: this
+	    onChannelCloseHandler: testChannels.CloseResult,
+	    onChannelCloseContext: this
     });
 
     return true;
