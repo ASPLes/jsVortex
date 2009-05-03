@@ -11,3 +11,8 @@
       <site-control permitted-cross-domain-policies="all"/>
       <allow-access-from domain="*" to-ports="9090,777"/> 
    </cross-domain-policy> 
+
+   Think that a webpage with jsVortex can virtually connect to any site
+   easily and setup an attack by making a user to post a message that
+   could ask the user browser to do so. A simple solution is the previous
+   example.
