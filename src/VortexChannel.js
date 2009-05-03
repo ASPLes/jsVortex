@@ -248,7 +248,7 @@ VortexChannel.prototype.sendCommon = function (content, mimeHeaders, type) {
     this.nextPeerSeqno += (content.length + _mimeHeaders.length + 2);
 
     /* send the content */
-    return (this.connection._send.apply (this.connection, [frame]));
+    return (this.conn._send.apply (this.conn, [frame]));
 };
 
 /**

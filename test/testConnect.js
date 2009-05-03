@@ -49,6 +49,10 @@ testContentTransfer.Result = function (conn) {
     return true;
 };
 
+testContentTransfer.testMSG1 = "This is test of an small content";
+testContentTransfer.testMSG2 = "Another text to test. This is test of an small content second part.";
+testContentTransfer.testMSG3 = "More content to be sent. This is test of an small content third part.";
+testContentTransfer.nextMsg  = 1;
 testContentTransfer.ResultCreated = function (replyData) {
 
     /* check reply */
@@ -59,8 +63,86 @@ testContentTransfer.ResultCreated = function (replyData) {
     /* check here code replied */
     log ("info", "Received reply code: " + replyData.replyCode + ", message: " + replyData.replyMsg);
 
-    /* send content */
+    /* get a reference to the channel */
+    var channel = replyData.channel;
 
+    /* configure received handler here */
+    channel.onFrameReceivedHandler = testContentTransfer.frameReceived;
+    channel.onFrameReceivedContext = this;
+
+    /* send content */
+    if (! channel.sendMSG (testContentTransfer.testMSG1)) {
+	log ("error", "Expected fo be able to send content but failed VortexChannel.sendMSG");
+	return false;
+    }
+
+    if (! channel.sendMSG (testContentTransfer.testMSG2)) {
+	log ("error", "Expected fo be able to send content but failed VortexChannel.sendMSG (2)");
+	return false;
+    }
+
+    if (! channel.sendMSG (testContentTransfer.testMSG3)) {
+	log ("error", "Expected fo be able to send content but failed VortexChannel.sendMSG (3)");
+	return false;
+    }
+
+    return true;
+};
+
+testContentTransfer.frameReceived = function (frameReceived) {
+
+    var frame = frameReceived.frame;
+
+    /* check frame received */
+    if (frame.type != "RPY") {
+	log ("error", "Expected to find reply type RPY but found: " + frame.type);
+	return false;
+    }
+
+    log ("info", "Frame content received: " + frame.content);
+    switch (testContentTransfer.nextMsg) {
+    case 1:
+	/* check for first message */
+	if (frame.content != testContentTransfer.testMSG1) {
+	    log ("error", "Expected to find message content: '" +
+		 testContentTransfer.testMSG1 + "' but found: '" + frame.content + "'");
+	    return false;
+	} /* end if */
+
+	/* more elements to check */
+	break;
+    case 2:
+	/* check for first message */
+	if (frame.content != testContentTransfer.testMSG2) {
+	    log ("error", "Expected to find message content: '" +
+		 testContentTransfer.testMSG2 + "' but found: '" + frame.content + "'");
+	    return false;
+	} /* end if */
+
+	/* more elements to check */
+	break;
+    case 3:
+	/* check for first message */
+	if (frame.content != testContentTransfer.testMSG3) {
+	    log ("error", "Expected to find message content: '" +
+		 testContentTransfer.testMSG3 + "' but found: '" + frame.content + "'");
+	    return false;
+	} /* end if */
+
+	/* more elements to check */
+	break;
+    } /* end switch */
+
+    /* update next test messag expected */
+    testContentTransfer.nextMsg++;
+
+    /* check if last message was found */
+    if (testContentTransfer.nextMsg == 4) {
+	/* check here that all messages are flushed */
+
+	/* next test */
+	this.nextTest ();
+    } /* end if */
     return true;
 };
 
