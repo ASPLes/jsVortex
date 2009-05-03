@@ -325,7 +325,10 @@ VortexEngine.getFrame = function (connection, data) {
  *
  * @param frame The frame received.
  */
-VortexEngine.channel0Received = function (frame) {
+VortexEngine.channel0Received = function (frameReceived) {
+
+    /* acquire local frame var */
+    var frame = frameReceived.frame;
 
     /* check if the connection is still waiting for greetings */
     if (this.connection.greetingsPending) {

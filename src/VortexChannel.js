@@ -3,41 +3,75 @@
  ** See license.txt or http://www.aspl.es/vortex
  **/
 
-function VortexChannel (connection,
+/**
+ * @brief Creates a channel object associated to the connection
+ * provided, channel number and profile provided.
+ *
+ * @param conn Connection to be associated to the channel.
+ *
+ * @param number The channel number.
+ *
+ * @param profile The profile associated to the channel.
+ *
+ * @param onFrameReceivedHandler Handler called to notify frames
+ * received on this channel.
+ *
+ * @param onFrameReceivedContext Optional context to run
+ * onFrameReceivedHandler.
+ *
+ * @param onCloseHandler Handler called if a channel close
+ * notification is received for this channel.
+ *
+ * @param onCloseContext Optional context to run onCloseContext.
+ *
+ * @return A new reference to the channel object created.
+ *
+ * onFrameReceivedHandler receives an object that provides the
+ * following attributes:
+ *
+ * - frame : The frame that was received.
+ * - channel : The channel where the frame was received.
+ * - conn : The connection where the frame was received.
+ */
+function VortexChannel (conn,
 			number,
 			profile,
-			receivedHandler,
-			closeHandler) {
+			onFrameReceivedHandler,
+			onFrameReceivedContext,
+			onCloseHandler,
+			onCloseContext) {
 
     /**
      * @brief Channel's connection.
      */
-    this.connection      = connection;
+    this.conn                   = conn;
 
     /**
      * @brief Channel number.
      */
-    this.number          = number;
+    this.number                 = number;
     /**
      * @brief Channel profile
      */
-    this.profile         = profile;
+    this.profile                = profile;
     /**
      * @brief Channel received handler.
      */
-    this.receivedHandler = receivedHandler;
+    this.onFrameReceivedHandler = onFrameReceivedHandler;
+    this.onFrameReceivedContext = onFrameReceivedContext;
 
     /**
      * @brief Channel close handler.
      */
-    this.closeHandler    = closeHandler;
+    this.onCloseHandler         = onCloseHandler;
+    this.onCloseContext         = onCloseContext;
 
     /* configure initial window size */
-    this.windowSize          = 4096;
+    this.windowSize             = 4096;
 
     /* nextMsgno: holds the next value to be used
      * for the next send operation. */
-    this.nextMsgno       = 0;
+    this.nextMsgno              = 0;
 
     /* nextReplyMsgno: holds the next message number we
      * have to reply to. Because javascript single thread nature
@@ -46,17 +80,17 @@ function VortexChannel (connection,
      * the msg_no to reply to because no other thread can reply
      * than the current one. This means the caller can't reply to
      * a message having pending messages to be replied. */
-    this.nextReplyMsgno  = 0;
+    this.nextReplyMsgno         = 0;
 
     /* maxAllowedSeqno: holds the max allowed incoming
      * content (byte stream) to be received before
      * issuing a new SEQ frame */
-    this.maxAllowedSeqno     = 4095;
+    this.maxAllowedSeqno        = 4095;
 
     /* nextSeqno: holds the next expected incoming seqno
      * value for the first byte on the next frame received.
      */
-    this.nextSeqno           = 0;
+    this.nextSeqno              = 0;
 
     /* maxAllowedPeerSeqno: holds the maximum amount
      * of content (last byte) that can be sent to the

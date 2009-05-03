@@ -14,6 +14,58 @@ const REGRESSION_URI      = 'http://iana.org/beep/transient/vortex-regression';
  */
 const REGRESSION_URI_DENY = "http://iana.org/beep/transient/vortex-regression/deny";
 
+/******* BEGIN: testContentTransfer ******/
+function testContentTransfer () {
+    log ("info", "Connect remote host" + this.host + ":" + this.port);
+    var conn = new VortexConnection (this.host,
+				     this.port,
+				     new VortexTCPTransport (),
+				     testContentTransfer.Result, this);
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+};
+
+testContentTransfer.Result = function (conn) {
+    if (! conn.isOk ()) {
+	log ("erro", "Expected connection ok to test channel denial, but found an error:");
+	showErrors (conn);
+	return false;
+    } /* end if */
+
+    /* try to create a channel which is
+     * going to be denied by remote side */
+    conn.openChannel ({
+	profile: REGRESSION_URI,
+	channelNumber: 0,
+	onChannelCreatedHandler: testContentTransfer.ResultCreated,
+	onChannelCreatedContext: this
+    });
+
+    /* wait for reply */
+    return true;
+};
+
+testContentTransfer.ResultCreated = function (replyData) {
+
+    /* check reply */
+    if (replyData.channel == null) {
+	log ("error", "Expected to find proper channel creation, but found null reference");
+	return false;
+    }
+    /* check here code replied */
+    log ("info", "Received reply code: " + replyData.replyCode + ", message: " + replyData.replyMsg);
+
+    /* send content */
+
+    return true;
+};
+
+/******* END: testContentTransfer ******/
+
 /******* BEGIN: testChannelsDeny ******/
 /**
  * @brief Allows to check support to detect and notify that a channel
@@ -163,7 +215,7 @@ testChannels.ResultCreated = function (replyData) {
     }
 
     /* check connection references */
-    if (channel.connection != conn) {
+    if (channel.conn != conn) {
 	log ("error", "Expected to find channel's connection reference to be equal to reference notified");
 	return false;
     }
@@ -463,7 +515,8 @@ RegressionTest.prototype.tests = [
     {name: "Library infraestructure check", testHandler: testInfraestructure},
     {name: "BEEP basic connection test", testHandler: testConnect},
     {name: "BEEP basic channel management test", testHandler: testChannels},
-    {name: "BEEP basic channel management test (DENY)", testHandler: testChannelsDeny}
+    {name: "BEEP basic channel management test (DENY)", testHandler: testChannelsDeny},
+    {name: "BEEP basic content transfer", testHandler: testContentTransfer}
 ];
 
 
