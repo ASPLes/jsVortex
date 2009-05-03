@@ -331,14 +331,14 @@ VortexEngine.channel0Received = function (frameReceived) {
     var frame = frameReceived.frame;
 
     /* check if the connection is still waiting for greetings */
-    if (this.connection.greetingsPending) {
+    if (this.conn.greetingsPending) {
 
 	/* call to process incoming content to prepare the connection */
 	Vortex.log ("VortexEngine.channel0Received: connection is not ready, process greetings and prepare connection");
 	VortexEngine.channel0PrepareConnection.apply (this, [frame]);
 
 	/* report connection creation status (only if handler defined) */
-	this.connection._reportConnCreated ();
+	this.conn._reportConnCreated ();
 	return;
     } /* end if */
 
@@ -348,7 +348,7 @@ VortexEngine.channel0Received = function (frameReceived) {
     /* check result returned before continue */
     if (node == null) {
 	Vortex.error ("VortexEngine.channel0Received: failed to parse document received over channel 0, closing session");
-	this.connection.shutdown ("VortexEngine.channel0Received: failed to parse document received over channel 0, closing session");
+	this.conn.shutdown ("VortexEngine.channel0Received: failed to parse document received over channel 0, closing session");
 	return;
     } /* end if */
 
@@ -360,12 +360,12 @@ VortexEngine.channel0Received = function (frameReceived) {
 	/* received a profile reply, check it */
 	if (frame.type != "RPY") {
 	    /* close the connection */
-	    this.connection.shutdown ("Expected to reply a RPY frame type for a <profile> message but found: " + frame.type);
+	    this.conn.shutdown ("Expected to reply a RPY frame type for a <profile> message but found: " + frame.type);
 	    return;
 	} /* end if */
 
 	/* get the next	handler (the most older pending request) */
-	var params = this.connection.startHandlers.shift ();
+	var params = this.conn.startHandlers.shift ();
 	if (! VortexEngine.checkReference (params)){
 	    Vortex.error ("Expected to find a handler required to finish channel start and notify, but nothing was found");
 	    return;
@@ -376,14 +376,14 @@ VortexEngine.channel0Received = function (frameReceived) {
 	params.channel.isReady = true;
 
 	/* remove on disconnect */
-	this.connection.uninstallOnDisconnect (params.onDisconnectId);
+	this.conn.uninstallOnDisconnect (params.onDisconnectId);
 
 	/* add it to the connection */
-	this.connection.channels[params.channelNumber] = params.channel;
+	this.conn.channels[params.channelNumber] = params.channel;
 
 	/* create replyData to notify failure */
 	var replyData = {
-	    conn : this.connection,
+	    conn : this.conn,
 	    channel : params.channel,
 	    replyCode : "200",
 	    replyMsg : "Channel started ok"
@@ -396,27 +396,27 @@ VortexEngine.channel0Received = function (frameReceived) {
 	/* received afirmative reply, this means we have to handle pending close request */
 	if (frame.type != "RPY") {
 	    /* close the connection */
-	    this.connection.shutdown ("Channel close reply received but frame type expected is RPY, closing connection.");
+	    this.conn.shutdown ("Channel close reply received but frame type expected is RPY, closing connection.");
 	    return;
 	}
 
 	/* check for pending close request */
-	var params = this.connection.closeHandlers.shift ();
+	var params = this.conn.closeHandlers.shift ();
 	if (! VortexEngine.checkReference (params)){
 	    Vortex.error ("Expected to find a handler required to finish channel close and notify, but nothing was found");
 	    return;
 	} /* end if */
 
 	/* remove on disconnect */
-	this.connection.uninstallOnDisconnect (params.onDisconnectId);
+	this.conn.uninstallOnDisconnect (params.onDisconnectId);
 
 	/* get a reference to the channel being closed */
-	var channel = this.connection.channels[params.channelNumber];
+	var channel = this.conn.channels[params.channelNumber];
 
 	/* remove reference from the connection to the channel */
-	delete channel.connection.channels[channel.number];
+	delete channel.conn.channels[channel.number];
 	/* remove reference from channel to connection */
-	delete channel.connection;
+	delete channel.conn;
 
 	/* discarding channel close notification */
 	if (! VortexEngine.checkReference (params.onChannelCloseHandler))
@@ -425,7 +425,7 @@ VortexEngine.channel0Received = function (frameReceived) {
 	/* create reply data to be passed to the handler */
 	var replyData = {
 	    /* connection where the channel was operating */
-	    conn: this.connection,
+	    conn: this.conn,
 	    /* channel closed */
 	    status: true,
 	    replyMsg: "Channel properly closed"
@@ -441,24 +441,24 @@ VortexEngine.channel0Received = function (frameReceived) {
     } else if (node.name == "error") {
 	if (frame.type != "ERR") {
 	    /* close the connection */
-	    this.connection.shutdown ("Expected to reply a RPY frame type for a <profile> message but found: " + frame.type);
+	    this.conn.shutdown ("Expected to reply a RPY frame type for a <profile> message but found: " + frame.type);
 	    return;
 	} /* end if */
 
 	/* get the next	handler (the most older pending request) */
-	var params = this.connection.startHandlers.shift ();
+	var params = this.conn.startHandlers.shift ();
 	if (! VortexEngine.checkReference (params)){
 	    Vortex.error ("Expected to find a handler required to finish channel start and notify, but nothing was found");
 	    return;
 	} /* end if */
 
 	/* remove on disconnect */
-	this.connection.uninstallOnDisconnect (params.onDisconnectId);
+	this.conn.uninstallOnDisconnect (params.onDisconnectId);
 
 	/* create replyData to notify failure */
 	var replyData = {
 	    /* connection where the channel was tried to be opened */
-	    conn : this.connection,
+	    conn : this.conn,
 	    /* null reference to signal that the channel was not opened */
 	    channel : null,
 	    /* reply error code received by remote BEEP peer */
@@ -508,7 +508,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
     /* check frame type */
     if (frame.type != "RPY") {
 	Vortex.error ("VortexEngine.channel0PrepareConnection: received a non-positive greetings, closing BEEP session");
-	this.connection.shutdown ();
+	this.conn.shutdown ();
 	return false;
     }
 
@@ -518,7 +518,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
     /* check result (node reference) */
     if (node == null) {
 	Vortex.error ("VortexEngine.channel0PrepareConnection: failed to parse initial <greeting>");
-	this.connection.shutdown ();
+	this.conn.shutdown ();
 	return false;
     }
 
@@ -528,12 +528,12 @@ VortexEngine.channel0PrepareConnection = function (frame)
     /* check content received */
     if (node.name != "greeting") {
 	Vortex.error ("VortexEngine.channel0PrepareConnection: expected to find <greeting> node on BEEP greetings, but found: " + node.name);
-	this.connection.shutdown ();
+	this.conn.shutdown ();
 	return false;
     }
 
     /* start array of profiles supported */
-    this.connection.profiles = [];
+    this.conn.profiles = [];
 
     /* check for profiles available */
     if (node.haveChilds) {
@@ -544,7 +544,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
 	    /* check <profile> node found inside <greeting> */
 	    if (node.childs[tag].name != 'profile') {
 		Vortex.error ("VortexEngine.channel0PrepareConnection: expected to find <profile> node on BEEP greetings");
-		this.connection.shutdown ();
+		this.conn.shutdown ();
 		return false;
 	    } /* end if */
 
@@ -554,19 +554,19 @@ VortexEngine.channel0PrepareConnection = function (frame)
 		/* check uri attribute */
 		if (node.childs[tag].attrs[attr].name != 'uri') {
 		    Vortex.error ("VortexEngine.channel0PrepareConnection: expected to find 'uri' attribute on <profile> node on BEEP greetings");
-		    this.connection.shutdown ();
+		    this.conn.shutdown ();
 		    return false;
 		}
 
 		/* register profile */
 		Vortex.log2 ("VortexEngine.channel0PrepareConnection: registering profile: " + node.childs[tag].attrs[attr].value);
-		this.connection.profiles.push (node.childs[tag].attrs[attr].value);
+		this.conn.profiles.push (node.childs[tag].attrs[attr].value);
 	    } /* end for */
 	} /* end for */
     } /* end if */
 
     /* flag connection as ready */
-    this.connection.greetingsPending = false;
+    this.conn.greetingsPending = false;
 
     return true;
 };
