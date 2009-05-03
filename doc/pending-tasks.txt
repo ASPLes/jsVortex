@@ -2,3 +2,12 @@
   an error when we connect to an unknown host.
 
 * [fix] Properly implement BEEP session close.
+
+* [fix] Investigate cross domain policy restrictions. The following is
+  used by flash socket to limit connections to be done only to a list 
+  of allowed domains:
+
+   <cross-domain-policy> 
+      <site-control permitted-cross-domain-policies="all"/>
+      <allow-access-from domain="*" to-ports="9090,777"/> 
+   </cross-domain-policy> 
