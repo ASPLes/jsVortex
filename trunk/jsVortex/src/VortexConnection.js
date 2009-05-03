@@ -63,7 +63,7 @@ function VortexConnection (host,
 
     /* create a channel 0 for this new connection */
     this.channels = {
-	0 : new VortexChannel (this, 0, "N/A", VortexEngine.channel0Received, null)
+	0 : new VortexChannel (this, 0, "N/A", VortexEngine.channel0Received)
     };
 
     /* do TCP connect */
@@ -162,7 +162,7 @@ VortexConnection.prototype.isProfileSupported = function (profile) {
  * - 1: none,
  * - 2: base64
  *
- * @param closeHandler [handler] Optional handler that is used by
+ * @param onCloseHandler [handler] Optional handler that is used by
  * jsVortex engine to notify that a channel close request was received
  * and a confirmation or refusal is required. If the handler is not
  * configured it is used default handler installed on the
@@ -174,7 +174,7 @@ VortexConnection.prototype.isProfileSupported = function (profile) {
  * to not configure any context (do not use "this" reference under
  * such case).
  *
- * @param receivedHandler [handler] Optional handler that is used by
+ * @param onFrameReceivedHandler [handler] Optional handler that is used by
  * jsVortex engine to notify that a frame was received. If the handler
  * is not configured the default handler configured in the connection
  * will be used. In the case This handler is also not configured, it
@@ -299,7 +299,13 @@ VortexConnection.prototype.openChannel = function (params) {
     this.startHandlers.push (params);
 
     /* record channel reference being created */
-    params.channel = new VortexChannel (this, params.channelNumber, params.profile);
+    params.channel = new VortexChannel (
+	/* connection */
+	this,
+	/* channel number */
+	params.channelNumber,
+	/* profile */
+	params.profile);
 
     /* build start request operation */
     var _message = "<start number='" + params.channelNumber + "'>\r\n" +
@@ -645,13 +651,26 @@ VortexConnection.prototype._onRead = function (connection, data) {
     }
 
     /* check if the channel has received handler */
-    if (channel.receivedHandler == null) {
+    if (channel.onFrameReceivedHandler == null) {
 	Vortex.warn ("VortexConnection._onRead: received a frame for a channel without received handler. Discarding frame.");
 	return false;
     }
 
+    /* create notification object */
+    var frameReceived = {
+	frame : frame,
+	channel : channel,
+	conn : this
+    };
+
     /* notify frame */
-    channel.receivedHandler.apply (channel, [frame]);
+    if (channel.onFrameReceivedContext) {
+	/* do notification with context provided by user */
+	channel.onFrameReceivedHandler.apply (channel.onFrameReceivedContext, [frameReceived]);
+    } else {
+	/* do notification with channel context */
+	channel.onFrameReceivedHandler.apply (channel, [frameReceived]);
+    } /* end if */
 
     Vortex.log ("VortexConnection._onRead: frame delivered");
     return true;
