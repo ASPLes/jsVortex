@@ -52,7 +52,6 @@ testContentTransfer.Result = function (conn) {
 testContentTransfer.testMSG1 = "This is test of an small content";
 testContentTransfer.testMSG2 = "Another text to test. This is test of an small content second part.";
 testContentTransfer.testMSG3 = "More content to be sent. This is test of an small content third part.";
-testContentTransfer.nextMsg  = 1;
 testContentTransfer.ResultCreated = function (replyData) {
 
     /* check reply */
@@ -69,6 +68,9 @@ testContentTransfer.ResultCreated = function (replyData) {
     /* configure received handler here */
     channel.onFrameReceivedHandler = testContentTransfer.frameReceived;
     channel.onFrameReceivedContext = this;
+
+    /* reset test */
+    testContentTransfer.nextMsg  = 1;
 
     /* send content */
     if (! channel.sendMSG (testContentTransfer.testMSG1)) {
