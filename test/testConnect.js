@@ -49,9 +49,11 @@ testContentTransfer.Result = function (conn) {
     return true;
 };
 
+/* message tests */
 testContentTransfer.testMSG1 = "This is test of an small content";
 testContentTransfer.testMSG2 = "Another text to test. This is test of an small content second part.";
 testContentTransfer.testMSG3 = "More content to be sent. This is test of an small content third part.";
+
 testContentTransfer.ResultCreated = function (replyData) {
 
     /* check reply */
@@ -87,6 +89,14 @@ testContentTransfer.ResultCreated = function (replyData) {
 	log ("error", "Expected fo be able to send content but failed VortexChannel.sendMSG (3)");
 	return false;
     }
+
+    /* check connection here */
+    if (! replyData.conn.isOk ()) {
+	log ("error", "Expected to find proper connection status after send operations but found a failure");
+	showErrors (replyData.conn);
+	this.stopTests = true;
+	return false;
+    } /* end if */
 
     return true;
 };
@@ -141,6 +151,17 @@ testContentTransfer.frameReceived = function (frameReceived) {
     /* check if last message was found */
     if (testContentTransfer.nextMsg == 4) {
 	/* check here that all messages are flushed */
+
+	/* check connection here */
+	if (! frameReceived.conn.isOk ()) {
+	    log ("error", "Expected to find proper connection status after send operations but found a failure");
+	    showErrors (replyData.conn);
+	    this.stopTests = true;
+	    return false;
+	} /* end if */
+
+	/* close the connection */
+	frameReceived.conn.shutdown ();
 
 	/* next test */
 	this.nextTest ();

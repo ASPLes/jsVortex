@@ -253,67 +253,90 @@ VortexEngine.parseMimeHeaders = function (mimeHeaders, data) {
  */
 VortexEngine.getFrame = function (connection, data) {
 
+    var frameList = [];
+
     /* check if the frame is complete */
 
-    /* get frame type */
-    var strType = data.substring (0,3);
-    Vortex.log ("Received frame type: " + strType + ", length: " + strType.length);
-
     /* configure initial position for this parse operation */
-    this.position = 4;
+    this.position = 0;
 
-    /* get the frame channel number */
-    var channel  = this.getNumber (data);
-    Vortex.log ("channel: " + channel);
+    while (this.position < data.length) {
 
-    /* get the frame msgno */
-    var msgno = this.getNumber (data);
-    Vortex.log ("msgno: " + msgno);
+	/* get frame type */
+	var strType = data.substring (this.position, this.position + 3);
+	Vortex.log2 ("Received frame type: " + strType + ", length: " + strType.length);
+	this.position += 4;
 
-    /* get more character */
-    var more  =	data[this.position + 1] == '*';
-    this.position += 2;
-    Vortex.log ("more: " + more);
+	/* get the frame channel number */
+	var channel  = this.getNumber (data);
+	Vortex.log2 ("channel: " + channel);
 
-    /* get seqno value */
-    var seqno = this.getNumber (data);
-    Vortex.log ("seqno: " + seqno);
+	/* get the frame msgno */
+	var msgno = this.getNumber (data);
+	Vortex.log2 ("msgno: " + msgno);
 
-    /* get size value */
-    var size = this.getNumber (data);
-    Vortex.log ("size: " + size);
+	/* get more character */
+	var more  =	data[this.position + 1] == '*';
+	this.position += 2;
+	Vortex.log2 ("more: " + more);
 
-    /* check if we have to read ansno value */
-    var ansno;
-    if (strType == "ANS") {
-	ansno = this.getNumber (data);
+	/* get seqno value */
+	var seqno = this.getNumber (data);
+	Vortex.log2 ("seqno: " + seqno);
+
+	/* get size value */
+	var size = this.getNumber (data);
+	Vortex.log2 ("size: " + size);
+
+	/* check if we have to read ansno value */
+	var ansno;
+	if (strType == "ANS") {
+	    ansno = this.getNumber (data);
+	}
+
+	/* now check BEEP header end */
+	if (data[this.position] != '\r' || data[this.position + 1] != '\n') {
+	    connection._onError ("VortexEngine: ERROR: position: " + this.position);
+	    connection.shutdown (
+		"VortexEngine: ERROR: expected to find \\r\\n BEEP header trailer, but not found: " +
+		    Number (data[this.position]) + ", " + Number (data[this.position + 1]));
+	    return null;
+	}
+
+	/* update position to MIME headers */
+	Vortex.log2 ("VortexEngine.getFrame: parsing MIME at: " + this.position);
+	this.position += 2;
+
+	/* parse here all MIME headers */
+	var mimeHeaders = new Array ();
+	this.parseMimeHeaders (mimeHeaders, data);
+
+	var content = data.substring (this.position, this.position + size - this.mimeHeadersSize);
+	Vortex.log2 ("Content found (size: " + size + ", position: " + this.position + ", length: " + data.length + "): '" + content + "'");
+
+	this.position += (size - this.mimeHeadersSize);
+	Vortex.log2 ("BEEP header end: '" + data.substring (this.position, this.position + 5) + "'");
+
+	/* check beep trailer */
+	var beepTrailer = data.substring (this.position, this.position + 5);
+	if (beepTrailer != "END\r\n") {
+	    Vortex.error ("VortexEngine: ERROR: position: " + this.position);
+	    connection.shutdown (
+		"VortexEngine: ERROR: expected to find \\r\\n BEEP frame trailer (end of frame), but not found: " + beepTrailer);
+	    return null;
+	}
+	this.position += 5;
+	Vortex.log2 ("BEEP frame ended at: " + this.position + ", last data index received: " + data.length );
+
+	/* call to create frame object */
+	var frame = new VortexFrame (strType, channel, msgno, more, seqno, size, ansno, mimeHeaders, content);
+
+	Vortex.log2 ("Frame type: " + frame.getFrameType ());
+	frameList.push (frame);
     }
-
-    /* now check BEEP header end */
-    if (data[this.position] != '\r' || data[this.position + 1] != '\n') {
-	Vortex.error ("VortexEngine: ERROR: position: " + this.position);
-	Vortex.error ("VortexEngine: ERROR: expected to find \\r\\n BEEP header trailer, but not found: " + Number (data[this.position]) + ", " + Number (data[this.position + 1]));
-	return null;
-    }
-
-    /* update position to MIME headers */
-    Vortex.log ("VortexEngine.getFrame: parsing MIME at: " + this.position);
-    this.position += 2;
-
-    /* parse here all MIME headers */
-    var mimeHeaders = new Array ();
-    this.parseMimeHeaders (mimeHeaders, data);
-
-    var content = data.substring (this.position, this.position + size - this.mimeHeadersSize);
-    Vortex.log2 ("Content found (size: " + size + ", position: " + this.position + ", length: " + data.length + "): '" + content + "'");
-
-    /* call to create frame object */
-    var frame = new VortexFrame (strType, channel, msgno, more, seqno, size, ansno, mimeHeaders, content);
-
-    Vortex.log2 ("Frame type: " + frame.getFrameType ());
 
     /* return frame object */
-    return frame;
+    return frameList;
 };
 
 /**
