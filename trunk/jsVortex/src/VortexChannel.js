@@ -235,12 +235,18 @@ VortexChannel.prototype.sendCommon = function (content, mimeHeaders, type) {
 	frame        = "RPY " + this.number + " " + this.nextReplyMsgno + " " +
 	    (isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + (content.length + _mimeHeaders.length + 2) + "\r\n" +
 	    this.getMimeHeaders (mimeHeaders) + "\r\n" + content + "END\r\n";
+
+	/* increase next replyMsgno */
+	this.nextReplyMsgno++;
     } else {
 	/* MSG frames */
 	frame        = "MSG " + this.number + " " + this.nextMsgno + " " +
 	    (isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + (content.length + _mimeHeaders.length + 2) + "\r\n" +
 	    this.getMimeHeaders (mimeHeaders) + "\r\n" + content + "END\r\n";
-    }
+	
+	/* increase nextMsgno */
+	this.nextMsgno++;
+    } /* end if */
 
     /* Vortex.log ("VortexChanenl.sendRPY: sending frame: " + frame); */
 

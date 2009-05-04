@@ -636,43 +636,49 @@ VortexConnection.prototype._onRead = function (connection, data) {
     Vortex.log2 ("VortexConnection._onRead, data received: " + data);
 
     /* create the frame */
-    var frame = VortexEngine.getFrame (connection, data);
-    if (frame == null) {
+    var frameList = VortexEngine.getFrame (connection, data);
+    if (frameList == null) {
 	return false;
     }
 
-    /* get channel associated with the frame */
-    var channel = this.channels [frame.channel];
+    /* for each frame received */
+    for (iterator in frameList) {
+	var frame = frameList[iterator];
 
-    /* check if channel is available on the connection */
-    if (channel == null) {
-	this.shutdown ("VortexConnection._onRead: found frame for a channel no available. Protocol violation.");
-	return false;
-    }
+	/* get channel associated with the frame */
+	var channel = this.channels [frame.channel];
 
-    /* check if the channel has received handler */
-    if (channel.onFrameReceivedHandler == null) {
-	Vortex.warn ("VortexConnection._onRead: received a frame for a channel without received handler. Discarding frame.");
-	return false;
-    }
+	/* check if channel is available on the connection */
+	if (channel == null) {
+	    this.shutdown ("VortexConnection._onRead: found frame for a channel no available. Protocol violation.");
+	    return false;
+	}
 
-    /* create notification object */
-    var frameReceived = {
-	frame : frame,
-	channel : channel,
-	conn : this
-    };
+	/* check if the channel has received handler */
+	if (channel.onFrameReceivedHandler == null) {
+	    Vortex.warn ("VortexConnection._onRead: received a frame for a channel without received handler. Discarding frame.");
+	    return false;
+	}
 
-    /* notify frame */
-    if (channel.onFrameReceivedContext) {
-	/* do notification with context provided by user */
-	channel.onFrameReceivedHandler.apply (channel.onFrameReceivedContext, [frameReceived]);
-    } else {
-	/* do notification with channel context */
-	channel.onFrameReceivedHandler.apply (channel, [frameReceived]);
-    } /* end if */
+	/* create notification object */
+	var frameReceived = {
+	    frame : frame,
+	    channel : channel,
+	    conn : this
+	};
 
-    Vortex.log ("VortexConnection._onRead: frame delivered");
+	/* notify frame */
+	if (channel.onFrameReceivedContext) {
+	    /* do notification with context provided by user */
+	    channel.onFrameReceivedHandler.apply (channel.onFrameReceivedContext, [frameReceived]);
+	} else {
+	    /* do notification with channel context */
+	    channel.onFrameReceivedHandler.apply (channel, [frameReceived]);
+	} /* end if */
+
+	Vortex.log ("VortexConnection._onRead: frame delivered");
+    } /* end iterator */
+
     return true;
 };
 
