@@ -154,6 +154,52 @@ VortexChannel.prototype.sendRPY = function (content, mimeHeaders) {
 };
 
 /**
+ * @brief Closes a channel defined by the caller reference.
+ * 
+ *
+ * @param onChannelCloseHandler [handler] The handler that is used by
+ * the method to notify the caller with the termination status. On
+ * this method is notified either if the channel was closed or the
+ * error found.
+ *
+ * @param onChannelCloseContext [object] The context object under which
+ * the handler will be executed.
+ *
+ * @return true in the case the close operation start without incident
+ * (request to close the message sent waiting for reply). Otherwise
+ * false is returned indicating the close operation was not
+ * started. You can safely skip value returned by the function and
+ * handle all cases at the noti
+ fication handler (onChannelCloseHandler).
+ *
+ * onChannelCloseHandler receives an object with the following
+ * attributes:
+ *
+ * - conn : the connection where the channel was closed.
+ *
+ * - status : true to signal that the channel was closed, otherwise
+ * false is returned.
+ *
+ * - replyCode : tree digit error code indicating the motive to deny
+ * channel close operation.
+ *
+ * - replyMsg : Human readable textual diagnostic reporting motivy to
+ * deny channel close operation (or faillure found).
+ *
+ */
+VortexChannel.prototype.close = function (params) {
+    
+    if (! VortexEngine.checkReference (params))
+	return false;
+    
+    /* add channelNumber paramer to params */
+    params.channelNumber = this.number;
+    
+    /* call to close using connection close channel */
+    return this.conn.closeChannel (params);
+};
+
+/**
  * @internal Method used as a base implementation for
  * VortexChannel.sendRPY and VortexChannel.sendMSG.
  *
