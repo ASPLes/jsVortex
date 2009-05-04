@@ -31,10 +31,18 @@ function testContentTransfer () {
 
 testContentTransfer.Result = function (conn) {
     if (! conn.isOk ()) {
-	log ("erro", "Expected connection ok to test channel denial, but found an error:");
+	log ("error", "Expected connection ok to test channel denial, but found an error:");
 	showErrors (conn);
 	return false;
     } /* end if */
+    
+    /* check channels before opening */
+    if (VortexEngine.count (conn.channels) != 1) {
+	log ("error", "Expected to find only one channel opened at this point but found: " + VortexEngine.count (conn.channels));
+	this.stopTests = true;
+	console.dir (conn.channels);
+	return false;
+    }
 
     /* try to create a channel which is
      * going to be denied by remote side */
@@ -44,6 +52,12 @@ testContentTransfer.Result = function (conn) {
 	onChannelCreatedHandler: testContentTransfer.ResultCreated,
 	onChannelCreatedContext: this
     });
+    
+    if (VortexEngine.count (conn.channels) != 1) {
+	log ("error", "Expected to find only one channel opened at this point but found: " + VortexEngine.count (conn.channels));
+	this.stopTests = true;
+	return false;
+    }
 
     /* wait for reply */
     return true;
@@ -150,7 +164,14 @@ testContentTransfer.frameReceived = function (frameReceived) {
 
     /* check if last message was found */
     if (testContentTransfer.nextMsg == 4) {
+	
 	/* check here that all messages are flushed */
+	var channel = frameReceived.channel;
+	if (channel.sendQueue.length != 0) {
+	    log ("error", "Expected to find empty pending message queue, but found: " +  channel.sendQueue.length + " items");
+	    showErrors (replyData.conn);
+	    return false;
+	}
 
 	/* check connection here */
 	if (! frameReceived.conn.isOk ()) {
@@ -159,13 +180,41 @@ testContentTransfer.frameReceived = function (frameReceived) {
 	    this.stopTests = true;
 	    return false;
 	} /* end if */
+	
+	/* check channel size */
+	if (VortexEngine.count (frameReceived.conn.channels) != 2) {
+	    log ("error", "Expected to find 2 channels opened but found: " + VortexEngine.count (frameReceived.conn.channels));
+	    showErrors (frameReceived.conn);
+	    this.stopTests = true;
+	    return false;
+	}
+	
+	/* close the channel before closing the connection */
+	channel.close ({
+	    onChannelCloseHandler : testContentTransfer.closeHandler,
+	    onChannelCloseContext : this
+	});
 
-	/* close the connection */
-	frameReceived.conn.shutdown ();
-
-	/* next test */
-	this.nextTest ();
     } /* end if */
+    return true;
+};
+
+testContentTransfer.closeHandler = function (closeData) {
+    var conn = closeData.conn;
+    
+    if (! conn.isOk ()) {
+	log ("error", "Expected to find proper connection after close operation");
+	return false;
+    }
+    
+    /* check number of channels opened */
+    if (VortexEngine.count (conn.channels) != 1) {
+	log ("error", "Expected to find only 1 channel opened but found: " + VortexEngine.count (conn.channels));
+	return false;
+    }
+    
+    /* call to next test */
+    this.nextTest ();
     return true;
 };
 

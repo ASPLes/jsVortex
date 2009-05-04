@@ -109,7 +109,7 @@ VortexEngine.count = function (object) {
     for (item in object)
 	size++;
     return size;
-}
+};
 
 /**
  * @internal Function that allows to get the next number inside
