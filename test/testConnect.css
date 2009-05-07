@@ -57,6 +57,6 @@ h1 {
 }
 
 #log-panel {
-
+  overflow: auto;
 }
 
