@@ -15,6 +15,78 @@ const REGRESSION_URI      = 'http://iana.org/beep/transient/vortex-regression';
 const REGRESSION_URI_DENY = "http://iana.org/beep/transient/vortex-regression/deny";
 
 /******* BEGIN: testContentTransfer ******/
+function testLargeContentTransfer () {
+    var conn = new VortexConnection (this.host,
+				     this.port,
+				     new VortexTCPTransport (),
+				     testLargeContentTransfer.Result, this);
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+};
+
+testLargeContentTransfer.Result = function (conn) {
+    /* check connection here */
+    if (! checkConnection (conn))
+	return false;
+
+    /* create a channel */
+    conn.openChannel ({
+	profile: REGRESSION_URI,
+	channelNumber: 0,
+	onChannelCreatedHandler: testLargeContentTransfer.ResultCreated,
+	onChannelCreatedContext: this
+    });
+
+    return true;
+};
+
+testLargeContentTransfer.ResultCreated = function (resplyData) {
+
+    /* get channel reference */
+    var channel = replyData.channel;
+    if (channel == null) {
+	log ("error", "Expected to find proper channel creation, but found a failure");
+	return false;
+    }
+
+    /* set here received handlers */
+    channel.onFrameReceivedHandler = testLargeContentTransfer.frameReceived;
+    channel.onFrameReceivedContext = this;
+
+    /* send two large messages */
+    log ("info", "Sending first large message");
+    if (! channel.sendMSG (testLargeContentTransfer.testMSG1)) {
+	log ("error", "Failed to send first message");
+	return false;
+    }
+
+/*    log ("info", "Sending second large message");
+    if (! channel.sendMSG (testLargeContentTransfer.testMSG2)) {
+	log ("error", "Failed to send first message");
+	return false;
+    } */
+
+    log ("info", "Waiting responses..");
+    return true;
+};
+
+/** large message, size: 6249 **/
+testLargeContentTransfer.testMSG1 = "This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary . This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary content. This is a large file that contains arbitrary .";
+
+testLargeContentTransfer.frameReceived = function (frameReceived) {
+    log ("info", "Reply received, checking frame");
+
+
+    return false;
+};
+
+/******* END:   testContentTransfer ******/
+
+/******* BEGIN: testContentTransfer ******/
 function testContentTransfer () {
     log ("info", "Connect remote host" + this.host + ":" + this.port);
     var conn = new VortexConnection (this.host,
@@ -467,7 +539,7 @@ testConnect.Result = function (conn) {
 	this.stopTests = true;
 	return false;
     }
-    
+
     /* check connection greetings sent */
     if (! conn.greetingsSent) {
 	log ("error", "found connection with pending greetings to be sent (flag not activated: greetingsSent)");
@@ -598,6 +670,35 @@ function testjsVortexAvailable () {
     return true;
 };
 
+function checkConnection (conn) {
+    if (! conn.isOk ()) {
+	log ("error", "Found connection status not ready" + conn.isReady + ", socket: " + conn._transport.socket +
+	     "greetingsSent=" + conn.greetingsSent + ", greetingsReceived=" + conn.greetingsReceived);
+	showErrors (conn);
+	this.stopTests = true;
+	return false;
+    }
+
+    /* check additional variables */
+    if (conn.greetingsPending) {
+	log ("error", "found connection with pending greetings (flag activated)");
+	this.stopTests = true;
+	return false;
+    }
+
+    /* check connection greetings sent */
+    if (! conn.greetingsSent) {
+	log ("error", "found connection with pending greetings to be sent (flag not activated: greetingsSent)");
+	this.stopTests = true;
+	return false;
+    }
+
+    /* drop ok log status */
+    log ("info", "Connected to host: " + conn.host + ":" + conn.port);
+
+    return true;
+};
+
 function showErrors (conn) {
 
     /* check for pending errors */
@@ -681,7 +782,8 @@ RegressionTest.prototype.tests = [
     {name: "BEEP basic connection test", testHandler: testConnect},
     {name: "BEEP basic channel management test", testHandler: testChannels},
     {name: "BEEP basic channel management test (DENY)", testHandler: testChannelsDeny},
-    {name: "BEEP basic content transfer", testHandler: testContentTransfer}
+    {name: "BEEP basic content transfer", testHandler: testContentTransfer},
+    {name: "BEEP large content transfer (SEQ frames)", testHandler: testLargeContentTransfer}
 ];
 
 
@@ -801,6 +903,11 @@ function prepareTest () {
 
     /* default configuration for first level log */
     dijit.byId ("logEnabled").attr ("checked", true);
+
+    /* configure window height */
+    var heightValue = (window.innerHeight - 110) + "px";
+    dojo.style(dojo.byId ("test-available-panel"), "height", heightValue);
+    dojo.style(dojo.byId ("log-panel"), "height", heightValue);
 }
 
 /* register our function in dojo */
