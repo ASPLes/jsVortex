@@ -31,11 +31,12 @@ function testContentTransfer () {
 
 testContentTransfer.Result = function (conn) {
     if (! conn.isOk ()) {
-	log ("error", "Expected connection ok to test channel denial, but found an error:");
+	log ("error", "Expected connection ok to test channel denial, but found an error: " +
+	    conn.isReady + ", socket: " + conn._transport.socket);
 	showErrors (conn);
 	return false;
     } /* end if */
-    
+
     /* check channels before opening */
     if (VortexEngine.count (conn.channels) != 1) {
 	log ("error", "Expected to find only one channel opened at this point but found: " + VortexEngine.count (conn.channels));
@@ -52,7 +53,7 @@ testContentTransfer.Result = function (conn) {
 	onChannelCreatedHandler: testContentTransfer.ResultCreated,
 	onChannelCreatedContext: this
     });
-    
+
     if (VortexEngine.count (conn.channels) != 1) {
 	log ("error", "Expected to find only one channel opened at this point but found: " + VortexEngine.count (conn.channels));
 	this.stopTests = true;
@@ -164,7 +165,7 @@ testContentTransfer.frameReceived = function (frameReceived) {
 
     /* check if last message was found */
     if (testContentTransfer.nextMsg == 4) {
-	
+
 	/* check here that all messages are flushed */
 	var channel = frameReceived.channel;
 	if (channel.sendQueue.length != 0) {
@@ -180,7 +181,7 @@ testContentTransfer.frameReceived = function (frameReceived) {
 	    this.stopTests = true;
 	    return false;
 	} /* end if */
-	
+
 	/* check channel size */
 	if (VortexEngine.count (frameReceived.conn.channels) != 2) {
 	    log ("error", "Expected to find 2 channels opened but found: " + VortexEngine.count (frameReceived.conn.channels));
@@ -188,7 +189,7 @@ testContentTransfer.frameReceived = function (frameReceived) {
 	    this.stopTests = true;
 	    return false;
 	}
-	
+
 	/* close the channel before closing the connection */
 	channel.close ({
 	    onChannelCloseHandler : testContentTransfer.closeHandler,
@@ -201,18 +202,18 @@ testContentTransfer.frameReceived = function (frameReceived) {
 
 testContentTransfer.closeHandler = function (closeData) {
     var conn = closeData.conn;
-    
+
     if (! conn.isOk ()) {
 	log ("error", "Expected to find proper connection after close operation");
 	return false;
     }
-    
+
     /* check number of channels opened */
     if (VortexEngine.count (conn.channels) != 1) {
 	log ("error", "Expected to find only 1 channel opened but found: " + VortexEngine.count (conn.channels));
 	return false;
     }
-    
+
     /* call to next test */
     this.nextTest ();
     return true;
@@ -315,6 +316,7 @@ testChannels.Result = function (conn) {
     /* ok, now check profiles available */
     if (! conn.isProfileSupported (REGRESSION_URI)) {
 	log ("error", "Expected to find profile supported: " + REGRESSION_URI);
+	showErrors (conn);
 	return false;
     }
 
@@ -445,22 +447,31 @@ function testConnect () {
 testConnect.Result = function (conn) {
 
     if (! conn.isOk ()) {
-	log ("error", "Failed to connect..");
+	log ("error", "Failed to connect.." + conn.isReady + ", socket: " + conn._transport.socket);
 	showErrors (conn);
 	return false;
     }
 
     /* check connection */
     if (conn.isOk ()) {
-	log ("info", "Connected to host: " + conn.host + ", port: " + conn.port);
+	log ("info", "testConnect.Result: Connected to host: " + conn.host + ", port: " + conn.port);
     } else {
-	log ("error", "Regression test failed!");
+	log ("error", "Regression test failed, greetingsSent=" + conn.greetingsSent + ", greetingsReceived=" + conn.greetingsReceived);
+	showErrors (conn);
 	return false;
     }
 
     /* check connection greetings */
     if (conn.greetingsPending) {
 	log ("error", "found connection with pending greetings (flag activated)");
+	this.stopTests = true;
+	return false;
+    }
+    
+    /* check connection greetings sent */
+    if (! conn.greetingsSent) {
+	log ("error", "found connection with pending greetings to be sent (flag not activated: greetingsSent)");
+	this.stopTests = true;
 	return false;
     }
 

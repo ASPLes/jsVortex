@@ -355,13 +355,17 @@ VortexEngine.channel0Received = function (frameReceived) {
 
     /* check if the connection is still waiting for greetings */
     if (this.conn.greetingsPending) {
-
 	/* call to process incoming content to prepare the connection */
 	Vortex.log ("VortexEngine.channel0Received: connection is not ready, process greetings and prepare connection");
 	VortexEngine.channel0PrepareConnection.apply (this, [frame]);
 
-	/* report connection creation status (only if handler defined) */
-	this.conn._reportConnCreated ();
+	/* flag that we have received and processed greetings */
+	this.conn.greetingsPending = false;
+
+	/* report connection creation status (only if greetings were sent) */
+	if (this.conn.greetingsSent) {
+	    this.conn._reportConnCreated ();
+	}
 	return;
     } /* end if */
 

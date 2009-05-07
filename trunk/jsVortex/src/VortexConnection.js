@@ -66,6 +66,10 @@ function VortexConnection (host,
 	0 : new VortexChannel (this, 0, "N/A", VortexEngine.channel0Received)
     };
 
+    /* flag greetings sent */
+    this.greetingsSent = false;
+    this.greetingsSent = false;
+
     /* do TCP connect */
     Vortex.log ("Doing TCP connect to: " + host + ", port: " + port);
     this._transport.connect (host, port);
@@ -84,6 +88,14 @@ function VortexConnection (host,
 	/* report we have failed to send greetings */
 	this._reportConnCreated ();
 	return this;
+    }
+    /* flag greetings as sent */
+    this.greetingsSent = true;
+    if (! this.greetingsPending) {
+	/* flag connection as ready */
+	this.isReady = true;
+	/* report connection */
+	this._reportConnCreated ();
     }
     return this;
 };
@@ -232,7 +244,7 @@ VortexConnection.prototype.openChannel = function (params) {
 	    replyCode : "504",
 	    replyMsg : "Caller didn't define profile to start."
 	};
-	Vortex.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
+	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
 	return false;
     }
 
@@ -256,7 +268,7 @@ VortexConnection.prototype.openChannel = function (params) {
 		replyCode : "550",
 		replyMsg : errMsg
 	    };
-	    Vortex.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
+	    VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
 	    return false;
 	} /* end if */
     } /* end if */
@@ -323,7 +335,7 @@ VortexConnection.prototype.openChannel = function (params) {
 	    replyCode : "451",
 	    replyMsg : "Failed to send start request"
 	};
-	Vortex.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
+	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
 	return false;
     } /* end if */
 
@@ -340,7 +352,7 @@ VortexConnection.prototype.openChannel = function (params) {
 	    replyCode : "451",
 	    replyMsg : "After sneding start request, broken connection was found"
 	};
-	Vortex.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
+	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
 	return false;
     }
 

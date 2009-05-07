@@ -105,7 +105,6 @@ function VortexFirefoxWrite (data, length) {
 	    return false;
 	}
     } /* end acquire priviledges */
-
     var result = this.outstream.write (data, length);
     return (result == length);
 };
@@ -124,16 +123,30 @@ function VortexFirefoxIsOk () {
     }
 
     /* check for null reference */
-    if (this.socket == null || this.socket == -1)
+    if (this.socket == null || this.socket == -1) {
+	Vortex.warn ("VortexFirefoxIsOk: socket is null or -1: " + this.socket);
 	return false;
+    }
 
     /* check if the socket is alive */
-    return this.socket.isAlive ();
+    
+    /* Code comment because it shows a deficient unpredictable
+     * behaviour event when data has been exchanged between peers,
+     * this method could return false. Now socket alive is handled via
+     * connection.isReady property. */
+/*    var result = this.socket.isAlive ();
+    if (! result) {
+	console.warn ("VortexFirefoxIsOk: socket.isAlive() returned false, shutdown connection");
+	this.close ();
+	return false;
+    } */
+    return true;
 };
 
 function VortexFirefoxClose () {
     this.instream.close();
     this.outstream.close();
+    this.socket = -1;
     return;
 };
 
