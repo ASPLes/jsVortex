@@ -254,6 +254,7 @@ VortexEngine.parseMimeHeaders = function (mimeHeaders, data) {
 VortexEngine.getFrame = function (connection, data) {
 
     var frameList = [];
+    var frame;
 
     /* check if the frame is complete */
 
@@ -267,32 +268,48 @@ VortexEngine.getFrame = function (connection, data) {
 	Vortex.log2 ("Received frame type: " + strType + ", length: " + strType.length);
 	this.position += 4;
 
+	/* check here allowed frame headers */
+	if (strType != 'RPY' &&
+	    strType != 'MSG' &&
+	    strType != 'ANS' &&
+	    strType != 'NUL' &&
+	    strType != 'ERR' &&
+	    strType != 'SEQ') {
+	    /* flag connection closed */
+	    connection.shutdown ("Found not allowed BEEP header: " + strType + ", closing connection");
+	    return null;
+	} /* end if */
+
 	/* get the frame channel number */
 	var channel  = this.getNumber (data);
 	Vortex.log2 ("channel: " + channel);
 
-	/* get the frame msgno */
-	var msgno = this.getNumber (data);
-	Vortex.log2 ("msgno: " + msgno);
+	if (strType != 'SEQ') {
+	    /* get the frame msgno */
+	    var msgno = this.getNumber (data);
+	    Vortex.log2 ("msgno: " + msgno);
 
-	/* get more character */
-	var more  =	data[this.position + 1] == '*';
-	this.position += 2;
-	Vortex.log2 ("more: " + more);
+	    /* get more character */
+	    var more  =	data[this.position + 1] == '*';
+	    this.position += 2;
+	    Vortex.log2 ("more: " + more);
+	} /* end if */
 
-	/* get seqno value */
+	/* get seqno|ackno value */
 	var seqno = this.getNumber (data);
 	Vortex.log2 ("seqno: " + seqno);
 
-	/* get size value */
+	/* get size|window value */
 	var size = this.getNumber (data);
 	Vortex.log2 ("size: " + size);
 
-	/* check if we have to read ansno value */
-	var ansno;
-	if (strType == "ANS") {
-	    ansno = this.getNumber (data);
-	}
+	if (strType != 'SEQ') {
+	    /* check if we have to read ansno value */
+	    var ansno;
+	    if (strType == "ANS") {
+		ansno = this.getNumber (data);
+	    }
+	} /* end if */
 
 	/* now check BEEP header end */
 	if (data[this.position] != '\r' || data[this.position + 1] != '\n') {
@@ -303,9 +320,22 @@ VortexEngine.getFrame = function (connection, data) {
 	    return null;
 	}
 
+	/* start reading frame content */
+	this.position += 2;
+
+	/* check if we have a SEQ to stop processing */
+	if (strType == 'SEQ') {
+	    Vortex.log2 ("VortexEngine.getFrame: found SEQ frame: SEQ " + channel + " " + seqno + " " + size);
+    	    /* return frame read: seqno=ackno and size=window */
+	    frame = new VortexFrame (strType, channel,
+				     -1 /* msgno */, false /* more */,
+				     seqno /* ackno */, size /* window */);
+	    frameList.push (frame);
+	    continue;
+	} /* end if */
+
 	/* update position to MIME headers */
 	Vortex.log2 ("VortexEngine.getFrame: parsing MIME at: " + this.position);
-	this.position += 2;
 
 	/* parse here all MIME headers */
 	var mimeHeaders = new Array ();
@@ -329,7 +359,7 @@ VortexEngine.getFrame = function (connection, data) {
 	Vortex.log2 ("BEEP frame ended at: " + this.position + ", last data index received: " + data.length );
 
 	/* call to create frame object */
-	var frame = new VortexFrame (strType, channel, msgno, more, seqno, size, ansno, mimeHeaders, content);
+	frame = new VortexFrame (strType, channel, msgno, more, seqno, size, ansno, mimeHeaders, content);
 
 	Vortex.log2 ("Frame type: " + frame.getFrameType ());
 	frameList.push (frame);
@@ -596,5 +626,29 @@ VortexEngine.channel0PrepareConnection = function (frame)
     this.conn.greetingsPending = false;
 
     return true;
+};
+
+/**
+ * @internal Function used to process a SEQ frame received and to
+ * proceed with pending send operations in the case SEQ frame received
+ * opens the window.
+ *
+ * @param frame The SEQ frame having in seqno and size values
+ * associated to ackno and window.
+ *
+ * NOTE: "this" keyword must point to channel.
+ */
+VortexEngine.receivedSEQFrame = function (frame) {
+    Vortex.log2 ("VortexEngine.receivedSEQFrame: processing SEQ frame for channel: " + this.number);
+
+    /* check that the amount of content now allowed by the SEQ frame
+    is greater than current maxAllowedPeerSeqno */
+    if (this.maxAllowedPeerSeqno > (frame.seqno + frame.window)) {
+	this.conn.shutdown ("Received a SEQ frame notification providing a window update which is smaller " +
+			    "than current status. Window shrinking or notifying this values is not allowed");
+	return;
+    }
+
+    return;
 };
 
