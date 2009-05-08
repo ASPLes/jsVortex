@@ -155,7 +155,7 @@ VortexChannel.prototype.sendRPY = function (content, mimeHeaders) {
 
 /**
  * @brief Closes a channel defined by the caller reference.
- * 
+ *
  *
  * @param onChannelCloseHandler [handler] The handler that is used by
  * the method to notify the caller with the termination status. On
@@ -188,13 +188,13 @@ VortexChannel.prototype.sendRPY = function (content, mimeHeaders) {
  *
  */
 VortexChannel.prototype.close = function (params) {
-    
+
     if (! VortexEngine.checkReference (params))
 	return false;
-    
+
     /* add channelNumber paramer to params */
     params.channelNumber = this.number;
-    
+
     /* call to close using connection close channel */
     return this.conn.closeChannel (params);
 };
@@ -255,14 +255,17 @@ VortexChannel.prototype.sendCommon = function (content, mimeHeaders, type) {
     /* check if we can send all content in a single frame */
     var isComplete = true;
     if (content.length > allowedSize) {
+	Vortex.log ("VortexChannel.sendCommon (" + type + "): found send operation with a message larger than allowed remote seqno");
 	/* we have too much content to be sent at this moment, split
 	 * and store to continue. At this point we know we can send at
 	 * least one byte. */
 	var pending_content = content.substring (allowedSize, content.length - 1);
+	Vortex.log ("VortexChannel.sendCommon (" + type + "): queueing the rest for later send: " + pending_content.length + " bytes");
 	this.sendQueue.unshift (pending_content);
 
 	/* update content to be sent */
-	content = data.substring (0, allowedSize - 1);
+	content = content.substring (0, allowedSize - 1);
+	Vortex.log ("VortexChannel.sendCommont (" + type + "): sending allowed content: " + content.length + " bytes");
 
 	/* flag if the frame contains all the content to be sent */
 	isComplete = false;
@@ -289,7 +292,7 @@ VortexChannel.prototype.sendCommon = function (content, mimeHeaders, type) {
 	frame        = "MSG " + this.number + " " + this.nextMsgno + " " +
 	    (isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + (content.length + _mimeHeaders.length + 2) + "\r\n" +
 	    this.getMimeHeaders (mimeHeaders) + "\r\n" + content + "END\r\n";
-	
+
 	/* increase nextMsgno */
 	this.nextMsgno++;
     } /* end if */

@@ -44,7 +44,7 @@ testLargeContentTransfer.Result = function (conn) {
     return true;
 };
 
-testLargeContentTransfer.ResultCreated = function (resplyData) {
+testLargeContentTransfer.ResultCreated = function (replyData) {
 
     /* get channel reference */
     var channel = replyData.channel;

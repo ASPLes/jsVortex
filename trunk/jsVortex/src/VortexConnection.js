@@ -666,6 +666,15 @@ VortexConnection.prototype._onRead = function (connection, data) {
 	    return false;
 	}
 
+	/* check to notify SEQ frame and requeue a send operation with pending messages */
+	if (frame.type == 'SEQ') {
+	    Vortex.log ("VortexConnection._onRead: notifying SEQ frame received: channel=" +
+			channel.number + ", ackno=" + frame.seqno + ", window: " + frame.size);
+	    /* call to process SEQ frame */
+	    VortexEngine.receivedSEQFrame.apply (channel, [frame]);
+	    continue;
+	}
+
 	/* check if the channel has received handler */
 	if (channel.onFrameReceivedHandler == null) {
 	    Vortex.warn ("VortexConnection._onRead: received a frame for a channel without received handler. Discarding frame.");
