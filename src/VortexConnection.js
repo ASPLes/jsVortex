@@ -670,16 +670,50 @@ VortexConnection.prototype._onRead = function (connection, data) {
 	if (frame.type == 'SEQ') {
 	    Vortex.log ("VortexConnection._onRead: notifying SEQ frame received: channel=" +
 			channel.number + ", ackno=" + frame.seqno + ", window: " + frame.size);
-	    /* call to process SEQ frame */
 	    VortexEngine.receivedSEQFrame.apply (channel, [frame]);
 	    continue;
 	}
 
+	if (Vortex.logEnabled) {
+	    Vortex.log ("VortexConnection._onRead: frame received (only header): " +
+			frame.type + " " + frame.channel + " " + frame.msgno + " " +
+			(frame.more ? '*' : '.') + " " + frame.seqno + " " +
+			frame.size + " " + (frame.ansno == undefined ? "" : frame.ansno));
+	} /* end if */
+
+	/* update channel SEQ frame to continue receiving content */
+	VortexEngine.checkSendSEQFrame (channel, frame);
+
 	/* check if the channel has received handler */
 	if (channel.onFrameReceivedHandler == null) {
 	    Vortex.warn ("VortexConnection._onRead: received a frame for a channel without received handler. Discarding frame.");
-	    return false;
+	    continue;
 	}
+
+	/* check channel complete flag */
+	if (channel.completeFrames && (channel.previousFrame || frame.more)) {
+	    /* join received frame and store for later deliver */
+	    channel.previousFrame = VortexEngine.joinFrame (connection, channel.previousFrame, frame);
+
+	    /* check join operation before continue */
+	    if (channel.previousFrame == null)
+		return false;
+	    Vortex.log2 ("Successful join operation, now check if we can deliver: " + channel.previousFrame.size + " bytes");
+
+	    /* check if frame is now complete */
+	    if (channel.previousFrame.more) {
+		Vortex.log2 ("frame is still incomplete, storing for later use");
+		/* found that the frame after joining
+		 * is still not complete, going next */
+		continue;
+	    } /* end if */
+	    Vortex.log2 ("It seems we are going to deliver the frame to the user, total size: " + channel.previousFrame.size);
+
+	    /* reached this point, previousFrame is
+	     * now complete and we can deliver it */
+	    frame                 = channel.previousFrame;
+	    channel.previousFrame = null;
+	} /* end if */
 
 	/* create notification object */
 	var frameReceived = {
@@ -687,6 +721,12 @@ VortexConnection.prototype._onRead = function (connection, data) {
 	    channel : channel,
 	    conn : this
 	};
+
+	/* parse here all MIME headers */
+	frame.mimeHeaders = new Array ();
+	Vortex.log ("VortexConnection._onRead: frame content size before parsing mime headers: " + frame.content.length);
+	frame.content     = VortexEngine.parseMimeHeaders (frame.mimeHeaders, frame.content);
+	Vortex.log ("VortexConnection._onRead: frame content size after parsing mime headers: " + frame.content.length);
 
 	/* notify frame */
 	if (channel.onFrameReceivedContext) {
@@ -728,6 +768,9 @@ VortexConnection.prototype._send = function (content) {
 	this.stackError.push ("VortexConnection._send: failed to send content, error found: " + e.message);
 	return false;
     }
+
+    /* return false */
+    return false;
 };
 
 /**
