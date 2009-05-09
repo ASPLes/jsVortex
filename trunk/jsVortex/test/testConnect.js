@@ -515,6 +515,39 @@ testChannels.CloseResult = function (replyData) {
 };
 /******* END: testChannels ******/
 
+/******* BEGIN: testMimeSupport ******/
+function testMimeSupport () {
+
+    var content;
+    var expected;
+    var content2;
+    var mimeHeaders;
+
+    /* check simple empty mime headers */
+    content     = "\r\nThis is a test";
+    expected    = "This is a test";
+    mimeHeaders = [];
+    content2    = VortexEngine.parseMimeHeaders (mimeHeaders, content);
+
+    /* check expected value */
+    if (content2 != expected) {
+	log ("error", "Expected to find properly parsed content '" + content2 + "' but found '" + expected + "'");
+	return false;
+    } /* end if */
+
+    /* check mimeHeaders count */
+    if (mimeHeaders.length != 0) {
+	log ("error", "Expected to find 0 MIME headers but found: " + mimeHeaders.length);
+	return false;
+    } /* end if */
+
+
+    /* call for the next test */
+    this.nextTest ();
+    return true;
+}
+/******* END:   testMimeSupport ******/
+
 /******* BEGIN: testConnect ******/
 function testConnect () {
 
@@ -789,6 +822,7 @@ RegressionTest.prototype.nextTest = function () {
 RegressionTest.prototype.tests = [
     {name: "Check if jsVortex is available", testHandler: testjsVortexAvailable},
     {name: "Library infraestructure check", testHandler: testInfraestructure},
+    {name: "MIME support", testHandler : testMimeSupport},
     {name: "BEEP basic connection test", testHandler: testConnect},
     {name: "BEEP basic channel management test", testHandler: testChannels},
     {name: "BEEP basic channel management test (DENY)", testHandler: testChannelsDeny},
