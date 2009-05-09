@@ -122,6 +122,17 @@ function VortexChannel (conn,
     /* channel status (if channel number if 0, it is ready,
      * otherwise it is pending to be fully opened) */
     this.isReady   = (number == 0);
+
+    /**
+     * By default all frames received on this channel will be
+     * delivered complete. This means that partial frames received
+     * won't be notified until all pieces are received.
+     *
+     * You can change this value to false so all frame fragments
+     * received will be received. Keep in mind you'll have to
+     * handle frame joining (if required).
+     */
+    this.completeFrames = true;
 };
 
 /**
@@ -130,13 +141,16 @@ function VortexChannel (conn,
  * @param message The message to be sent over this channel
  */
 VortexChannel.prototype.sendMSG = function (content, mimeHeaders) {
+    /* build mime headers provided by the user */
+    var _mimeHeaders = this.getMimeHeaders (mimeHeaders);
+
     /* use common implementation */
-    return this.sendCommon (content, mimeHeaders, "MSG");
+    return this.sendCommon (_mimeHeaders + "\r\n" + content, "MSG");
 };
 
 /**
- * @brief Sends content the provided over the channel. The method checks
- * if the connection is ready and the transport available.
+ * @brief Sends content the provided over the channel. The method
+ * checks if the connection is ready and the transport available.
  *
  * @param content [string] The content to be sent.
  *
@@ -144,13 +158,24 @@ VortexChannel.prototype.sendMSG = function (content, mimeHeaders) {
  * objects having the list of mime headers to configure. In the case null is
  * provided, no MIME header is placed on the frame sent.
  *
- * @return 1 if the case the content was queued to be sent, otherwise
- * 0 is returned. The function returns 2 in the case the channel is stale
- * (no SEQ no is available to send content).
+ * @return The function returns the following status codes:
+ *
+ * - 1 : All content was sent into a single message (no content was
+ * left waiting for a SEQ frame to complete the sequence).
+ *
+ * - 2 : Part of the message was sent and the rest was queued to later
+ * delivery (until SEQ frame from remote side is received).
+ *
+ * - 0 : Failed to send the content. Error found during the
+ * operation. Check connection stack error.
+ *
  */
 VortexChannel.prototype.sendRPY = function (content, mimeHeaders) {
+    /* build mime headers provided by the user */
+    var _mimeHeaders = this.getMimeHeaders (mimeHeaders);
+
     /* use common implementation */
-    return this.sendCommon (content, mimeHeaders, "RPY");
+    return this.sendCommon (_mimeHeaders + "\r\n" + content, "RPY");
 };
 
 /**
@@ -210,36 +235,85 @@ VortexChannel.prototype.close = function (params) {
  * to configure. In the case null is provided, no MIME header is
  * placed on the frame sent.
  *
- * @return 1 if the case the content was queued to be sent, otherwise
- * 0 is returned. The function returns 2 in the case the channel is
- * stale (no SEQ no is available to send content).
+ * @return The function returns true if the send operation was
+ * completed or partially completed or still not send because the
+ * message was queued (pending for a SEQ frame) but no error was
+ * found. In the case an unrecoverable error is found, the function
+ * returns false. You must also check for channel.lastStatusCode to
+ * get more information for the last operation. See the following values:
+ *
+ * 1 : All content was sent into a single message (no content was left
+ * waiting for a SEQ frame to complete the sequence). In this case the
+ * function returns true.
+ *
+ * 2 : Part of the message was sent and the rest was queued to later
+ * delivery (until SEQ frame from remote side is received). In this
+ * case the function returns true.
+ *
+ * 0 : Failed to send the content. Error found during the
+ * operation. Check connection stack error. In this case the function
+ * returns false.
+ *
+ * -1 : Channel is stalled and no more send operations are
+ * allowed. The entire message was queued for later delivery. In this
+ * case the function returns true.
+ *
+ * -2 : No pending content to be sent. This is useful when content and
+ * type are null references (to request a flush operation for pending
+ * queued content when a SEQ frame is received). This is mostly used
+ * by jsVortex engine. In this case the function returns true.
  *
  */
-VortexChannel.prototype.sendCommon = function (content, mimeHeaders, type) {
+VortexChannel.prototype.sendCommon = function (content, type) {
+
+    var pendingSend;
+    var resending = (content == null && type == null);
 
     if (! this.isReady) {
 	Vortex.warn ("VortexChannel.sendCommon (" + type + "): unable to send content, connection is not ready.");
+	this.lastStatusCode = 0;
 	return false;
-    }
+    } /* end if */
 
     /* check queue status */
     if (this.sendQueue.length > 0) {
-	/* pending messages to be sent on the queue, store
-	 * current message and manage next message in the
-	 * queue */
 
-	/* add the content in the end of the queue */
-	this.sendQueue.push (content);
+	/* queue caller content only if it is found to be defined */
+	if (content != null && type != null) {
+
+	    /* pending messages to be sent on the queue, store
+	     * current message and manage next message in the
+	     * queue */
+	    pendingSend = {
+		content: content,
+		type : type
+	    };
+
+	    /* add the content in the end of the queue */
+	    this.sendQueue.push (pendingSend);
+	} /* end if */
 
 	/* update content reference (get the first element
 	 * from the queue and remote it from the queue) */
-	content = this.sendQueue.shift ();
+	pendingSend = this.sendQueue.shift ();
+	/* update local variables */
+	content     = pendingSend.content;
+	type        = pendingSend.type;
+
+    } /* end if */
+
+    /* check here if content == null (we are requesting to flush previous content) */
+    if (content == null && type == null) {
+	Vortex.log ("VortexChannel.sendCommon: no more content peding to be sent");
+	this.lastStatusCode = -2;
+	return true;
     }
 
     /* now check how much from this content we can send assuming
      * remote allowed seqno (maxAllowedPeerSeqno) */
     var allowedSize = (this.maxAllowedPeerSeqno - this.nextPeerSeqno);
     Vortex.log ("VortexChannel.sendCommon (" + type + "): doing a send operation, allowed bytes: " + allowedSize + ", content size: " + content.length);
+    Vortex.log ("VortexChannel.sendCommon (" + type + "): maxAllowedPeerSeqno: " + this.maxAllowedPeerSeqno + ", nextPeerSeqno: " + this.nextPeerSeqno);
 
     /* check channel stalled */
     if (allowedSize == 0) {
@@ -247,9 +321,12 @@ VortexChannel.prototype.sendCommon = function (content, mimeHeaders, type) {
 
 	/* add the content at the begining of the queue to
 	 * handle it first on the next operation. */
-	this.sendQueue.unshift (content);
+	pendingSend = { content: content,  type : type };
+	this.sendQueue.unshift (pendingSend);
 
-	return false;
+	/* return here to stop trying to send content */
+	this.lastStatusCode = -1;
+	return true;
     }
 
     /* check if we can send all content in a single frame */
@@ -259,12 +336,18 @@ VortexChannel.prototype.sendCommon = function (content, mimeHeaders, type) {
 	/* we have too much content to be sent at this moment, split
 	 * and store to continue. At this point we know we can send at
 	 * least one byte. */
-	var pending_content = content.substring (allowedSize, content.length - 1);
+	var pending_content = content.substring (allowedSize, content.length);
 	Vortex.log ("VortexChannel.sendCommon (" + type + "): queueing the rest for later send: " + pending_content.length + " bytes");
-	this.sendQueue.unshift (pending_content);
+
+	/* store pending content for later retrieval */
+	pendingSend = {
+	    content: pending_content,
+	    type: type
+	};
+	this.sendQueue.unshift (pendingSend);
 
 	/* update content to be sent */
-	content = content.substring (0, allowedSize - 1);
+	content = content.substring (0, allowedSize);
 	Vortex.log ("VortexChannel.sendCommont (" + type + "): sending allowed content: " + content.length + " bytes");
 
 	/* flag if the frame contains all the content to be sent */
@@ -277,33 +360,35 @@ VortexChannel.prototype.sendCommon = function (content, mimeHeaders, type) {
      * queued for later management. */
 
     /* build the frame to sent */
-    var _mimeHeaders = this.getMimeHeaders (mimeHeaders);
     var frame;
     if (type == "RPY") {
 	/* RPY frames */
 	frame        = "RPY " + this.number + " " + this.nextReplyMsgno + " " +
-	    (isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + (content.length + _mimeHeaders.length + 2) + "\r\n" +
-	    this.getMimeHeaders (mimeHeaders) + "\r\n" + content + "END\r\n";
+	    (isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + (content.length) + "\r\n" + content + "END\r\n";
 
-	/* increase next replyMsgno */
-	this.nextReplyMsgno++;
+	/* increase next replyMsgno only if we have sent a comple reply */
+	if (isComplete)
+	    this.nextReplyMsgno++;
     } else {
 	/* MSG frames */
 	frame        = "MSG " + this.number + " " + this.nextMsgno + " " +
-	    (isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + (content.length + _mimeHeaders.length + 2) + "\r\n" +
-	    this.getMimeHeaders (mimeHeaders) + "\r\n" + content + "END\r\n";
+	    (isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + (content.length) + "\r\n" + content + "END\r\n";
 
-	/* increase nextMsgno */
-	this.nextMsgno++;
+	/* increase nextMsgno only if we have sent a complete message */
+	if (isComplete)
+	    this.nextMsgno++;
     } /* end if */
 
-    /* Vortex.log ("VortexChanenl.sendRPY: sending frame: " + frame); */
-
     /* update channel status */
-    this.nextPeerSeqno += (content.length + _mimeHeaders.length + 2);
+    this.nextPeerSeqno += content.length;
+
+    /* signal send operation ok, but use 1 to signal complete send (no
+    pending content) */
+    this.lastStatusCode = (isComplete ? 1 : 2);
 
     /* send the content */
-    return (this.conn._send.apply (this.conn, [frame]));
+    Vortex.log ("VortexChannel.sendCommon: about to do send operation: " + frame.length + " bytes");
+    return this.conn._send.apply (this.conn, [frame]);
 };
 
 /**

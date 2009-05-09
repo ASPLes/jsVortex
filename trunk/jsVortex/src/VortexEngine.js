@@ -112,6 +112,63 @@ VortexEngine.count = function (object) {
 };
 
 /**
+ * @brief Allows to join two frames doing a check operation during the
+ * operation.
+ *
+ * It is assumed the two frames received to be joint represents a pair
+ * that are consecutive in the seqno serie, that is, frameA goes
+ * before frameB.
+ *
+ * @param frameA The frame to join. It can be null, In such case,
+ * it is returned frameB untouched.
+ *
+ * @param frameB The second frame to join. It cannot be null.
+ */
+VortexEngine.joinFrame = function (conn, frameA, frameB) {
+    /* check errors */
+    if (! VortexEngine.checkReference (frameB, "channel"))
+	return null;
+
+    /* basic case */
+    if (frameA == null)
+	return frameB;
+
+    /* normal case */
+    if (frameA.type != frameB.type) {
+	conn.shutdown ("frame type mismatch while trying to joing frames");
+	return null;
+    }
+    if (frameA.channel != frameB.channel) {
+	conn.shutdown ("frame channel mismatch while trying to joing frames");
+	return null;
+    }
+    if (! frameA.more && !frameB.more) {
+	conn.shutdown ("frame more flag mismatch while trying to joing frames");
+	return null;
+    }
+    if (frameA.msgno != frameB.msgno) {
+	conn.shutdown ("frame msgno mismatch while trying to joing frames");
+	return null;
+    }
+    if (frameA.ansno != frameB.ansno) {
+	conn.shutdown ("frame ansno mismatch while trying to joing frames");
+	return null;
+    }
+    if ((frameA.seqno + frameA.size) != frameB.seqno) {
+	conn.shutdown ("frame seqno mismatch while trying to joing frames");
+	return null;
+    }
+
+    /* do join operation after all checks */
+    frameA.more    = (frameA.more && frameB.more);
+    frameA.size    = (frameA.size + frameB.size);
+    frameA.content = frameA.content + frameB.content;
+
+    /* no mime headers are copied */
+    return frameA;
+};
+
+/**
  * @internal Function that allows to get the next number inside
  * the stream referenced by data.
  *
@@ -188,13 +245,26 @@ VortexEngine.parseMimeHeaders = function (mimeHeaders, data) {
     var mimeContent;
 
     /* record position to track mime headers size */
-    this.mimeHeadersSize = this.position;
+    this.position = 0;
+    this.mimeHeadersSize = 0;
 
-    while (data[this.position] != '\r' && data[this.position + 1] != '\n') {
+    /* check for the basic case where no MIME headers are found */
+    if (((this.position + 1) < data.length) &&
+	data[this.position] == '\r' && data[this.position + 1] == '\n') {
+	Vortex.log ("VortexEngine.parseMimeHeaders: empty MIME headers found");
+	return data.substring (this.position + 2, data.length);
+    }
+
+    while (((this.position + 1) < data.length) &&
+	data[this.position] != '\r' && data[this.position + 1] != '\n') {
 	/* get index for : */
 	iterator  = 0;
-	while (data[this.position + iterator] != ':')
+	while (((this.position + iterator) < data.length) && data[this.position + iterator] != ':')
 	    iterator++;
+
+	if (data[this.position + iterator] != ':') {
+	    return data;
+	}
 
 	/* get mime head */
 	mimeHead = data.substring (this.position, this.position + iterator);
@@ -215,7 +285,8 @@ VortexEngine.parseMimeHeaders = function (mimeHeaders, data) {
 
 	/* now find mime header content end */
 	iterator = 0;
-	while ((data[this.position + iterator] != '\r' ||
+	while (((this.position + iterator) < data.length) &&
+	       (data[this.position + iterator] != '\r' ||
 		data[this.position + iterator + 1] != '\n') &&
 		data[this.position + iterator + 2] != ' ' &&
 		data[this.position + iterator + 2] != '\t') {
@@ -241,7 +312,8 @@ VortexEngine.parseMimeHeaders = function (mimeHeaders, data) {
 
     Vortex.log ("VortexEngine.parseMimeHeaders: MIME parse finished at: " + this.position + ", MIME headers size: " + this.mimeHeadersSize);
 
-    return;
+    /* return rest of the content that is not mime */
+    return data.substring (this.position, data.length);
 };
 
 
@@ -262,6 +334,8 @@ VortexEngine.getFrame = function (connection, data) {
     this.position = 0;
 
     while (this.position < data.length) {
+
+	Vortex.log ("Reading next frame from connection, position: " + this.position + ", data length: " + data.length);
 
 	/* get frame type */
 	var strType = data.substring (this.position, this.position + 3);
@@ -313,7 +387,7 @@ VortexEngine.getFrame = function (connection, data) {
 
 	/* now check BEEP header end */
 	if (data[this.position] != '\r' || data[this.position + 1] != '\n') {
-	    connection._onError ("VortexEngine: ERROR: position: " + this.position);
+	    connection._onError ("VortexEngine: ERROR (1): position: " + this.position);
 	    connection.shutdown (
 		"VortexEngine: ERROR: expected to find \\r\\n BEEP header trailer, but not found: " +
 		    Number (data[this.position]) + ", " + Number (data[this.position + 1]));
@@ -325,7 +399,7 @@ VortexEngine.getFrame = function (connection, data) {
 
 	/* check if we have a SEQ to stop processing */
 	if (strType == 'SEQ') {
-	    Vortex.log2 ("VortexEngine.getFrame: found SEQ frame: SEQ " + channel + " " + seqno + " " + size);
+	    Vortex.log ("VortexEngine.getFrame: found SEQ frame: SEQ " + channel + " " + seqno + " " + size);
     	    /* return frame read: seqno=ackno and size=window */
 	    frame = new VortexFrame (strType, channel,
 				     -1 /* msgno */, false /* more */,
@@ -334,23 +408,17 @@ VortexEngine.getFrame = function (connection, data) {
 	    continue;
 	} /* end if */
 
-	/* update position to MIME headers */
-	Vortex.log2 ("VortexEngine.getFrame: parsing MIME at: " + this.position);
-
-	/* parse here all MIME headers */
-	var mimeHeaders = new Array ();
-	this.parseMimeHeaders (mimeHeaders, data);
-
-	var content = data.substring (this.position, this.position + size - this.mimeHeadersSize);
+	/* read frame content */
+	var content = data.substring (this.position, this.position + size);
 	Vortex.log2 ("Content found (size: " + size + ", position: " + this.position + ", length: " + data.length + "): '" + content + "'");
 
-	this.position += (size - this.mimeHeadersSize);
+	this.position += size;
 	Vortex.log2 ("BEEP header end: '" + data.substring (this.position, this.position + 5) + "'");
 
 	/* check beep trailer */
 	var beepTrailer = data.substring (this.position, this.position + 5);
 	if (beepTrailer != "END\r\n") {
-	    Vortex.error ("VortexEngine: ERROR: position: " + this.position);
+	    Vortex.error ("VortexEngine: ERROR (2): position: " + this.position);
 	    connection.shutdown (
 		"VortexEngine: ERROR: expected to find \\r\\n BEEP frame trailer (end of frame), but not found: " + beepTrailer);
 	    return null;
@@ -359,9 +427,9 @@ VortexEngine.getFrame = function (connection, data) {
 	Vortex.log2 ("BEEP frame ended at: " + this.position + ", last data index received: " + data.length );
 
 	/* call to create frame object */
-	frame = new VortexFrame (strType, channel, msgno, more, seqno, size, ansno, mimeHeaders, content);
+	frame = new VortexFrame (strType, channel, msgno, more, seqno, size, ansno, null, content);
 
-	Vortex.log2 ("Frame type: " + frame.getFrameType ());
+	Vortex.log2 ("Frame type: " + frame.type);
 	frameList.push (frame);
     }
 
@@ -643,12 +711,82 @@ VortexEngine.receivedSEQFrame = function (frame) {
 
     /* check that the amount of content now allowed by the SEQ frame
     is greater than current maxAllowedPeerSeqno */
-    if (this.maxAllowedPeerSeqno > (frame.seqno + frame.window)) {
-	this.conn.shutdown ("Received a SEQ frame notification providing a window update which is smaller " +
+    if (this.maxAllowedPeerSeqno > (frame.seqno + frame.size)) {
+	this.conn.shutdown ("VortexEngine.receivedSEQFrame: Received a SEQ frame notification providing a window update which is smaller " +
 			    "than current status. Window shrinking or notifying this values is not allowed");
+	return;
+    } else if (this.maxAllowedPeerSeqno == (frame.seqno + frame.size)) {
+	Vortex.warn ("VortexEngine.receivedSEQFrame: received SEQ frame with empty update information (same values)");
 	return;
     }
 
+    /* reached this point, we have a SEQ frame update opening the
+     * remote channel */
+    this.maxAllowedPeerSeqno = (frame.seqno + frame.size);
+    Vortex.log ("VortexEngine.receivedSEQFrame: updated maxAllowedPeerSeqno: " + this.maxAllowedPeerSeqno);
+
+    /* now check for pending operations and send them
+     *
+     * WARNING: the following code may mean involve an
+     * active data exchange starving other channels. Check
+     * how this interacts with javascript execution model
+     */
+    var iterator = 0;
+    while ((this.sendQueue.length > 0) && (iterator < 1)) {
+
+	Vortex.log ("About to send a send operation because the queue is: " + this.sendQueue.length + ", and iterator is: " + iterator + ", channel: " + this.number);
+
+	/* send operation, if it fails, just stop */
+	if (! this.sendCommon (null, null))
+	    break;
+
+	Vortex.log ("VortexEngine.receivedSEQFrame: sent pending content: " + iterator + ", result=" + this.lastStatusCode);
+	return;
+
+	/* check if the last operation was a partial send
+	 * or if it is stalled or no pending content is found */
+	if (this.lastStatusCode == 2 || this.lastStatusCode == -1 || this.lastStatusCode == -2)
+	    break;
+    }
+    Vortex.log ("VortexEngine.receivedSEQFrame: finished");
+
     return;
 };
+
+/**
+ * @internal Method that allows to check if we have to send a
+ * SEQ frame update based on the content we have received.
+ *
+ * In the future this function will be used to implement SEQ
+ * frame user space handling.
+ */
+VortexEngine.checkSendSEQFrame = function (channel, frame) {
+
+    var halfSpace = (channel.maxAllowedSeqno - frame.seqno) / 2;
+    if (frame.size > halfSpace) {
+	/* send SEQ frame update (updating window to
+	 * have current channel.windowSize */
+	var acceptedSeqno  = (frame.seqno + frame.size);
+
+	Vortex.log ("VortexEngine.checkSendSEQFrame: channel.windowSize=" + channel.windowSize +
+		    ", channel.maxAllowedSeqno=" + channel.maxAllowedSeqno +
+		    ", frame.seqno=" + frame.seqno +
+		    ", frame.size=" + frame.size);
+
+	Vortex.log ("VortexEngine.checkSendSEQFrame: sending SEQ " + channel.number + " " + acceptedSeqno + " " + channel.windowSize + "\r\n");
+	channel.conn._send ("SEQ " + channel.number + " " + acceptedSeqno + " " + channel.windowSize + "\r\n");
+
+	/* update maxAllowedSeqno */
+	channel.maxAllowedSeqno = (acceptedSeqno + channel.windowSize - 1) % VortexEngine.MaxSeqNo;
+	Vortex.log ("VortexEngine.checkSendSEQFrame: updated maxAllowedSeqno value to: " + channel.maxAllowedSeqno);
+    } /* end if */
+
+    /* not updating maxAllowedSeqno */
+    return;
+};
+
+/**
+ * @internal Value used to represent maximum allosed seqno value.
+ */
+VortexEngine.MaxSeqNo =	4294967295;
 

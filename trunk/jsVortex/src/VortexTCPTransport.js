@@ -105,7 +105,14 @@ function VortexFirefoxWrite (data, length) {
 	    return false;
 	}
     } /* end acquire priviledges */
-    var result = this.outstream.write (data, length);
+
+    /* do write */
+    try {
+	var result = this.outstream.write (data, length);
+    } catch (e){
+	Vortex._onRrror ("VortexFirefoxWrite: failed to write content, message was: " + e.message);
+	return false;
+    }
     return (result == length);
 };
 
@@ -129,7 +136,7 @@ function VortexFirefoxIsOk () {
     }
 
     /* check if the socket is alive */
-    
+
     /* Code comment because it shows a deficient unpredictable
      * behaviour event when data has been exchanged between peers,
      * this method could return false. Now socket alive is handled via

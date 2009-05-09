@@ -34,9 +34,3 @@ function VortexFrame (type,
 
 
 
-/**
- * @brief Allows to get frame type for a given instance.
- */
-VortexFrame.prototype.getFrameType = function () {
-  return this.type;
-};
