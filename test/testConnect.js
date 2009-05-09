@@ -524,6 +524,7 @@ function testMimeSupport () {
     var mimeHeaders;
 
     /* check simple empty mime headers */
+    log ("info", "Checking empty MIME headers..");
     content     = "\r\nThis is a test";
     expected    = "This is a test";
     mimeHeaders = [];
@@ -541,6 +542,127 @@ function testMimeSupport () {
 	return false;
     } /* end if */
 
+    /* check wrong MIME configuration */
+    log ("info", "Checking wrong MIME headers ignore support..");
+    content     = "This is a test";
+    expected    = "This is a test";
+    mimeHeaders = [];
+    content2    = VortexEngine.parseMimeHeaders (mimeHeaders, content);
+
+    /* check expected value */
+    if (content2 != expected) {
+	log ("error", "Expected to find properly parsed content '" + content2 + "' but found '" + expected + "'");
+	return false;
+    } /* end if */
+
+    /* check mimeHeaders count */
+    if (mimeHeaders.length != 0) {
+	log ("error", "Expected to find 0 MIME headers but found: " + mimeHeaders.length);
+	return false;
+    } /* end if */
+
+    /* check simple empty mime headers */
+    log ("info", "Checking single MIME headers..");
+    content     = "Content-Type: application/beep+xml\r\n\r\nThis is a test";
+    expected    = "This is a test";
+    mimeHeaders = [];
+    content2    = VortexEngine.parseMimeHeaders (mimeHeaders, content);
+
+    /* check expected value */
+    if (content2 != expected) {
+	log ("error", "Expected to find properly parsed content '" + content2 + "' but found '" + expected + "'");
+	return false;
+    } /* end if */
+
+    /* check mimeHeaders count */
+    if (mimeHeaders.length != 1) {
+	log ("error", "Expected to find 1 MIME headers but found: " + mimeHeaders.length);
+	return false;
+    } /* end if */
+
+    if (mimeHeaders[0].header != "Content-Type") {
+	log ("error", "Expected to find Content-Type mime header, but found: " + mimeHeaders[0].header);
+	return false;
+    }
+    if (mimeHeaders[0].content != "application/beep+xml") {
+	log ("error", "Expected to find 'application/beep+xml' mime header, but found: '" + mimeHeaders[0].content + "'");
+	return false;
+    }
+
+    /* check simple empty mime headers */
+    log ("info", "Checking multiple MIME headers..");
+    content     = "Content-Type: application/beep+xml\r\n" +
+	"MimeTest: more content testing how works MIME support\r\n" +
+	"Return-path: some route to some host \r\n" +
+	"Message-ID: MESSAGE-TEST\r\n" +
+	"Return-path: some other router to some other host\r\n" +
+	"\r\n" +
+	"This is a test";
+    expected    = "This is a test";
+    mimeHeaders = [];
+    content2    = VortexEngine.parseMimeHeaders (mimeHeaders, content);
+
+    /* check expected value */
+    if (content2 != expected) {
+	log ("error", "Expected to find properly parsed content '" + content2 + "' but found '" + expected + "'");
+	return false;
+    } /* end if */
+
+    /* check mimeHeaders count */
+    if (mimeHeaders.length != 5) {
+	log ("error", "Expected to find 5 MIME headers but found: " + mimeHeaders.length);
+	return false;
+    } /* end if */
+
+    /* check first header */
+    if (mimeHeaders[0].header != "Content-Type") {
+	log ("error", "Expected to find Content-Type mime header, but found: " + mimeHeaders[0].header);
+	return false;
+    }
+    if (mimeHeaders[0].content != "application/beep+xml") {
+	log ("error", "Expected to find 'application/beep+xml' mime header, but found: '" + mimeHeaders[0].content + "'");
+	return false;
+    }
+
+    /* check second header */
+    if (mimeHeaders[1].header != "MimeTest") {
+	log ("error", "Expected to find MimeTest mime header, but found: " + mimeHeaders[1].header);
+	return false;
+    }
+    if (mimeHeaders[1].content != "more content testing how works MIME support") {
+	log ("error", "Expected to find 'more content testing how works MIME support' mime header, but found: '" + mimeHeaders[1].content + "'");
+	return false;
+    }
+
+    /* check third header */
+    if (mimeHeaders[2].header != "Return-path") {
+	log ("error", "Expected to find Return-path mime header, but found: " + mimeHeaders[2].header);
+	return false;
+    }
+    if (mimeHeaders[2].content != "some route to some host ") {
+	log ("error", "Expected to find 'some route to some host ' mime header, but found: '" + mimeHeaders[2].content + "'");
+	return false;
+    }
+
+    /* check fourth header */
+    if (mimeHeaders[3].header != "Message-ID") {
+	log ("error", "Expected to find Message-ID mime header, but found: " + mimeHeaders[3].header);
+	return false;
+    }
+    if (mimeHeaders[3].content != "MESSAGE-TEST") {
+	log ("error", "Expected to find 'MESSAGE-TEST' mime header, but found: '" + mimeHeaders[3].content + "'");
+	return false;
+    }
+
+    /* check fourth header */
+    if (mimeHeaders[4].header != "Return-path") {
+	log ("error", "Expected to find Return-path mime header, but found: " + mimeHeaders[4].header);
+	return false;
+    }
+    if (mimeHeaders[4].content != "some other router to some other host") {
+	log ("error", "Expected to find 'some other router to some other host' mime header, but found: '" + mimeHeaders[4].content + "'");
+	return false;
+    }
 
     /* call for the next test */
     this.nextTest ();
