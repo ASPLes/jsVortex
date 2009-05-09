@@ -14,11 +14,7 @@ if (typeof VortexEngine == "undefined") {
 	/**
 	 * Variable used to track parser position.
 	 */
-	position : 0,
-	/**
-	 * Variable used to track mime headers size.
-	 */
-	mimeHeadersSize : 0
+	position : 0
     };
 }
 
@@ -246,71 +242,86 @@ VortexEngine.parseMimeHeaders = function (mimeHeaders, data) {
 
     /* record position to track mime headers size */
     this.position = 0;
-    this.mimeHeadersSize = 0;
+
 
     /* check for the basic case where no MIME headers are found */
     if (((this.position + 1) < data.length) &&
 	data[this.position] == '\r' && data[this.position + 1] == '\n') {
-	Vortex.log ("VortexEngine.parseMimeHeaders: empty MIME headers found");
+	Vortex.log2 ("VortexEngine.parseMimeHeaders: empty MIME headers found");
 	return data.substring (this.position + 2, data.length);
     }
 
     while (((this.position + 1) < data.length) &&
 	data[this.position] != '\r' && data[this.position + 1] != '\n') {
+
 	/* get index for : */
 	iterator  = 0;
-	while (((this.position + iterator) < data.length) && data[this.position + iterator] != ':')
+	while (((this.position + iterator) < data.length) && data[this.position + iterator] != ':') {
+	    /* next iterator */
 	    iterator++;
+	} /* end while */
 
-	if (data[this.position + iterator] != ':') {
+	/* if no data was found, go next */
+	if (data[this.position + iterator] != ':')
 	    return data;
-	}
 
 	/* get mime head */
 	mimeHead = data.substring (this.position, this.position + iterator);
-	Vortex.log ("VortexEngine.parseMimeHeaders: header found: '" + mimeHead + "'");
+	Vortex.log2 ("VortexEngine.parseMimeHeaders: header found: '" + mimeHead + "'");
 
 	/* update position */
-	this.position += iterator + 1;
+	iterator++;
+	this.position += iterator;
 
 	/* skip whitespaces */
-	while (iterator < data.length) {
+	iterator = 0;
+	while ((this.position + iterator) < data.length) {
 	    /* if found something that is not a w3c whitespace, then stop */
-	    if (data[iterator] != " ")
+	    if (data[this.position + iterator] != " ")
 		break;
 	    /* otherwise, look at the next position */
 	    iterator++;
 	} /* end while */
 	this.position += iterator;
 
+	Vortex.log2 ("VortexEngine.parseMimeHeaders: mime header content starts at: " + this.position);
+
 	/* now find mime header content end */
 	iterator = 0;
-	while (((this.position + iterator) < data.length) &&
-	       (data[this.position + iterator] != '\r' ||
-		data[this.position + iterator + 1] != '\n') &&
+	while (((this.position + iterator + 2) < data.length)) {
+	    /* found single \r\n mime header stop, but also check that the next
+	     * character is not an space ' ' or a tabular \t */
+	    if (data[this.position + iterator] == '\r' &&
+		data[this.position + iterator + 1] == '\n' &&
 		data[this.position + iterator + 2] != ' ' &&
 		data[this.position + iterator + 2] != '\t') {
+		break;
+	    } /* end if */
+
+	    /* if go to the next byte */
 	    iterator++;
 	} /* end while */
 
 	/* get mime content */
+	Vortex.log2 ("VortexEngine.parseMimeHeaders: getting header content " + mimeHead + ": " + this.position + ", up to: " + (this.position + iterator));
 	mimeContent = data.substring (this.position, this.position + iterator);
 
-	Vortex.log ("VortexEngine.parseMimeHeaders: header content found: '" + mimeContent + "'");
+	Vortex.log2 ("VortexEngine.parseMimeHeaders: header content found: '" + mimeContent + "'");
 
 	/* store mime header into the array */
 	var mimeHeader = new VortexMimeHeader (mimeHead, mimeContent);
 	mimeHeaders.push (mimeHeader);
 
 	/* skip header found */
-	this.position += iterator + 2;
+	this.position += (iterator + 2);
+
+	Vortex.log2 ("VortexEngine.parseMimeHeaders: read mime header: " + mimeHeaders.length);
 
     } /* end while */
 
     this.position += 2;
-    this.mimeHeadersSize = this.position - this.mimeHeadersSize;
 
-    Vortex.log ("VortexEngine.parseMimeHeaders: MIME parse finished at: " + this.position + ", MIME headers size: " + this.mimeHeadersSize);
+    Vortex.log2 ("VortexEngine.parseMimeHeaders: MIME parse finished at: " + this.position);
 
     /* return rest of the content that is not mime */
     return data.substring (this.position, data.length);
