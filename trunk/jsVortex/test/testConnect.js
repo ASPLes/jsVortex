@@ -57,6 +57,9 @@ testLargeContentTransfer.ResultCreated = function (replyData) {
     channel.onFrameReceivedHandler = testLargeContentTransfer.frameReceived;
     channel.onFrameReceivedContext = this;
 
+    /* flag first message pending to be received */
+    testLargeContentTransfer.frameReceived.msg = 1;
+
     /* send two large messages */
     log ("info", "Sending first large message");
     if (! channel.sendMSG (testLargeContentTransfer.testMSG1)) {
@@ -64,11 +67,17 @@ testLargeContentTransfer.ResultCreated = function (replyData) {
 	return false;
     }
 
-/*    log ("info", "Sending second large message");
-    if (! channel.sendMSG (testLargeContentTransfer.testMSG2)) {
+    log ("info", "Sending second large message");
+    if (! channel.sendMSG (testLargeContentTransfer.testMSG1 + "msg2")) {
 	log ("error", "Failed to send first message");
 	return false;
-    } */
+    }
+
+    log ("info", "Sending third large message");
+    if (! channel.sendMSG (testLargeContentTransfer.testMSG1 + "msg3")) {
+	log ("error", "Failed to send first message");
+	return false;
+    }
 
     log ("info", "Waiting responses..");
     return true;
@@ -81,16 +90,88 @@ testLargeContentTransfer.frameReceived = function (frameReceived) {
     log ("info", "Reply received, checking frame");
 
     var frame = frameReceived.frame;
-    if (frame.content != testLargeContentTransfer.testMSG1) {
-	log ("error", "Frame received: '" + frame.content + "'");
-	log ("error", "Expected to find frame content not found in reply.." + frame.content.length + " != " + testLargeContentTransfer.testMSG1.length);
+
+    /* really more tests are required here */
+    if (frame.type != 'RPY') {
+	log ("error", "Expected to find RPY frame type, but found: " + frame.type);
 	return false;
     }
 
-    /* really more tests are required here */
+    /* check send particular data */
+    if (testLargeContentTransfer.frameReceived.msg == 1) {
 
-    /* call to next test */
-    this.nextTest ();
+	/* check content */
+	if (frame.content != testLargeContentTransfer.testMSG1) {
+	    log ("error", "Frame received: '" + frame.content + "'");
+	    log ("error", "Expected to find frame content not found in reply.." + frame.content.length + " != " + testLargeContentTransfer.testMSG1.length);
+	    return false;
+	}
+
+	/* check channel number */
+	log ("info", "Frame msgno value: " + frame.msgno);
+	if (frame.msgno != 0) {
+	    log ("error", "Expected to find msgno equal to 0 but found: " + frame.msgno);
+	    return false;
+	}
+
+	/* update next expected message */
+	testLargeContentTransfer.frameReceived.msg++;
+
+    } else if (testLargeContentTransfer.frameReceived.msg == 2) {
+
+	/* check content */
+	if (frame.content != (testLargeContentTransfer.testMSG1 + "msg2")) {
+	    log ("error", "Frame received: '" + frame.content + "'");
+	    log ("error", "Expected to find frame content not found in reply.." + frame.content.length + " != " + testLargeContentTransfer.testMSG1.length);
+	    return false;
+	}
+
+	/* check channel number */
+	log ("info", "Frame msgno value: " + frame.msgno);
+	if (frame.msgno != 1) {
+	    log ("error", "Expected to find msgno equal to 1 but found: " + frame.msgno);
+	    return false;
+	}
+
+	/* update next expected message */
+	testLargeContentTransfer.frameReceived.msg++;
+
+    } else if (testLargeContentTransfer.frameReceived.msg == 3) {
+
+	/* check content */
+	if (frame.content != (testLargeContentTransfer.testMSG1 + "msg3")) {
+	    log ("error", "Frame received: '" + frame.content + "'");
+	    log ("error", "Expected to find frame content not found in reply.." + frame.content.length + " != " + testLargeContentTransfer.testMSG1.length);
+	    return false;
+	}
+
+	/* check channel number */
+	log ("info", "Frame msgno value: " + frame.msgno);
+	if (frame.msgno != 2) {
+	    log ("error", "Expected to find msgno equal to 2 but found: " + frame.msgno);
+	    return false;
+	}
+
+	/* update next expected message */
+	testLargeContentTransfer.frameReceived.msg++;
+    }
+
+    /* after these checks, check connection is ready */
+    var conn = frameReceived.conn;
+    if (! conn.isOk ()) {
+	log ("error", "Expected to find connection ok after tests..");
+	return false;
+    }
+
+    /* close the connection if we have received last message */
+    if (testLargeContentTransfer.frameReceived.msg == 4) {
+	/* close the connection */
+	conn.shutdown ();
+
+	/* call to next test */
+	this.nextTest ();
+    } /* end if */
+
     return true;
 };
 
