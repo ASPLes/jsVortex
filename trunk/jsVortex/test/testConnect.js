@@ -9,10 +9,133 @@
  * echo profile.
  */
 const REGRESSION_URI      = 'http://iana.org/beep/transient/vortex-regression';
+
 /**
  * @brief Profile used to check channel start denial.
  */
 const REGRESSION_URI_DENY = "http://iana.org/beep/transient/vortex-regression/deny";
+
+/**
+ * @brief Profile used to check support to receive
+ * messages from remote peer just after channel creation.
+ */
+const REGRESSION_URI_FAST_SEND = "http://iana.org/beep/transient/vortex-regression/fast-send";
+
+/******* BEGIN: testReceivedContentOnConnection ******/
+function testReceivedContentOnConnection () {
+    var conn = new VortexConnection (
+	this.host,
+	this.port,
+	new VortexTCPTransport (),
+	testReceivedContentOnConnection.Result, this);
+
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+}
+
+testReceivedContentOnConnection.Result = function (conn) {
+    /* check connection here */
+    if (! checkConnection (conn))
+	return false;
+
+    /* create a channel and set received handlers to reply content */
+    log ("info", "Open a channel to receive content after opening the channel");
+    testReceivedContentOnConnection.msg = 1;
+    conn.openChannel ({
+	profile: REGRESSION_URI_FAST_SEND,
+	channelNumber: 0,
+	onFrameReceivedHandler: testReceivedContentOnConnection.frameReceived,
+	onFrameReceivedContext: this
+    });
+
+    return true;
+};
+
+testReceivedContentOnConnection.frameReceived = function (frameReceived) {
+
+    var frame = frameReceived.frame;
+
+    /* check frame received */
+    log ("info", "Checking message type for content received");
+    if (frame.type != 'MSG') {
+	log ("error", "Expected to receive content after channel creation");
+	return false;
+    }
+
+    if (testReceivedContentOnConnection.msg == 1) {
+	/* check message content received */
+	if (frame.content != "message 1") {
+	    log ("error", "Expected to receive first message 'message 1' but found: " + frame.content);
+	    return false;
+	} /* end if */
+
+	/* flag to check next message */
+	testReceivedContentOnConnection.msg++;
+    } else if (testReceivedContentOnConnection.msg == 2) {
+	/* check message content received */
+	if (frame.content != "message 2") {
+	    log ("error", "Expected to receive first message 'message 2' but found: " + frame.content);
+	    return false;
+	} /* end if */
+
+	/* flag to check next message */
+	testReceivedContentOnConnection.msg++;
+    } /* end if */
+
+    log ("info", "Content received seems ok");
+
+    /* send replies */
+    var channel = frameReceived.channel;
+
+    if (! channel.sendRPY ("")) {
+	log ("error", "Expected to find proper channel reply operation but found a failure");
+	showErrors (frameReceived.conn);
+	return false;
+    } /* end if */
+
+    log ("info", "Reply sent..");
+
+    /* check to terminate closing the channel */
+    if (testReceivedContentOnConnection.msg == 3) {
+
+	log ("info", "Closing channel after all messages were received and its replies sent...");
+
+	/* call to close the connection */
+	channel.close ({
+	    onChannelCloseHandler: testReceivedContentOnConnection.closeChannel,
+	    onChannelCloseContext: this
+	});
+    } /* end if */
+
+    return true;
+};
+
+testReceivedContentOnConnection.closeChannel = function (replyData) {
+
+    /* check connection */
+    var conn = replyData.conn;
+    if (! checkConnection (conn))
+	return false;
+
+    /* check channel close status */
+    if (! replyData.status) {
+	log ("error", "expected to find proper channel close operation after content received and replied");
+	return false;
+    }
+
+    /* close the connection */
+    conn.shutdown ();
+
+    /* call to next test */
+    this.nextTest ();
+    return true;
+};
+
+/******* END:   testReceivedContentOnConnection ******/
 
 /******* BEGIN: testContentTransfer ******/
 function testLargeContentTransfer () {
@@ -918,8 +1041,8 @@ function testjsVortexAvailable () {
 
 function checkConnection (conn) {
     if (! conn.isOk ()) {
-	log ("error", "Found connection status not ready" + conn.isReady + ", socket: " + conn._transport.socket +
-	     "greetingsSent=" + conn.greetingsSent + ", greetingsReceived=" + conn.greetingsReceived);
+	log ("error", "Found connection status not ready " + conn.isReady + ", socket: " + conn._transport.socket +
+	     ", greetingsSent=" + conn.greetingsSent + ", greetingsReceived=" + conn.greetingsReceived);
 	showErrors (conn);
 	this.stopTests = true;
 	return false;
@@ -1030,7 +1153,8 @@ RegressionTest.prototype.tests = [
     {name: "BEEP basic channel management test", testHandler: testChannels},
     {name: "BEEP basic channel management test (DENY)", testHandler: testChannelsDeny},
     {name: "BEEP basic content transfer", testHandler: testContentTransfer},
-    {name: "BEEP large content transfer (SEQ frames)", testHandler: testLargeContentTransfer}
+    {name: "BEEP large content transfer (SEQ frames)", testHandler: testLargeContentTransfer},
+    {name: "BEEP receive content on channel creation", testHandler: testReceivedContentOnConnection}
 ];
 
 

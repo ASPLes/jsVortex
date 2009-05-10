@@ -66,7 +66,6 @@ function VortexFirefoxConnect (host, port) {
     /* create output stream for write operations */
     this.outstream = this.socket.openOutputStream (0, 0, 0);
 
-
     /* create pump object to get notifications for data
      * ready to be read */
     var input_stream = this.socket.openInputStream (0, 0, 0);
@@ -82,6 +81,8 @@ function VortexFirefoxConnect (host, port) {
      * scriptable instance is required) */
     this.instream  = Components.classes["@mozilla.org/scriptableinputstream;1"].createInstance(Components.interfaces.nsIScriptableInputStream);
     this.instream.init(input_stream);
+
+    Vortex.log ("VortexFireFoxConnect: connection done");
 
     /* return socket created */
     return this.socket;
@@ -110,7 +111,7 @@ function VortexFirefoxWrite (data, length) {
     try {
 	var result = this.outstream.write (data, length);
     } catch (e){
-	Vortex._onRrror ("VortexFirefoxWrite: failed to write content, message was: " + e.message);
+	this._reportError ("VortexFirefoxWrite: failed to write content, message was: " + e.message);
 	return false;
     }
     return (result == length);
@@ -136,17 +137,12 @@ function VortexFirefoxIsOk () {
     }
 
     /* check if the socket is alive */
-
-    /* Code comment because it shows a deficient unpredictable
-     * behaviour event when data has been exchanged between peers,
-     * this method could return false. Now socket alive is handled via
-     * connection.isReady property. */
-/*    var result = this.socket.isAlive ();
+    var result = this.socket.isAlive ();
     if (! result) {
-	console.warn ("VortexFirefoxIsOk: socket.isAlive() returned false, shutdown connection");
 	this.close ();
 	return false;
-    } */
+    } /* end if */
+
     return true;
 };
 
@@ -159,11 +155,33 @@ function VortexFirefoxClose () {
 
 VortexTCPTransport.prototype.onStartRequest  = function (request, context) {
     /* nothing defined. */
+    Vortex.log ("VortexTCPTransport.onStartRequest: request=" + request + ", context=" + context);
+
+    /* call to notify start of the request */
+    this.onStartHandler.apply (this.onStartObject, []);
+    return;
 };
 
 VortexTCPTransport.prototype.onStopRequest   = function (request, context, status) {
-/*	this.instream.close();
-	this.outstream.close(); */
+
+    try {
+	/* acquire priviledges */
+	if (this.requirePerms) {
+	    netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
+	} /* end if */
+    } catch (e) {
+	this._reportError ("VortexTCPTransport.onStopRequest: Unable to acquire permissions to check socket. Error found: " + e.message +
+	    ". Did you config signed.applets.codebase_principal_support = true");
+	return;
+    }
+    Vortex.log ("VortexTCPTransport.onStopRequest: socket: " + this.socket + ", status=" + status);
+    if (status == 2152398861) {
+	this._reportError ("Connection refused: host is down or refusing connections");
+    }
+
+    /* signal connection closed */
+
+    return;
 };
 
 VortexTCPTransport.prototype.onDataAvailable = function (request, context, inputStream, offset, count) {
@@ -181,6 +199,26 @@ VortexTCPTransport.prototype.onDataAvailable = function (request, context, input
 
     /* call to notify data read */
     this.onReadHandler.apply (this.onReadObject, [this.onReadObject, data]);
+};
+
+/**
+ * @brief Public method that allows to register a callback (handler)
+ * that is called under the context of object when the connection is
+ * ready to start the exchange.
+ *
+ * The handler to be configured must have the following form:
+ *
+ * function ();
+ *
+ *
+ * @param object The context under which the handler will be executed
+ * (special reference this will point to this object).
+ *
+ * @param handler The method that is executed when the data is available.
+ */
+VortexTCPTransport.prototype.onStart = function (object, handler) {
+    this.onStartObject  = object;
+    this.onStartHandler = handler;
 };
 
 /**

@@ -514,6 +514,10 @@ VortexEngine.channel0Received = function (frameReceived) {
 	/* remove on disconnect */
 	this.conn.uninstallOnDisconnect (params.onDisconnectId);
 
+	/* configure frame received handlers */
+	params.channel.onFrameReceivedHandler = params.onFrameReceivedHandler;
+	params.channel.onFrameReceivedContext = params.onFrameReceivedContext;
+
 	/* add it to the connection */
 	this.conn.channels[params.channelNumber] = params.channel;
 
