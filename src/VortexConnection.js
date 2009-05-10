@@ -60,44 +60,13 @@ function VortexConnection (host,
     /* register on read and on error */
     this._transport.onRead  (this, this._onRead);
     this._transport.onError (this, this._onError);
-
-    /* create a channel 0 for this new connection */
-    this.channels = {
-	0 : new VortexChannel (this, 0, "N/A", VortexEngine.channel0Received)
-    };
-
-    /* flag greetings sent */
-    this.greetingsSent = false;
-    this.greetingsSent = false;
+    this._transport.onStart (this, this._onStart);
 
     /* do TCP connect */
     Vortex.log ("Doing TCP connect to: " + host + ", port: " + port);
     this._transport.connect (host, port);
     Vortex.log ("Socket status after connection: " + this._transport.socket);
 
-    /* check errors here */
-    if (this._transport.socket == -1) {
-	/* report we have failed to create connection */
-	this._reportConnCreated ();
-	return this;
-    }
-
-    /* send greetings reply before receiving listener greetings */
-    if (! this.channels[0].sendRPY ("<greeting />\r\n")) {
-	Vortex.error ("Unable to send initial RPY with channel 0 greetings, notifying connection lost");
-	/* report we have failed to send greetings */
-	this._reportConnCreated ();
-	return this;
-    }
-    /* flag greetings as sent */
-    this.greetingsSent = true;
-    if (! this.greetingsPending) {
-	/* flag connection as ready */
-	this.isReady = true;
-	/* report connection */
-	this._reportConnCreated ();
-    }
-    return this;
 };
 
 /**
@@ -631,6 +600,49 @@ VortexConnection.prototype.popError = function () {
     /* return next element */
     return this.stackError.shift ();
 };
+
+/**
+ * @internal Handler called when the connection is ready to send
+ * initial BEEP exchange.
+ *
+ * "this" reference is pointing to the connection being created.
+ */
+VortexConnection.prototype._onStart = function () {
+    Vortex.log ("VortexConnection._onStart: received notification to start connection..");
+
+    /* create a channel 0 for this new connection */
+    this.channels = {
+	0 : new VortexChannel (this, 0, "N/A", VortexEngine.channel0Received)
+    };
+
+    /* flag greetings sent */
+    this.greetingsSent = false;
+    this.greetingsSent = false;
+
+    /* check errors here */
+    if (this._transport.socket == -1) {
+	/* report we have failed to create connection */
+	this._reportConnCreated ();
+	return;
+    }
+
+    /* send greetings reply before receiving listener greetings */
+    if (! this.channels[0].sendRPY ("<greeting />\r\n")) {
+	Vortex.error ("Unable to send initial RPY with channel 0 greetings, notifying connection lost");
+	/* report we have failed to send greetings */
+	this._reportConnCreated ();
+	return;
+    }
+    /* flag greetings as sent */
+    this.greetingsSent = true;
+    if (! this.greetingsPending) {
+	/* flag connection as ready */
+	this.isReady = true;
+	/* report connection */
+	this._reportConnCreated ();
+    }
+    return;
+}
 
 /**
  * @internal Handler that receives data from the transport object and parses
