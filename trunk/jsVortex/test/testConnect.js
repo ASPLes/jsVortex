@@ -1155,6 +1155,10 @@ function prepareTest () {
     var heightValue = (window.innerHeight - 110) + "px";
     dojo.style(dojo.byId ("test-available-panel"), "height", heightValue);
     dojo.style(dojo.byId ("log-panel"), "height", heightValue);
+    dojo.style(dojo.byId ("global-container"), "height", (window.innerHeight - 88) + "px");
+
+    /* call to resize */
+    dijit.byId ("global-container").resize ();
 }
 
 /* register our function in dojo */
