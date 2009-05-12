@@ -61,6 +61,7 @@ function VortexConnection (host,
     this._transport.onRead  (this, this._onRead);
     this._transport.onError (this, this._onError);
     this._transport.onStart (this, this._onStart);
+    this._transport.onStop  (this, this._onStop);
 
     /* do TCP connect */
     Vortex.log ("Doing TCP connect to: " + host + ", port: " + port);
@@ -454,17 +455,40 @@ VortexConnection.prototype.closeChannel = function (params) {
 
     if (! this.channels[0].sendMSG (_message)) {
 	this._onError ("Failed to send close message");
-	return false;
-    }
 
-    Vortex.log ("VortexConnection.closeChannel: close request for channel " + channel.number + " sent ok");
+	/* notify caller */
+	var replyData = {
+	    /* connection closed but required to be notified */
+	    conn: this.conn,
+	    /* channel was not closed */
+	    status: false,
+	    replyMsg: "Channel was not closed properly because it failed send operation (close message). Check connection errors."
+	};
+
+	/* notify params=this */
+	VortexEngine.apply (this.onChannelCloseHandler, this.onChannelCloseContext, [replyData]);
+	return false;
+    } /* end if */
 
     /* check connection at this point */
     if (! this.isOk ()) {
 	Vortex.error ("after sending start request, broken connection was found");
-	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [this, null]);
+
+	/* notify caller */
+	var replyData = {
+	    /* connection closed but required to be notified */
+	    conn: this.conn,
+	    /* channel was not closed */
+	    status: false,
+	    replyMsg: "Channel was not closed properly because after sending start request, broken connection was found. Check connection errors."
+	};
+
+	/* notify params=this */
+	VortexEngine.apply (this.onChannelCloseHandler, this.onChannelCloseContext, [replyData]);
 	return false;
-    }
+    } /* end if */
+
+    Vortex.log ("VortexConnection.closeChannel: close request for channel " + channel.number + " sent ok");
 
     return true;
 };
@@ -642,7 +666,22 @@ VortexConnection.prototype._onStart = function () {
 	this._reportConnCreated ();
     }
     return;
-}
+};
+
+/**
+ * @internal Handler called by VortexTCPTransport
+ * module to notify a connection close.
+ */
+VortexConnection.prototype._onStop = function () {
+    /* call to shutdown */
+    if (this.isReady)
+	this.shutdown ("Unexpected connection close received. Remote BEEP peer side is down or has closed the connection.");
+    else {
+	/* do connection shutdown but expected so, no error is imported */
+	this.shutdown ();
+    }
+    return;
+};
 
 /**
  * @internal Handler that receives data from the transport object and parses

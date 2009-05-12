@@ -21,6 +21,113 @@ const REGRESSION_URI_DENY = "http://iana.org/beep/transient/vortex-regression/de
  */
 const REGRESSION_URI_FAST_SEND = "http://iana.org/beep/transient/vortex-regression/fast-send";
 
+/**
+ * @brief Profile used to check support for connection lost during
+ * operation normal operation (frame received, start channel and close
+ * channel).
+ */
+const REGRESSION_URI_SUDDENTLY_CLOSE = "http://iana.org/beep/transient/vortex-regression/suddently-close";
+
+/******* BEGIN: testSuddentlyClosed ******/
+function testSuddentlyClosed () {
+
+    /* open a connection */
+    var conn = new VortexConnection (
+	this.host,
+	this.port,
+	new VortexTCPTransport (),
+	testSuddentlyClosed.Result, this);
+
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+};
+
+testSuddentlyClosed.Result = function (conn) {
+    /* check connection here */
+    if (! checkConnection (conn))
+	return false;
+
+    /* create a channel that will fail on the next close operation */
+    log ("info", "Open a channel to receive content after opening the channel");
+    testReceivedContentOnConnection.msg = 1;
+    conn.openChannel ({
+	profile: REGRESSION_URI_SUDDENTLY_CLOSE,
+	channelNumber: 0,
+	onChannelCreatedHandler : testSuddentlyClosed.channelCreated,
+	onChannelCreatedContext : this
+    });
+
+    return true;
+};
+
+testSuddentlyClosed.channelCreated = function (replyData) {
+
+    log ("info", "Ok, channel creation reply recevied, first part of the test complete");
+
+    /* check that the channel creation was ok */
+    var channel = replyData.channel;
+    if (channel == null) {
+	log ("error", "Expected to find proper channel creation but null reference found. Error code and message was: " +
+	     replyData.replyCode + ": " + replyData.replyMsg);
+	showErrors (replyData.conn);
+	return false;
+    } /* end if */
+
+    /* check connection here */
+    var conn = replyData.conn;
+    if (! conn.isOk ()) {
+	log ("error", "Expected to find connection status ok, but found a failure");
+	showErrors (conn);
+	return false;
+    } /* end if */
+
+    /* now close the channel (and an error is expected to be found
+     during the operation) */
+    log ("info", "Now close channel expecting a connection failure in the middle...");
+
+    /* call to close the connection */
+    channel.close ({
+	onChannelCloseHandler: testSuddentlyClosed.closeChannel,
+	onChannelCloseContext: this
+    });
+
+    return true;
+};
+
+testSuddentlyClosed.closeChannel = function (replyData) {
+
+
+    log ("info", "Ok, channel close reply recevied, second part of the test complete");
+
+    /* get a reference to the connection */
+    var conn = replyData.conn;
+
+    /* check connection status here, it can be ok */
+    if (conn.isOk ()) {
+	log ("error", "Expected to find a connection failure for a close channel operation..");
+	return false;
+    } /* end if */
+
+    /* check channel close status */
+    if (replyData.status) {
+	log ("error", "Expected to find a failure during channel close, because a predictable connection failure");
+	return false;
+    } /* end if */
+
+    /* finish connection */
+    conn.shutdown ();
+
+    /* next test */
+    this.nextTest ();
+    return true;
+};
+
+/******* END:   testSuddentlyClosed ******/
+
 /******* BEGIN: testReceivedContentOnConnection ******/
 function testReceivedContentOnConnection () {
     var conn = new VortexConnection (
@@ -1078,6 +1185,10 @@ function showErrors (conn) {
     log ("error", "Connection errors found follows: ");
     while (conn.hasErrors ())
 	log ("error", conn.popError ());
+
+    /* close the connection */
+    conn.shutdown ();
+
     return;
 }
 
@@ -1154,7 +1265,8 @@ RegressionTest.prototype.tests = [
     {name: "BEEP basic channel management test (DENY)", testHandler: testChannelsDeny},
     {name: "BEEP basic content transfer", testHandler: testContentTransfer},
     {name: "BEEP large content transfer (SEQ frames)", testHandler: testLargeContentTransfer},
-    {name: "BEEP receive content on channel creation", testHandler: testReceivedContentOnConnection}
+    {name: "BEEP receive content on channel creation", testHandler: testReceivedContentOnConnection},
+    {name: "BEEP session suddently closed", testHandler: testSuddentlyClosed}
 ];
 
 
