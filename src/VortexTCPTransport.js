@@ -177,7 +177,10 @@ VortexTCPTransport.prototype.onStopRequest   = function (request, context, statu
     Vortex.log ("VortexTCPTransport.onStopRequest: socket: " + this.socket + ", status=" + status);
     if (status == 2152398861) {
 	this._reportError ("Connection refused: host is down or refusing connections");
-    }
+    } else if (status == 0) {
+	/* call to notify stop */
+	this.onStopHandler.apply (this.onStopObject, [this.onStopObject]);
+    } /* end if */
 
     /* signal connection closed */
 
@@ -219,6 +222,25 @@ VortexTCPTransport.prototype.onDataAvailable = function (request, context, input
 VortexTCPTransport.prototype.onStart = function (object, handler) {
     this.onStartObject  = object;
     this.onStartHandler = handler;
+};
+
+/**
+ * @brief Public method that allows to register a callback (handler)
+ * that is called under the context of object when the connection is
+ * closed.
+ *
+ * The handler to be configured must have the following form:
+ *
+ * function ();
+ *
+ * @param object The context under which the handler will be executed
+ * (special reference this will point to this object).
+ *
+ * @param handler The method that is executed when the data is available.
+ */
+VortexTCPTransport.prototype.onStop = function (object, handler) {
+    this.onStopObject  = object;
+    this.onStopHandler = handler;
 };
 
 /**
