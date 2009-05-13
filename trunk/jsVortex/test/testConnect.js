@@ -1580,21 +1580,22 @@ function prepareTest () {
 	/* flag the test to be runned */
 	tests[test].runIt = true;
 
+	/* create the label to be associated to the checkBox */
+	var label = document.createElement ("label");
+	label.for = tests[test].name;
+	label.innerHTML = "TEST-" + test + ": " + tests[test].name;
+
 	/* create check box */
 	checkBox = new dijit.form.CheckBox (
 	    {id: tests[test].name,
 	     checked: true,
 	     position: test});
+
 	/* configure onClick handler */
 	checkBox.onClick = testClicked;
 
 	/* add to the panel */
 	dojo.place(checkBox.domNode, testAvailablePanel.domNode);
-
-	/* create the label to be associated to the checkBox */
-	var label = document.createElement ("label");
-	label.for = tests[test].name;
-	label.innerHTML = "TEST-" + test + ": " + tests[test].name;
 
 	/* add to the panel */
 	dojo.place (label, testAvailablePanel.domNode);
