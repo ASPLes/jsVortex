@@ -43,7 +43,7 @@ function VortexConnection (host,
     this.greetingsPending = true;
 
     /* PUBLIC: create stack error */
-    this.stackError = [];
+    this.stackError       = [];
 
     /* save handlers */
     this.createdHandler = connectionCreatedHandler;
@@ -296,6 +296,10 @@ VortexConnection.prototype.openChannel = function (params) {
 
     /* acquire channel 0 to send request */
     if (! this.channels[0].sendMSG (_message)) {
+	/* uninstall disconnect handler to avoid twice notifications */
+	this.uninstallOnDisconnect (onDisconnectId);
+
+	/* drop message */
 	this._onError ("Failed to send start request");
 
 	/* create replyData to notify failure */
@@ -313,7 +317,11 @@ VortexConnection.prototype.openChannel = function (params) {
 
     /* check connection at this point */
     if (! this.isOk ()) {
-	Vortex.error ("after sending start request, broken connection was found");
+	/* uninstall disconnect handler to avoid twice notifications */
+	this.uninstallOnDisconnect (onDisconnectId);
+
+	/* drop message */
+	this._onError ("after sending start request, broken connection was found");
 
 	/* create replyData to notify failure */
 	var replyData = {
@@ -454,37 +462,47 @@ VortexConnection.prototype.closeChannel = function (params) {
     var _message = "<close number='" + channel.number + "' code='200' />\r\n";
 
     if (! this.channels[0].sendMSG (_message)) {
+
+	/* uninstall disconnect handler to avoid twice notifications */
+	this.uninstallOnDisconnect (onDisconnectId);
+
+	/* drop a message */
 	this._onError ("Failed to send close message");
 
 	/* notify caller */
 	var replyData = {
 	    /* connection closed but required to be notified */
-	    conn: this.conn,
+	    conn: this,
 	    /* channel was not closed */
 	    status: false,
 	    replyMsg: "Channel was not closed properly because it failed send operation (close message). Check connection errors."
 	};
 
-	/* notify params=this */
-	VortexEngine.apply (this.onChannelCloseHandler, this.onChannelCloseContext, [replyData]);
+	/* call to notify */
+	VortexEngine.apply (params.onChannelCloseHandler, params.onChannelCloseContext, [replyData]);
 	return false;
     } /* end if */
 
     /* check connection at this point */
     if (! this.isOk ()) {
-	Vortex.error ("after sending start request, broken connection was found");
+
+	/* uninstall disconnect handler to avoid twice notifications */
+	this.uninstallOnDisconnect (onDisconnectId);
+
+	/* drop a message */
+	this._onError ("after sending start request, broken connection was found");
 
 	/* notify caller */
 	var replyData = {
 	    /* connection closed but required to be notified */
-	    conn: this.conn,
+	    conn: this,
 	    /* channel was not closed */
 	    status: false,
 	    replyMsg: "Channel was not closed properly because after sending start request, broken connection was found. Check connection errors."
 	};
 
-	/* notify params=this */
-	VortexEngine.apply (this.onChannelCloseHandler, this.onChannelCloseContext, [replyData]);
+	/* call to notify */
+	VortexEngine.apply (params.onChannelCloseHandler, params.onChannelCloseContext, [replyData]);
 	return false;
     } /* end if */
 
@@ -555,10 +573,14 @@ VortexConnection.prototype.uninstallOnDisconnect = function (onDisconnectId) {
     if (! VortexEngine.checkReference (onDisconnectId))
 	return false;
 
+    Vortex.log ("VortexConnection.uninstallOnDisconnect: removing onDisconnectId: " + onDisconnectId);
+
     for (iterator in this.onDisconnectHandlers) {
 	if (this.onDisconnectHandlers[iterator].id == onDisconnectId) {
 	    /* remove item */
 	    this.onDisconnectHandlers.splice (iterator, 1);
+
+	    Vortex.log ("VortexConnection.uninstallOnDisconnect: found, length after operation: " + this.onDisconnectHandlers.length);
 
 	    /* item removed, notify caller */
 	    return true;

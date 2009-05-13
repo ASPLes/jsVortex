@@ -28,6 +28,211 @@ const REGRESSION_URI_FAST_SEND = "http://iana.org/beep/transient/vortex-regressi
  */
 const REGRESSION_URI_SUDDENTLY_CLOSE = "http://iana.org/beep/transient/vortex-regression/suddently-close";
 
+/******* BEGIN: testSuddentlyClosed3 ******/
+function testSuddentlyClosed3 () {
+
+    if (this.nextTestId != 12) {
+	log ("error", "Found some tests out there that is calling more times to this.nextTest () " +
+	     "which is a sign of something wrong. Expected to find current Id equal to 12 but found: " + this.nextTestId);
+	return false;
+    }
+
+    /* open a connection */
+    var conn = new VortexConnection (
+	this.host,
+	this.port,
+	new VortexTCPTransport (),
+	testSuddentlyClosed3.Result, this);
+
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+};
+
+testSuddentlyClosed3.Result = function (conn) {
+
+    if (this.nextTestId != 12) {
+	log ("error", "Found some tests out there (at top of Result) that is calling more times to this.nextTest () " +
+	     "which is a sign of something wrong. Expected to find current Id equal to 12 but found: " + this.nextTestId);
+	return false;
+    }
+
+    /* check connection here */
+    if (! checkConnection (conn))
+	return false;
+
+    /* create a channel that will fail on the next close operation */
+    log ("info", "Open a channel to receive content after opening the channel");
+    conn.openChannel ({
+	profile: REGRESSION_URI_SUDDENTLY_CLOSE,
+	channelNumber: 0,
+	onChannelCreatedHandler : testSuddentlyClosed3.channelCreated,
+	onChannelCreatedContext : this
+    });
+
+    return true;
+};
+
+testSuddentlyClosed3.channelCreated = function (replyData) {
+
+    log ("info", "Ok, channel creation reply recevied, first part of the test complete");
+
+    if (this.nextTestId != 12) {
+	log ("error", "Found some tests out there (channelCreated at the top) that is calling more times to this.nextTest () " +
+	     "which is a sign of something wrong. Expected to find current Id equal to 12 but found: " + this.nextTestId);
+	return false;
+    } /* end if */
+
+    /* check that the channel creation was ok */
+    var channel = replyData.channel;
+    if (channel == null) {
+	log ("error", "Expected to find proper channel creation but null reference found. Error code and message was: " +
+	     replyData.replyCode + ": " + replyData.replyMsg);
+	showErrors (replyData.conn);
+	return false;
+    } /* end if */
+
+    /* check connection here */
+    var conn = replyData.conn;
+    if (! conn.isOk ()) {
+	log ("error", "Expected to find connection status ok, but found a failure");
+	showErrors (conn);
+	return false;
+    } /* end if */
+
+    /* now close the channel (and an error is expected to be found
+     during the operation) */
+    log ("info", "Now send a frame with a failure expected in the middle of the operation...");
+
+    /* check reference */
+    if (! VortexEngine.checkReference (this, "tests")) {
+	log ("error", "Expected to find tests variable in 'this' reference inside testSuddentlyClosed3.channelCreated..");
+	return false;
+    } /* end if */
+
+    /* set here disconnection handlers */
+    conn.onDisconnect (testSuddentlyClosed3.connectionClosed, this);
+
+    if (this.nextTestId != 12) {
+	log ("error", "Found some tests out there (channelCreated) that is calling more times to this.nextTest () " +
+	     "which is a sign of something wrong. Expected to find current Id equal to 12 but found: " + this.nextTestId);
+	return false;
+    }
+
+    if (! channel.sendMSG ("this is a test that shouldn't be received")) {
+	log ("error", "Expected to be able to send the message");
+	showErrors (conn);
+	return false;
+    } /* end if */
+
+    return true;
+};
+
+testSuddentlyClosed3.connectionClosed =	function (conn) {
+
+    if (this.nextTestId != 12) {
+	log ("error", "Found some tests out there (connectionClosed) that is calling more times to this.nextTest () " +
+	     "which is a sign of something wrong. Expected to find current Id equal to 12 but found: " + this.nextTestId);
+	return false;
+    }
+
+    /* check connection expected to fail */
+    if (conn.isOk ()) {
+	log ("error", "Expected to find connection failure but found a connection properly running");
+	return false;
+    } /* end if */
+
+    /* check reference */
+    if (! VortexEngine.checkReference (this, "tests")) {
+	log ("error", "Expected to find tests variable in 'this' reference inside testSuddentlyClosed3.connectionClosed..");
+	return false;
+    } /* end if */
+
+    /* call to run next test */
+    this.nextTest ();
+    return true;
+};
+
+/******* BEGIN: testSuddentlyClosed2 ******/
+function testSuddentlyClosed2 () {
+
+    if (this.nextTestId != 11) {
+	log ("error", "Found some tests out there that is calling more times to this.nextTest () " +
+	     "which is a sign of something wrong. Expected to find current Id equal to 11 but found: " + this.nextTestId);
+	return false;
+    }
+
+    /* open a connection */
+    var conn = new VortexConnection (
+	this.host,
+	this.port,
+	new VortexTCPTransport (),
+	testSuddentlyClosed2.Result, this);
+
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+}
+
+testSuddentlyClosed2.Result = function (conn) {
+    /* check connection here */
+    if (! checkConnection (conn))
+	return false;
+
+    /* create a channel that will fail on the next close operation */
+    log ("info", "Open a channel expected to fail");
+    testSuddentlyClosed2.channelCreated.count = 0;
+    conn.openChannel ({
+	profile: REGRESSION_URI_SUDDENTLY_CLOSE,
+	channelNumber: 0,
+	onChannelCreatedHandler : testSuddentlyClosed2.channelCreated,
+	onChannelCreatedContext : this
+    });
+    return true;
+};
+
+testSuddentlyClosed2.channelCreated = function (replyData) {
+
+    var conn = replyData.conn;
+
+    log ("info", "Ok, channel creation reply received, check expected failure");
+    testSuddentlyClosed2.channelCreated.count++;
+    if (testSuddentlyClosed2.channelCreated.count > 1) {
+	log ("error", "Found testSuddentlyClosed2.channelCreated called several times when it was expected only one time..");
+	showErrors (conn);
+	return false;
+    }
+
+    /* check that the channel creation was ok */
+    var channel = replyData.channel;
+    if (channel != null) {
+	log ("error", "Expected to find channel creation failure but a defined reference was found. ");
+	showErrors (replyData.conn);
+	return false;
+    } /* end if */
+
+    /* check now connection */
+    if (conn.isOk ()) {
+	log ("error", "Expected to find connection closed but found it running");
+	return false;
+    } /* end if */
+
+    /* fully close connection */
+    conn.shutdown ();
+
+    /* call next text */
+    this.nextTest ();
+    return true;
+};
+
+/******* END:   testSuddentlyClosed ******/
+
 /******* BEGIN: testSuddentlyClosed ******/
 function testSuddentlyClosed () {
 
@@ -53,7 +258,6 @@ testSuddentlyClosed.Result = function (conn) {
 
     /* create a channel that will fail on the next close operation */
     log ("info", "Open a channel to receive content after opening the channel");
-    testReceivedContentOnConnection.msg = 1;
     conn.openChannel ({
 	profile: REGRESSION_URI_SUDDENTLY_CLOSE,
 	channelNumber: 0,
@@ -90,6 +294,7 @@ testSuddentlyClosed.channelCreated = function (replyData) {
     log ("info", "Now close channel expecting a connection failure in the middle...");
 
     /* call to close the connection */
+    testSuddentlyClosed.closeChannel.count = 0;
     channel.close ({
 	onChannelCloseHandler: testSuddentlyClosed.closeChannel,
 	onChannelCloseContext: this
@@ -105,6 +310,13 @@ testSuddentlyClosed.closeChannel = function (replyData) {
 
     /* get a reference to the connection */
     var conn = replyData.conn;
+
+    testSuddentlyClosed.closeChannel.count++;
+    if (testSuddentlyClosed.closeChannel.count > 1) {
+	log ("error", "Found testSuddentlyClosed.closeChannel.count called several times when it was expected only one time.." + replyData.replyMsg);
+	showErrors (conn);
+	return false;
+    }
 
     /* check connection status here, it can be ok */
     if (conn.isOk ()) {
@@ -434,7 +646,6 @@ testContentTransfer.Result = function (conn) {
     if (VortexEngine.count (conn.channels) != 1) {
 	log ("error", "Expected to find only one channel opened at this point but found: " + VortexEngine.count (conn.channels));
 	this.stopTests = true;
-	console.dir (conn.channels);
 	return false;
     }
 
@@ -1235,7 +1446,7 @@ RegressionTest.prototype.nextTest = function () {
 	if (this.tests.length == this.nextTestId) {
 	    log ("final-ok", "All regression tests finished OK!");
 	    return;
-	} else if (this.tests.lenght < this.nextTestId) {
+	} else if (this.tests.length < this.nextTestId) {
 	    log ("error", "regression test is calling to next test too many times: " + this.nextTestId);
 	    return;
 	}
@@ -1257,16 +1468,19 @@ RegressionTest.prototype.nextTest = function () {
 /* list of regression test available with its
  * associated test to show */
 RegressionTest.prototype.tests = [
-    {name: "Check if jsVortex is available", testHandler: testjsVortexAvailable},
-    {name: "Library infraestructure check", testHandler: testInfraestructure},
-    {name: "MIME support", testHandler : testMimeSupport},
-    {name: "BEEP basic connection test", testHandler: testConnect},
-    {name: "BEEP basic channel management test", testHandler: testChannels},
+    {name: "Check if jsVortex is available",            testHandler: testjsVortexAvailable},
+    {name: "Library infraestructure check",             testHandler: testInfraestructure},
+    {name: "MIME support",                              testHandler: testMimeSupport},
+    {name: "BEEP basic connection test",                testHandler: testConnect},
+    {name: "BEEP basic channel management test",        testHandler: testChannels},
     {name: "BEEP basic channel management test (DENY)", testHandler: testChannelsDeny},
-    {name: "BEEP basic content transfer", testHandler: testContentTransfer},
-    {name: "BEEP large content transfer (SEQ frames)", testHandler: testLargeContentTransfer},
-    {name: "BEEP receive content on channel creation", testHandler: testReceivedContentOnConnection},
-    {name: "BEEP session suddently closed", testHandler: testSuddentlyClosed}
+    {name: "BEEP basic content transfer",               testHandler: testContentTransfer},
+    {name: "BEEP large content transfer (SEQ frames)",  testHandler: testLargeContentTransfer},
+    {name: "BEEP receive content on channel creation",  testHandler: testReceivedContentOnConnection},
+    {name: "BEEP session suddently closed",             testHandler: testSuddentlyClosed},
+    {name: "BEEP session suddently closed (bis)",       testHandler: testSuddentlyClosed},
+    {name: "BEEP session suddently closed (II)",        testHandler: testSuddentlyClosed2},
+    {name: "BEEP session suddently closed (III)",       testHandler: testSuddentlyClosed3}
 ];
 
 
@@ -1283,6 +1497,11 @@ function log (status, log) {
     /* place the node into the panel */
     var logpanel = dojo.byId ("log-panel");
     dojo.place (newNode, logpanel);
+
+    /* scroll down a content pane */
+    logpanel.scrollTop = logpanel.scrollHeight;
+
+    return;
 }
 
 function runTest (testName) {
