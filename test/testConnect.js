@@ -28,6 +28,79 @@ const REGRESSION_URI_FAST_SEND = "http://iana.org/beep/transient/vortex-regressi
  */
 const REGRESSION_URI_SUDDENTLY_CLOSE = "http://iana.org/beep/transient/vortex-regression/suddently-close";
 
+/******* BEGIN: testSaslPlain ******/
+function testSaslPlain () {
+
+    /* create a connection */
+    var conn = new VortexConnection (
+	this.host,
+	this.port,
+	new VortexTCPTransport (),
+	testSaslPlain.Result, this);
+
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+};
+
+testSaslPlain.Result = function (conn) {
+    /* check connection here */
+    if (! checkConnection (conn))
+	return false;
+
+    log ("info", "connection created, now being auth operation");
+
+    /* do auth operation */
+    conn.saslAuth ({
+	mech: "PLAIN",
+	/* authentication id: the actual user credential */
+	authenticationId: "bob",
+	/* password */
+	password: "secret",
+	/* notification handlers (and its context) */
+	onAuthFinishedHandler: testSaslPlain.onAuthFinished,
+	onAuthFinishedContext: this
+    });
+
+    return true;
+};
+
+testSaslPlain.onAuthFinished = function (saslResult) {
+
+    /* get a reference to the connection */
+    var conn = saslResult.conn;
+
+    /* check first connection status */
+    if (! conn.isOk ()) {
+	log ("error", "Expected to find connection proper status no matter the SASL authentication result");
+	return false;
+    } /* end if */
+
+    /* check sasl authentication status */
+    if (! saslResult.status ) {
+	log ("error", "Expected to find a proper sasl autentication operation but found a failure: " + saslResult.statusMsg);
+
+	/* close the connection */
+	conn.shutdown ();
+
+	return false;
+    } /* end if */
+
+    log ("info", "Authentication ok!");
+
+    /* close the connection */
+    conn.shutdown ();
+
+    /* call for the next test */
+    this.nextTest ();
+    return true;
+};
+
+/******* END:   testSaslPlain ******/
+
 /******* BEGIN: testSuddentlyClosed3 ******/
 function testSuddentlyClosed3 () {
 
@@ -1480,7 +1553,8 @@ RegressionTest.prototype.tests = [
     {name: "BEEP session suddently closed",             testHandler: testSuddentlyClosed},
     {name: "BEEP session suddently closed (bis)",       testHandler: testSuddentlyClosed},
     {name: "BEEP session suddently closed (II)",        testHandler: testSuddentlyClosed2},
-    {name: "BEEP session suddently closed (III)",       testHandler: testSuddentlyClosed3}
+    {name: "BEEP session suddently closed (III)",       testHandler: testSuddentlyClosed3},
+    {name: "SASL profile PLAIN support",                testHandler: testSaslPlain}
 ];
 
 
