@@ -87,6 +87,7 @@ Vortex.load = function (basepath) {
     Vortex.loadJs (basepath + "VortexXMLEngine.js");
     Vortex.loadJs (basepath + "VortexFrame.js");
     Vortex.loadJs (basepath + "VortexMimeHeader.js");
+    Vortex.loadJs (basepath + "VortexSASLEngine.js");
 
     return;
 };

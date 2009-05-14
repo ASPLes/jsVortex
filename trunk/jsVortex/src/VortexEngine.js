@@ -531,6 +531,21 @@ VortexEngine.channel0Received = function (frameReceived) {
 
 	/* notify the channel crated */
 	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
+
+	/* check if the node has content to deliver it as a frame piggy back */
+	if (node.content != undefined) {
+	    Vortex.log ("Channel start reply piggy back found: " + node.content);
+	    var _frameReceived = {
+		/* build piggy back frame */
+		frame : new VortexFrame (0, 0, 0, 0, 0, 0, 0, 0, node.content),
+		channel : params.channel,
+		conn : this.conn
+	    };
+
+	    /* notify frame */
+	    VortexEngine.apply (params.onFrameReceivedHandler, params.onFrameReceivedContext, [_frameReceived]);
+	} /* end if */
+
 	return;
     } else if (node.name == "ok") {
 	/* received afirmative reply, this means we have to handle pending close request */

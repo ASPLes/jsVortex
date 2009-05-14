@@ -39,6 +39,7 @@ function VortexConnection (host,
 
     /* internal is ready flag */
     this.isReady          = true;
+
     /* internal flag to now we still are waiting for greetings */
     this.greetingsPending = true;
 
@@ -289,10 +290,14 @@ VortexConnection.prototype.openChannel = function (params) {
 	/* profile */
 	params.profile);
 
+    /* check if we have profile content */
+    var hasProfileContent = (params.profileContent != null) && (params.profileContent != undefined);
+
     /* build start request operation */
     var _message = "<start number='" + params.channelNumber + "'>\r\n" +
-	"    <profile uri='" + params.profile + "' />\r\n" +
-	"</start>\r\n";
+	(hasProfileContent ? " <profile uri='" + params.profile + "'>" + params.profileContent + " </profile>\r\n" :
+	                     " <profile uri='" + params.profile + "' />\r\n") +
+	 "</start>\r\n";
 
     /* acquire channel 0 to send request */
     if (! this.channels[0].sendMSG (_message)) {
@@ -590,6 +595,211 @@ VortexConnection.prototype.uninstallOnDisconnect = function (onDisconnectId) {
     return false;
 };
 
+/**
+ * @brief Allows to start SASL authentication process on the connected
+ * BEEP session.
+ *
+ * The method receives a params object with the following members to
+ * complete the request.
+ *
+ * @param mech [string] SASL mechamis to use for this authentication
+ * process. Currently allowed SASL authentication process are: PLAIN.
+ *
+ * @param authorizationId [string] Optional. This is the user or
+ * identity we are requesting to act as. If not provided, the
+ * authorizationId is derived from authenticationId.
+ *
+ * @param authenticationId [string] This is the actual authentication
+ * credential to be validated. Keep in mind that it is possible to
+ * provided a valid authenticationId and password but the server side
+ * may deny the authorizationId (for example, requesting to act as an
+ * administrator providing user level credentials).
+ *
+ * @param password [string] This the password associated to the
+ * authenticationId.
+ *
+ * @param onAuthFinishedHandler [handler] A handler which is called to
+ * notify the SASL auth termination. This handler receives an object
+ * which the following values:
+ *
+ * - conn : The connection where the authentication request was
+ * performed.
+ *
+ * - status : Termination status of the request. true to signal
+ * authentication finished ok, otherwise false is returned.
+ *
+ * - statusMsg : The error message (if any).
+ *
+ * @param onAuthFinishedContext [object] (Optional) user object
+ * context to run the handler on.
+ *
+ */
+VortexConnection.prototype.saslAuth = function (params) {
+
+    /* check connection is ok */
+    if (! this.isOk ()) {
+	var saslData = {
+	    conn : this,
+	    status : false,
+	    statusMsg :	"Unable to proceed with SASL authentication process, received a connection not ready."
+	};
+	/* notify connection error */
+	VortexEngine.apply (params.onAuthFinishedHandler, params.onAuthFinishedContext, [saslData]);
+	return;
+    } /* end if */
+
+    /* check that the connection is not already authenticated */
+    if (this.isAuth) {
+	var saslData = {
+	    conn : this,
+	    status : false,
+	    statusMsg :	"Connection already authenticated, current credentials are: " + this.authenticationId + ", acting as: " + this.authorizationId
+	};
+	/* notify connection error */
+	VortexEngine.apply (params.onAuthFinishedHandler, params.onAuthFinishedContext, [saslData]);
+	return;
+    } /* end if */
+
+    params.saslEngine =	new VortexSASLEngine (params);
+    if (! params.saslEngine.clientInit ()) {
+	/* failed to init SASL initial step, notify error */
+	var saslData = {
+	    conn : this,
+	    status : false,
+	    statusMsg :	"Failed to start local client SASL operation, error found: " + params.saslEngine.statusMsg
+	};
+
+	/* nullify engine */
+	params.saslEngine = null;
+
+	/* notify connection error */
+	VortexEngine.apply (params.onAuthFinishedHandler, params.onAuthFinishedContext, [saslData]);
+	return;
+    } /* end if */
+
+    /* get a reference to the connection */
+    params.conn = this;
+
+    Vortex.log ("VortexConnection.saslAuth: initial SASL exchange: " + params.saslEngine.blob);
+    this.openChannel ({
+	/* SASL profile requested */
+	profile: "http://iana.org/beep/SASL/" + params.mech,
+	profileContent : "<![CDATA[<blob>" + params.saslEngine.blob + "</blob>]]>",
+	onFrameReceivedHandler : this.saslAuth._frameReceived,
+	onFrameReceivedContext : params,
+	onChannelCreatedHandler : this.saslAuth._channelCreated,
+	onChannelCreatedContext : params
+    });
+
+    return;
+};
+
+/**
+ * @internal Implementation to handle SASL channel creation and to
+ * continue with the process if SASL requires.
+ */
+VortexConnection.prototype.saslAuth._channelCreated = function (replyData) {
+    var channel = replyData.channel;
+    if (channel == null) {
+	/* failed to complete SASL authentication */
+	var saslData = {
+	    conn : this,
+	    status : false,
+	    statusMsg :	"Failed to complete SASL authentication, received a negative reply to create the channel. Error was: (" +
+		replyData.replyCode + ") " + replyData.replyMsg
+	};
+
+	/* nullify engine */
+	this.saslEngine = null;
+
+	/* notify connection error */
+	VortexEngine.apply (this.onAuthFinishedHandler, this.onAuthFinishedContext, [saslData]);
+	return;
+    }
+    Vortex.log ("VortexConnection.saslAuth._channelCreated: SASL channel created, now wait frames");
+    return;
+};
+
+VortexConnection.prototype.saslAuth._frameReceived = function (frameReceived) {
+    /* get a reference to the frame */
+    var frame = frameReceived.frame;
+
+    /* check frame type */
+    Vortex.log ("VortexConnection.saslAuth._frameReceived: content received: " + frame.content);
+
+    /* parse reply content to continue */
+    var node = VortexXMLEngine.parseFromString (frame.content);
+
+    if (node == null || node.name != 'blob') {
+	/* failed to complete SASL authentication */
+	var saslData = {
+	    conn : this.conn,
+	    status : false,
+	    statusMsg :	"Failed to complete SASL authentication, undefined XML content after successful channel creation"
+	};
+
+	/* nullify engine */
+	this.saslEngine = null;
+
+	/* notify connection error */
+	VortexEngine.apply (this.onAuthFinishedHandler, this.onAuthFinishedContext, [saslData]);
+	return;
+    } /* end if */
+
+    /* check for status attribute */
+    for (position in node.attrs) {
+
+	/* check for status attribute */
+	if (node.attrs[position].name == 'status') {
+	    if (node.attrs[position].value == 'complete') {
+
+		/* failed to complete SASL authentication */
+		var saslData = {
+		    conn : this.conn,
+		    status : true,
+		    statusMsg :	"Authentication OK"
+		};
+
+		/* nullify engine */
+		this.saslEngine = null;
+
+		/* update connection credentials */
+		
+
+		/* notify connection error */
+		VortexEngine.apply (this.onAuthFinishedHandler, this.onAuthFinishedContext, [saslData]);
+		return;
+
+	    } else if (node.attrs[position].value == 'abort') {
+
+		/* failed to complete SASL authentication */
+		var saslData = {
+		    conn : this.conn,
+		    status : true,
+		    statusMsg :	"Authentication FAILED"
+		};
+
+		/* nullify engine */
+		this.saslEngine = null;
+
+		/* notify connection error */
+		VortexEngine.apply (this.onAuthFinishedHandler, this.onAuthFinishedContext, [saslData]);
+		return;
+
+	    } else if (node.attrs[position].value == 'continue') {
+
+		/* SASL profile request to continue with the process: still not implemented */
+
+	    } else {
+		/* undefined status */
+	    }
+
+	    return;
+	} /* end if */
+    } /* end for */
+
+    return;
+};
 
 /**
  * @brief Closes the transport connection without doing BEEP close
