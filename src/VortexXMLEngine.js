@@ -39,6 +39,41 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
     /* skip white spaces (first) */
     iterator = VortexXMLEngine.consumeWhiteSpaces (data, iterator);
 
+    /* check for <!CDATA[ sections */
+    if ((iterator + 9) < data.length &&
+	data[iterator] == '<' &&
+	data[iterator + 1] == '!' &&
+	data[iterator + 2] == '[' &&
+	data[iterator + 3] == 'C' &&
+	data[iterator + 4] == 'D' &&
+	data[iterator + 5] == 'A' &&
+	data[iterator + 6] == 'T' &&
+	data[iterator + 7] == 'A' &&
+	data[iterator + 8] == '[') {
+
+	Vortex.log ("VortexXMLEngine.parseXMLNode: Found <![CDATA[ ]> declaration, reading content");
+
+	/* found CDATA declaration */
+	iterator += 9;
+	this.position = iterator;
+
+	while ((iterator + 2) < data.length) {
+	    if (data[iterator] == ']' && data[iterator + 1] == ']' && data[iterator + 2] == '>')
+		break;
+	    iterator++;
+	} /* end while */
+
+	if (iterator + 2 >= data.lenght) {
+	    Vortex.error ("VortexXMLEngine.parseXMLNode: expected to find CDATA termination ]]>");
+	    return null;
+	} /* end if */
+
+	parentNode.content = data.substring (this.position, iterator);
+	this.position      = (iterator + 3);
+	Vortex.log ("VortexXMLEngine.parseXMLNode: Found xml CDATA content for node '" + parentNode.name + "': " + parentNode.content);
+	return null;
+    }
+
     /* find node name start tag */
     if (data[iterator] != '<') {
 
