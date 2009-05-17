@@ -221,12 +221,18 @@ function VortexFirefoxEnableTLS () {
 	    Vortex.log ("validity: " + cert.validity);
 	    Vortex.log ("verifyForUsage: " + cert.verifyForUsage);
 
+	    /* split target site */
+	    var target = targetSite.split (":");
+
 	    /* TODO: add server cert inorder to establish line of trust */
-	    //    overrideService.rememberValidityOverride (
-	    //	targetSite, /* Host Name with port (host:port) */
-	    //	cert,                            // -> SSLStatus
-	    //	flags,
-	    //	false, ""); /* temporary */
+	    overrideService.rememberValidityOverride (
+		/* host */
+		target[0],
+		/* port */
+		target[1],
+	    	cert,                            // -> SSLStatus
+	    	flags,
+	    	false); /* temporary */
 
 	    return true;
 	},
