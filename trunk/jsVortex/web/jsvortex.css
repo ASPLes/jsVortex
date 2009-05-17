@@ -6,6 +6,11 @@ body {
   padding: 0px;
   margin: 0px;
   text-align: justify;
+  background: #0a0b16;
+}
+
+.content {
+  background: white;
 }
 
 h1 {
@@ -137,6 +142,7 @@ ol.enumeration {
   padding:0px;
   margin: 0px;
 }
+
 
 .footer {
   padding: 10px;
