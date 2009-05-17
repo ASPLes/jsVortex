@@ -1611,6 +1611,9 @@ testContentTransfer.closeHandler = function (closeData) {
 
     log ("info", "Channel close reply received and reply OK..");
 
+    /* close connection */
+    conn.shutdown ();
+
     /* call to next test */
     this.nextTest ();
     return true;
