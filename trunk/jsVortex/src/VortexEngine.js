@@ -340,6 +340,14 @@ VortexEngine.getFrame = function (connection, data) {
     var frame;
 
     /* check if the frame is complete */
+    if (connection.storedContent != null && connection.storedContent.length > 0) {
+	/* update data reference */
+	data = connection.storedContent + data;
+	/* reset stored content */
+	connection.storedContent = "";
+	Vortex.error ("Reensabled content, new size: " + data.length);
+	Vortex.error ("Reensabled content, content: '" + data + "'");
+    } /* end if */
 
     /* configure initial position for this parse operation */
     this.position = 0;
@@ -407,6 +415,7 @@ VortexEngine.getFrame = function (connection, data) {
 
 	/* start reading frame content */
 	this.position += 2;
+	var contentInit = this.position;
 
 	/* check if we have a SEQ to stop processing */
 	if (strType == 'SEQ') {
@@ -426,14 +435,34 @@ VortexEngine.getFrame = function (connection, data) {
 	this.position += size;
 	Vortex.log2 ("BEEP header end: '" + data.substring (this.position, this.position + 5) + "'");
 
+	/* check content received against size expected */
+	if ((data.length - contentInit) < size) {
+/*	    console.error (
+		"VortexEngine: this.position is: " + this.position + ", content received: " + (data.length - contentInit));
+	    console.error (
+		"VortexEngine: expected frame size: " + size);
+	    console.error (
+		"VortexEngine: content received:'" + data + "'");
+*/
+
+	    /* found that not all frame content was received,
+	     * store it for later processing */
+	    if (connection.storedContent == undefined)
+		connection.storedContent = "";
+	    connection.storedContent = connection.storedContent + data;
+	    return null;
+	}
+
 	/* check beep trailer */
 	var beepTrailer = data.substring (this.position, this.position + 5);
 	if (beepTrailer != "END\r\n") {
-	    Vortex.error ("VortexEngine: ERROR (2): position: " + this.position);
+	    Vortex.error (
+		"VortexEngine: ERROR: expected to find \\r\\n BEEP frame trailer (end of frame), but not found: " + beepTrailer);
 	    connection.shutdown (
 		"VortexEngine: ERROR: expected to find \\r\\n BEEP frame trailer (end of frame), but not found: " + beepTrailer);
 	    return null;
-	}
+	} /* end if */
+
 	this.position += 5;
 	Vortex.log2 ("BEEP frame ended at: " + this.position + ", last data index received: " + data.length );
 
@@ -442,6 +471,12 @@ VortexEngine.getFrame = function (connection, data) {
 
 	Vortex.log2 ("Frame type: " + frame.type);
 	frameList.push (frame);
+    }
+
+    /* check that all content was read */
+    if (data.length != this.position) {
+	/* comment left to be able to catch this error some day */
+	Vortex.error ("VortexEngine.getFrame: pending data to be read after all operations: " + data.length + " != " + this.position);
     }
 
     /* return frame object */
@@ -520,6 +555,10 @@ VortexEngine.channel0Received = function (frameReceived) {
 
 	/* add it to the connection */
 	this.conn.channels[params.channelNumber] = params.channel;
+
+	/* check if this channel creation was done including a serverName request */
+	if (params.serverName != null && this.conn.serverName == undefined)
+	    this.conn.serverName = params.serverName;
 
 	/* create replyData to notify failure */
 	var replyData = {
@@ -808,7 +847,7 @@ VortexEngine.checkSendSEQFrame = function (channel, frame) {
 
 	/* update maxAllowedSeqno */
 	channel.maxAllowedSeqno = (acceptedSeqno + channel.windowSize - 1) % VortexEngine.MaxSeqNo;
-	Vortex.log ("VortexEngine.checkSendSEQFrame: updated maxAllowedSeqno value to: " + channel.maxAllowedSeqno);
+	Vortex.log ("VortexEngine.checkSendSEQFrame: updated maxAllowedSeqno value to: " + channel.maxAllowedSeqno + ", for channel: " + channel.number);
     } /* end if */
 
     /* not updating maxAllowedSeqno */

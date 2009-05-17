@@ -28,6 +28,452 @@ const REGRESSION_URI_FAST_SEND = "http://iana.org/beep/transient/vortex-regressi
  */
 const REGRESSION_URI_SUDDENTLY_CLOSE = "http://iana.org/beep/transient/vortex-regression/suddently-close";
 
+/******* BEGIN: testTlsProfile ******/
+function testTlsProfile () {
+    /* create a connection */
+    var conn = new VortexConnection (
+	this.host,
+	this.port,
+	new VortexTCPTransport (),
+	testTlsProfile.connectionResult, this);
+
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+}
+
+testTlsProfile.connectionResult = function (conn) {
+    /* check connection */
+    if (! checkConnection (conn))
+	return false;
+
+    log ("info", "Connection, now openinig TLS channel");
+    conn.enableTLS ({
+	/* provide initial handlers to configure TLS termination status */
+	onTLSFinishHandler : testTlsProfile.onTLSFinishHandler,
+	onTLSFinishContext : this
+    });
+
+    return true;
+};
+
+testTlsProfile.onTLSFinishHandler = function (tlsReply) {
+
+    log ("info", "TLS Status received...");
+
+    /* check connection status */
+    var conn = tlsReply.conn;
+    if (! checkConnection (conn)) {
+	log ("error", "Expected to find proper connection, no matter TLS result, but found failure: ");
+	return false;
+    } /* end if */
+
+    /* check TLS status */
+    if (! tlsReply.status) {
+	log ("error", "Expected to find proper TLS notification, but found failure: (" + tlsReply.replyCode + ") " + tlsReply.replyMsg);
+	conn.shutdown ();
+	return false;
+    }
+    log ("info", "Found TLS initial status OK, now checking rest of data");
+
+    /* more checks here: issuer, common name, validation, etc */
+
+
+    /* now test the session: now open a channel here to do some useful work */
+    log ("info", "Now create a channel and transfer some content");
+    conn.openChannel ({
+	profile: REGRESSION_URI,
+	channelNumber: 0,
+	onChannelCreatedHandler : testTlsProfile.channelCreated,
+	onChannelCreatedContext : this
+    });
+
+    return true;
+};
+
+testTlsProfile.channelCreated = function (replyData) {
+    /* log data received */
+    log ("info", "Channel start reply code received: " +
+	 replyData.replyCode + ", message: " + replyData.replyMsg);
+    /* check reference */
+    if (replyData.channel == null) {
+	log ("error", "Expected to find proper channel reference, but found null. Errors found are:");
+	showErrors (conn);
+	return false;
+    }
+
+    /* check reply code */
+    if (replyData.replyCode != "200") {
+	log ("error", "Expected to find reply code to start channel equal to '200' but found: " + replyData.replyCode);
+	return false;
+    }
+
+    /* send some content */
+    log ("info", "Received reply code: " + replyData.replyCode + ", message: " + replyData.replyMsg);
+
+    /* get a reference to the channel */
+    var channel = replyData.channel;
+
+    /* configure received handler here */
+    channel.onFrameReceivedHandler = testContentTransfer.frameReceived;
+    channel.onFrameReceivedContext = this;
+
+    /* reset test */
+    testContentTransfer.nextMsg  = 1;
+
+    /* send content */
+    if (! channel.sendMSG (testContentTransfer.testMSG1)) {
+	log ("error", "Expected fo be able to send content but failed VortexChannel.sendMSG");
+	return false;
+    }
+
+    if (! channel.sendMSG (testContentTransfer.testMSG2)) {
+	log ("error", "Expected fo be able to send content but failed VortexChannel.sendMSG (2)");
+	return false;
+    }
+
+    if (! channel.sendMSG (testContentTransfer.testMSG3)) {
+	log ("error", "Expected fo be able to send content but failed VortexChannel.sendMSG (3)");
+	return false;
+    }
+
+    /* check connection here */
+    if (! replyData.conn.isOk ()) {
+	log ("error", "Expected to find proper connection status after send operations but found a failure");
+	showErrors (replyData.conn);
+	this.stopTests = true;
+	return false;
+    } /* end if */
+
+    return true;
+}
+
+/******* END: testTlsProfile ******/
+
+/******* BEGIN: testSaslAnonymousFailure ******/
+function testSaslAnonymousFailure () {
+
+    /* create a connection */
+    var conn = new VortexConnection (
+	this.host,
+	this.port,
+	new VortexTCPTransport (),
+	testSaslAnonymousFailure.Result, this);
+
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+};
+
+testSaslAnonymousFailure.Result = function (conn) {
+    /* check connection here */
+    if (! checkConnection (conn))
+	return false;
+
+    log ("info", "connection created, now being auth operation (ANONYMOUS) with failure expected");
+
+    /* do auth operation */
+    conn.saslAuth ({
+	mech: "ANONYMOUS",
+	/* anonymous token */
+	anonymousToken: "test-fail@aspl.es",
+	/* notification handlers (and its context) */
+	onAuthFinishedHandler: testSaslAnonymousFailure.onAuthFinished,
+	onAuthFinishedContext: this
+    });
+
+    return true;
+};
+
+testSaslAnonymousFailure.onAuthFinished = function (saslResult) {
+
+    /* get a reference to the connection */
+    var conn = saslResult.conn;
+
+    /* check first connection status */
+    if (! conn.isOk ()) {
+	log ("error", "Expected to find connection proper status no matter the SASL authentication result");
+	return false;
+    } /* end if */
+
+    /* check sasl authentication status */
+    if (saslResult.status ) {
+	log ("error", "Expected to find SASL ANONYMOUS authentication failure, but found authentication succeed: " + saslResult.statusMsg);
+
+	/* close the connection */
+	conn.shutdown ();
+
+	return false;
+    } /* end if */
+
+    /* check connection authentication */
+    if (conn.isAuthenticated != false) {
+	log ("error", "Expected to find not authenticated SASL session but found flag activated: " + conn.isAuthenticated);
+	return false;
+    }
+
+    /* check credentials */
+    if (conn.anonymousToken == "test-fail@aspl.es") {
+	log ("error", "Expected to not find proper authentication anonymous token, but found: " + conn.anonymousToken);
+	return false;
+    } /* end if */
+
+    /* check channel error code */
+    if (saslResult.replyCode != '535') {
+	log ("error", "Expected to find authentication error code 535, but found something different: " + saslResult.replyCode);
+	return false;
+    } /* end if */
+
+    /* close the connection */
+    conn.shutdown ();
+
+    /* next test */
+    this.nextTest ();
+    return true;
+};
+/******* END:   testSaslAnonymous ******/
+
+/******* BEGIN: testUnsupportedSaslProfile ******/
+function testUnsupportedSaslProfile () {
+
+    /* create a connection */
+    var conn = new VortexConnection (
+	this.host,
+	this.port,
+	new VortexTCPTransport (),
+	testUnsupportedSaslProfile.Result, this);
+
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+};
+
+testUnsupportedSaslProfile.Result = function (conn) {
+    /* check connection here */
+    if (! checkConnection (conn))
+	return false;
+
+    log ("info", "connection created, now try an unsupported sasl mechanism");
+
+    /* do auth operation */
+    conn.saslAuth ({
+	mech: "UNSUPPORTED",
+	/* notification handlers (and its context) */
+	onAuthFinishedHandler: testUnsupportedSaslProfile.onAuthFinished,
+	onAuthFinishedContext: this
+    });
+
+    return true;
+};
+
+testUnsupportedSaslProfile.onAuthFinished = function (saslResult) {
+
+    /* get a reference to the connection */
+    var conn = saslResult.conn;
+
+    /* check first connection status */
+    if (! conn.isOk ()) {
+	log ("error", "Expected to find connection proper status no matter the SASL authentication result");
+	return false;
+    } /* end if */
+
+    /* check sasl authentication status */
+    if (saslResult.status ) {
+	log ("error", "Expected to find a failure due to requesting the use of an unsupported SASL mechanism: " + saslResult.statusMsg);
+
+	/* close the connection */
+	conn.shutdown ();
+
+	return false;
+    } /* end if */
+
+    log ("info", "Status received: " + saslResult.statusMsg);
+
+    /* check connection authentication */
+    if (conn.isAuthenticated == true) {
+	log ("error", "Expected to find SASL authentication failure with flag not activated: " + conn.isAuthenticated);
+	return false;
+    }
+
+    /* close the connection */
+    conn.shutdown ();
+
+    /* next test */
+    this.nextTest ();
+    return true;
+};
+/******* END:   testUnsupportedSaslProfile ******/
+
+/******* BEGIN: testSaslAnonymous ******/
+function testSaslAnonymous () {
+
+    /* create a connection */
+    var conn = new VortexConnection (
+	this.host,
+	this.port,
+	new VortexTCPTransport (),
+	testSaslAnonymous.Result, this);
+
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+};
+
+testSaslAnonymous.Result = function (conn) {
+    /* check connection here */
+    if (! checkConnection (conn))
+	return false;
+
+    log ("info", "connection created, now being auth operation (ANONYMOUS)");
+
+    /* do auth operation */
+    conn.saslAuth ({
+	mech: "ANONYMOUS",
+	/* anonymous token */
+	anonymousToken: "test@aspl.es",
+	/* notification handlers (and its context) */
+	onAuthFinishedHandler: testSaslAnonymous.onAuthFinished,
+	onAuthFinishedContext: this
+    });
+
+    return true;
+};
+
+testSaslAnonymous.onAuthFinished = function (saslResult) {
+
+    /* get a reference to the connection */
+    var conn = saslResult.conn;
+
+    /* check first connection status */
+    if (! conn.isOk ()) {
+	log ("error", "Expected to find connection proper status no matter the SASL authentication result");
+	return false;
+    } /* end if */
+
+    /* check sasl authentication status */
+    if (! saslResult.status ) {
+	log ("error", "Expected to find proper SASL ANONYMOUS authentication, but failure found: " + saslResult.statusMsg);
+
+	/* close the connection */
+	conn.shutdown ();
+
+	return false;
+    } /* end if */
+
+    /* check connection authentication */
+    if (conn.isAuthenticated != true) {
+	log ("error", "Expected to find authenticated SASL session but found flag not activated: " + conn.isAuthenticated);
+	return false;
+    }
+
+    /* check credentials */
+    if (conn.anonymousToken != "test@aspl.es") {
+	log ("error", "Expected to find proper authentication anonymous token, but found: " + conn.anonymousToken);
+	return false;
+    } /* end if */
+
+    /* close the connection */
+    conn.shutdown ();
+
+    /* next test */
+    this.nextTest ();
+    return true;
+};
+/******* END:   testSaslAnonymous ******/
+
+/******* BEGIN: testSaslPlainFailure ******/
+function testSaslPlainFailure () {
+
+    /* create a connection */
+    var conn = new VortexConnection (
+	this.host,
+	this.port,
+	new VortexTCPTransport (),
+	testSaslPlainFailure.Result, this);
+
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+};
+
+testSaslPlainFailure.Result = function (conn) {
+    /* check connection here */
+    if (! checkConnection (conn))
+	return false;
+
+    log ("info", "connection created, now being auth operation");
+
+    /* do auth operation */
+    conn.saslAuth ({
+	mech: "PLAIN",
+	/* authentication id: the actual user credential */
+	authenticationId: "evil-bob",
+	/* password */
+	password: "secret",
+	/* notification handlers (and its context) */
+	onAuthFinishedHandler: testSaslPlainFailure.onAuthFinished,
+	onAuthFinishedContext: this
+    });
+
+    return true;
+};
+
+testSaslPlainFailure.onAuthFinished = function (saslResult) {
+
+    /* get a reference to the connection */
+    var conn = saslResult.conn;
+
+    /* check first connection status */
+    if (! conn.isOk ()) {
+	log ("error", "Expected to find connection proper status no matter the SASL authentication result");
+	return false;
+    } /* end if */
+
+    /* check sasl authentication status */
+    if (saslResult.status ) {
+	log ("error", "Expected to find a SASL autentication failure but found: " + saslResult.statusMsg);
+
+	/* close the connection */
+	conn.shutdown ();
+
+	return false;
+    } /* end if */
+
+    /* check connection authentication */
+    if (conn.isAuthenticated || conn.isAuthenticated != false) {
+	log ("error", "Expected to find unauthenticated SASL session but found flag activated: " + conn.isAuthenticated);
+	return false;
+    }
+
+    /* check channel error code */
+    if (saslResult.replyCode != '535') {
+	log ("error", "Expected to find authentication error code 535, but found something different: " + saslResult.replyCode);
+	return false;
+    } /* end if */
+
+    /* close the connection */
+    conn.shutdown ();
+
+    /* next test */
+    this.nextTest ();
+    return true;
+};
+
 /******* BEGIN: testSaslPlain ******/
 function testSaslPlain () {
 
@@ -91,6 +537,66 @@ testSaslPlain.onAuthFinished = function (saslResult) {
 
     log ("info", "Authentication ok!");
 
+    /* check authentication status and information */
+    if (! conn.isAuthenticated) {
+	log ("error", "Expected to find proper authentication flag but it wasn't found");
+	return false;
+    } /* end if */
+
+    log ("info", "Checking credentials...");
+
+    /* check credentials */
+    if (conn.authorizationId != "bob" ||
+	conn.authenticationId != "bob") {
+	/* report error */
+	log ("error", "Expected to find proper authentication information associated to the connection, but a mismatch was found");
+	return false;
+    } /* end if */
+
+    log ("info", "Credentials ok...");
+
+    /* now check to perform again sasl operation */
+    conn.saslAuth ({
+	mech: "PLAIN",
+	/* authentication id: the actual user credential */
+	authenticationId: "evil-bob",
+	/* password */
+	password: "secret",
+	/* notification handlers (and its context) */
+	onAuthFinishedHandler: testSaslPlain.onAuthFinishedFailure,
+	onAuthFinishedContext: this
+    });
+
+    return true;
+};
+
+testSaslPlain.onAuthFinishedFailure = function (saslResult) {
+
+    log ("info", "Received reply, checking connection status..");
+
+    /* check connection status */
+    if (! checkConnection (saslResult.conn))
+	return false;
+
+    log ("info", "Checking expected sasl failure for a second auth try after a successful auth operation");
+
+    /* check SASL status */
+    if (saslResult.status) {
+	log ("error", "Expected to find a failure because authentication already established.");
+	return false;
+    } /* end if */
+
+    /* check here again all credentials */
+    var conn = saslResult.conn;
+    if (conn.authorizationId != "bob" ||
+	conn.authenticationId != "bob") {
+	/* report error */
+	log ("error", "Expected to find proper authentication information associated to the connection, but a mismatch was found");
+	return false;
+    } /* end if */
+
+    log ("info", "Credentials ok...");
+
     /* close the connection */
     conn.shutdown ();
 
@@ -100,6 +606,216 @@ testSaslPlain.onAuthFinished = function (saslResult) {
 };
 
 /******* END:   testSaslPlain ******/
+
+/******* BEGIN: testOnConnectionClose ******/
+function testOnConnectionClose () {
+
+    /* open a connection */
+    var conn = new VortexConnection (
+	this.host,
+	this.port,
+	new VortexTCPTransport (),
+	testOnConnectionClose.Result, this);
+
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+
+}
+
+testOnConnectionClose.Result = function (conn) {
+
+    /* check connection status */
+    if (! checkConnection (conn))
+	return false;
+
+    log ("info", "Connection created, now register a disconnected handler..");
+
+    /* install on disconnect handlers */
+    conn.onDisconnect (testOnConnectionClose.disconnected, this);
+
+    log ("info", "Sending wrong content to activate connection close on remote side..");
+
+    /* send wrong content to the remote side to force a connection
+     close */
+    conn._send ("This is a wrong BEEP content\r\n\r\n");
+
+    return true;
+};
+
+testOnConnectionClose.disconnected = function (conn) {
+
+    /* check connection status */
+    if (conn.isOk ()) {
+	log ("error", "Found connection status Ok when it was expected a failure");
+	return false;
+    } /* end if */
+
+    log ("info", "Received connection close notification ok..");
+
+    /* call to run next test */
+    this.nextTest ();
+    return true;
+};
+
+/******* END: testOnConnectionClose ******/
+
+/******* BEGIN: testServerName *******/
+function testServerName () {
+    /* open a connection */
+    var conn = new VortexConnection (
+	this.host,
+	this.port,
+	new VortexTCPTransport (),
+	testServerName.Result, this);
+}
+testServerName.Result = function (conn) {
+
+    /* check connection status */
+    if (! checkConnection (conn))
+	return false;
+
+    log ("info", "Open a channel using serverName=dolphin.aspl.es");
+    conn.openChannel ({
+	profile: REGRESSION_URI,
+	channelNumber: 0,
+	serverName: "dolphin.aspl.es",
+	onChannelCreatedHandler : testServerName.channelCreated,
+	onChannelCreatedContext : this
+    });
+
+    return true;
+};
+
+testServerName.channelCreated = function (replyData) {
+
+    log ("info", "Channel creation reply received, checking data..");
+
+    /* check channel status */
+    var channel = replyData.channel;
+    if (channel == null) {
+	log ("error", "Expected to find proper channel creation with serverName associated");
+	return false;
+    }
+
+    log ("info", "Checking serverName configured..");
+
+    /* check connection serverName */
+    var conn = replyData.conn;
+    if (conn.serverName != 'dolphin.aspl.es') {
+	log ("error", "Expected to find proper serverName configuration for first channel with serverName configured");
+	return false;
+    }
+
+    /* configure frame received to get remote serverName configured */
+    channel.onFrameReceivedHandler = testServerName.frameReceived;
+    channel.onFrameReceivedContext = this;
+
+    log ("info", "Getting remote serverName configured...");
+
+    /* send content */
+    if (! channel.sendMSG ("GET serverName", null)) {
+	log ("error", "Expected to be able to send content to get remote serverName configured but a failure was found");
+	return false;
+    }
+
+    return true;
+};
+
+testServerName.frameReceived = function (frameReceived) {
+
+    /* check connection first */
+    var conn = frameReceived.conn;
+    if (! checkConnection (conn))
+	return false;
+
+    /* check content */
+    var frame = frameReceived.frame;
+    if (frame.content != "dolphin.aspl.es") {
+	log ("error", "Expected to find remote serverName equal to dolphin.aspl.es but found: " + frame.content);
+	return false;
+    }
+
+    log ("info", "Remote serverName configured OK: dolphin.aspl.es");
+
+    /* now open another channel requesting a different serverName */
+    log ("info", "Ok, now open a channel using serverName=whale.aspl.es");
+    conn.openChannel ({
+	profile: REGRESSION_URI,
+	channelNumber: 0,
+	serverName: "whale.aspl.es",
+	onChannelCreatedHandler : testServerName.channelCreated2,
+	onChannelCreatedContext : this
+    });
+
+    return true;
+
+};
+
+testServerName.channelCreated2 = function (replyData) {
+
+    log ("info", "Channel creation reply received (2), checking data..");
+
+    /* check channel status */
+    var channel = replyData.channel;
+    if (channel == null) {
+	log ("error", "Expected to find proper channel creation with serverName associated");
+	return false;
+    }
+
+    log ("info", "Checking serverName configured..");
+
+    /* check connection serverName */
+    var conn = replyData.conn;
+    if (conn.serverName != 'dolphin.aspl.es') {
+	log ("error", "Expected to find proper serverName configuration for first channel with serverName configured");
+	return false;
+    }
+
+    /* configure frame received to get remote serverName configured */
+    channel.onFrameReceivedHandler = testServerName.frameReceived2;
+    channel.onFrameReceivedContext = this;
+
+    log ("info", "Getting remote serverName configured...");
+
+    /* send content */
+    if (! channel.sendMSG ("GET serverName", null)) {
+	log ("error", "Expected to be able to send content to get remote serverName configured but a failure was found");
+	return false;
+    }
+
+    return true;
+};
+
+testServerName.frameReceived2 = function (frameReceived) {
+
+    /* check connection first */
+    var conn = frameReceived.conn;
+    if (! checkConnection (conn))
+	return false;
+
+    /* check content */
+    var frame = frameReceived.frame;
+    if (frame.content != "dolphin.aspl.es") {
+	log ("error", "Expected to find remote serverName equal to dolphin.aspl.es but found: " + frame.content);
+	return false;
+    }
+
+    log ("info", "Remote serverName configured OK: dolphin.aspl.es");
+
+    conn.shutdown ();
+
+    /* call to execute next test */
+    this.nextTest ();
+    return true;
+
+};
+
+
+/******* END: testServerName *******/
 
 /******* BEGIN: testSuddentlyClosed3 ******/
 function testSuddentlyClosed3 () {
@@ -753,6 +1469,7 @@ testContentTransfer.ResultCreated = function (replyData) {
 	log ("error", "Expected to find proper channel creation, but found null reference");
 	return false;
     }
+
     /* check here code replied */
     log ("info", "Received reply code: " + replyData.replyCode + ", message: " + replyData.replyMsg);
 
@@ -868,6 +1585,7 @@ testContentTransfer.frameReceived = function (frameReceived) {
 	}
 
 	/* close the channel before closing the connection */
+	log ("info", "Now close the channel opened..");
 	channel.close ({
 	    onChannelCloseHandler : testContentTransfer.closeHandler,
 	    onChannelCloseContext : this
@@ -890,6 +1608,8 @@ testContentTransfer.closeHandler = function (closeData) {
 	log ("error", "Expected to find only 1 channel opened but found: " + VortexEngine.count (conn.channels));
 	return false;
     }
+
+    log ("info", "Channel close reply received and reply OK..");
 
     /* call to next test */
     this.nextTest ();
@@ -1110,6 +1830,87 @@ testChannels.CloseResult = function (replyData) {
 };
 /******* END: testChannels ******/
 
+/******* BEGIN: testChannelsInUse ******/
+function testChannelsInUse () {
+    /* open a connection */
+    var conn = new VortexConnection (this.host,
+				     this.port,
+				     new VortexTCPTransport (),
+				     testChannelsInUse.Result, this);
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+}
+
+testChannelsInUse.Result = function (conn) {
+    /* check connection */
+    if (! checkConnection (conn))
+	return false;
+
+    /* open a channel, now open a channel here to do some useful work */
+    conn.openChannel ({
+	profile: REGRESSION_URI,
+	channelNumber: 0,
+	onChannelCreatedHandler : testChannelsInUse.ResultCreated,
+	onChannelCreatedContext : this
+    });
+
+    return true;
+};
+
+testChannelsInUse.ResultCreated = function (channelCreated) {
+    var channel = channelCreated.channel;
+    if (channel == null) {
+	log ("error", "Found channel not created when it was expected proper results..");
+	return false;
+    }
+
+    /* now open again the channel */
+    var conn = channelCreated.conn;
+    conn.openChannel ({
+	profile: REGRESSION_URI,
+	channelNumber: channel.number,
+	onChannelCreatedHandler : testChannelsInUse.ResultCreatedFailed,
+	onChannelCreatedContext : this
+    });
+
+    return true;
+};
+
+testChannelsInUse.ResultCreatedFailed = function (replyData) {
+    log ("info", "Channel creation process reply received, checking expected failure");
+
+    /* check connection status */
+    var conn = replyData.conn;
+    if (! checkConnection (conn)) {
+	log ("error", "Expected to find proper connection status after wrong channel creation, but found connection not working");
+	return false;
+    }
+
+    /* check channel reference */
+    var channel = replyData.channel;
+    if (channel != null) {
+	log ("error", "Expected to find null channel reference error after wrong creation");
+	return false;
+    } /* end if */
+
+    if (replyData.replyCode != '550') {
+	log ("error", "Expected to find reply code 550 but found: " + replyData.replyCode);
+	return false;
+    }
+
+    /* close the connection */
+    conn.shutdown ();
+
+    /* call to run the text test */
+    this.nextTest ();
+    return true;
+};
+/******* END: testChannelsInUse ******/
+
 /******* BEGIN: testMimeSupport ******/
 function testMimeSupport () {
 
@@ -1314,8 +2115,8 @@ testConnect.Result = function (conn) {
     }
 
     /* check profiles supported */
-    if (conn.profiles.length != 29) {
-	log ("error", "Expected to find 29 profiles registered");
+    if (conn.profiles.length != 30) {
+	log ("error", "Expected to find 30 profiles registered but found: " + conn.profiles.length);
 	return false;
     }
 
@@ -1432,7 +2233,7 @@ function testjsVortexAvailable () {
 
 function checkConnection (conn) {
     if (! conn.isOk ()) {
-	log ("error", "Found connection status not ready " + conn.isReady + ", socket: " + conn._transport.socket +
+	log ("error", "Found connection status: " + conn.isReady + ", socket: " + (conn._transport != null ? conn._transport.socket : "transport is null" ) +
 	     ", greetingsSent=" + conn.greetingsSent + ", greetingsReceived=" + conn.greetingsReceived);
 	showErrors (conn);
 	this.stopTests = true;
@@ -1554,7 +2355,15 @@ RegressionTest.prototype.tests = [
     {name: "BEEP session suddently closed (bis)",       testHandler: testSuddentlyClosed},
     {name: "BEEP session suddently closed (II)",        testHandler: testSuddentlyClosed2},
     {name: "BEEP session suddently closed (III)",       testHandler: testSuddentlyClosed3},
-    {name: "SASL profile PLAIN support",                testHandler: testSaslPlain}
+    {name: "BEEP on connection close check",            testHandler: testOnConnectionClose},
+    {name: "BEEP serverName support",                   testHandler: testServerName},
+    {name: "Check for unsupported SASL profile",        testHandler: testUnsupportedSaslProfile},
+    {name: "SASL profile ANONYMOUS support",            testHandler: testSaslAnonymous},
+    {name: "SASL profile ANONYMOUS support (failure)",  testHandler: testSaslAnonymousFailure},
+    {name: "SASL profile PLAIN support",                testHandler: testSaslPlain},
+    {name: "SASL profile PLAIN support (failure)",      testHandler: testSaslPlainFailure},
+    {name: "TLS profile support",                       testHandler: testTlsProfile},
+    {name: "BEEP opening channels already in use",      testHandler: testChannelsInUse}
 ];
 
 
@@ -1634,10 +2443,27 @@ function testClicked (event) {
     }
 }
 
+function invertSelection (event) {
+
+    for (iterator in RegressionTest.prototype.tests) {
+	/* acquire a reference to the test object */
+	var test = RegressionTest.prototype.tests[iterator];
+
+	/* invert its current configuration to be executed */
+	test.runIt = ! test.runIt;
+
+	/* flag "checked" with the new state */
+	test.checkBox.attr ("checked", test.runIt);
+    }
+
+    return;
+}
+
 function prepareTest () {
     /* connect clicked signal */
     dojo.connect (dojo.byId("run-test"), "click", runTest);
     dojo.connect (dojo.byId ("clear-log"), "click", clearLog);
+    dojo.connect (dojo.byId ("invert-selection"), "click", invertSelection);
 
     /* configure default connection values */
     dojo.byId ("host").value = "localhost";
@@ -1667,6 +2493,9 @@ function prepareTest () {
 
 	/* configure onClick handler */
 	checkBox.onClick = testClicked;
+
+	/* add a reference on the test */
+	tests[test].checkBox = checkBox;
 
 	/* add to the panel */
 	dojo.place(checkBox.domNode, testAvailablePanel.domNode);

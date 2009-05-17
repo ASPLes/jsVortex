@@ -21,16 +21,21 @@
  *
  */
 function VortexSASLEngine (params) {
-    /* record initial data provided */
+    /* record initial data provided (copy all attribues) */
     this.mech             = params.mech;
     this.authenticationId = params.authenticationId;
     this.authorizationId  = params.authorizationId;
     this.password         = params.password;
+    this.anonymousToken   = params.anonymousToken;
 
     /* current internal status */
     this.blob             = null;
     this.status           = false;
     this.statusMsg        = null;
+
+    /* register supported mechanism */
+    this.addMech (VortexSASL_PLAIN);
+    this.addMech (VortexSASL_ANONYMOUS);
 };
 
 /**
@@ -44,27 +49,124 @@ function VortexSASLEngine (params) {
  */
 VortexSASLEngine.prototype.clientInit = function () {
     /* check supported mechanism */
-    if (this.mech != 'PLAIN') {
+    if (! this.isSupported (this.mech, true)) {
 	this.statusMsg = "Unsupported SASL mechanism, failed to continue: " + this.mech;
 	return false;
     }
 
-    if (this.mech == 'PLAIN') {
-	/* check authentication and password */
-	if (! VortexEngine.checkReference (this.authenticationId))
-	    return false;
-	if (! VortexEngine.checkReference (this.password))
-	    return false;
+    /* check input (each SASL mechanism requires different input data
+    to continue with the SASL process) */
+    if (! this.selected.checkInput (this))
+	return false;
 
-	/* derive authorizationId from authenticationId in the case it is
-	 not defined */
-	if (this.authorizationId == null || this.authorizationId == undefined)
-	    this.authorizationId = this.authenticationId;
+    /* now init mechansim */
+    if (! this.selected.initMech (this))
+	return false;
 
-	/* produce initial SASL BLOB */
-	this.blob = VortexBase64.encode (this.authorizationId + '\0' + this.authenticationId + '\0' + this.password);
-	return true;
+    return true;
+};
+
+/**
+ * @brief Allows to continue with the SASL process by providing to the
+ * SASL Engine the content received from remote BEEP peer.
+ *
+ * @param blob A utf-8 base64 encoded string providing more data to
+ * continue with the authentication process.
+ *
+ * @return true if the function finishes properly, otherwise false is
+ * returned. Some mechanism may require more steps, but others not.
+ */
+VortexSASLEngine.prototype.nextStep = function (blob) {
+
+    /* call to next step */
+    return this.selected.nextStep (blob, this);
+};
+
+/**
+ * @brief Taking a session properly configured and authenticated, this
+ * function configures credentials used in the object provided as
+ * item.
+ *
+ * @param item This the object to be configure with credentials used
+ * by current SASL session.
+ *
+ */
+VortexSASLEngine.prototype.configureCredentials = function (item) {
+    /* check to configure only if status is ok */
+    if (! this.status) {
+	Vortex.error ("VortexSASLEngine.configureCredentials: unable to configure credentials, current SASL sesion is not complete.");
+	return false;
     } /* end if */
+
+    /* check reference received */
+    if (! VortexEngine.checkReference (item))
+	return false;
+
+    /* configure credentials and return result from the handler */
+    return this.selected.configureCredentials (this, item);
+};
+
+/**
+ * @brief Allows to register new SASL profiles to be used by the
+ * VortexSASLEngine module.
+ *
+ * The method register an object that implements a set of methods that
+ * are used by the controller (VortexSASLEngine) to implement the SASL
+ * exchange. Take a look on how are implemented PLAIN or ANONYMOUS
+ * profiles to get an idea.
+ */
+VortexSASLEngine.prototype.addMech = function (saslDefinition) {
+
+    /* check and init mechs list */
+    if (this.mechs == undefined)
+	this.mechs = [];
+
+    /* check we did store a profile defined this way */
+    if (this.isSupported (saslDefinition.name)) {
+	Vortex.error ("VortexSASLEngine.addMech: unable to add SASL mechanism: " +
+		saslDefinition.name + " because it is already installed");
+	    return false;
+    } /* end if */
+
+    /* check that all methods are implemented */
+    if (! VortexEngine.checkReference (saslDefinition, "checkInput"))
+	return false;
+    if (! VortexEngine.checkReference (saslDefinition, "initMech"))
+	return false;
+    if (! VortexEngine.checkReference (saslDefinition, "nextStep"))
+	return false;
+
+    /* all minimum methods implemented, add the SASL profile */
+    this.mechs.push (saslDefinition);
+
+    return true;
+};
+
+/**
+ * @brief Allows to check if the provided sasl profile (an string like
+ * 'PLAIN' or 'ANONYMOUS') is currently supported by the
+ * VortexSASLEngine class.
+ *
+ * @param saslProfile [string] An string representing the profile to be checked.
+ *
+ * @param selectMech [boolean] (Optional) boolean value that allows
+ * the caller to signal that the current engine must select the
+ * mechanism to be used if it is found.
+ */
+VortexSASLEngine.prototype.isSupported = function (saslProfile, selectMech) {
+
+    /* check profile received */
+    for (iterator in this.mechs) {
+	if (this.mechs[iterator].name == saslProfile) {
+
+	    /* select mechanism if requested by the user */
+	    if (selectMech) {
+		this.selected = this.mechs[iterator];
+	    } /* end if */
+
+	    return true;
+	} /* end if */
+    } /* end for */
 
     return false;
 };

@@ -46,6 +46,9 @@ function VortexConnection (host,
     /* PUBLIC: create stack error */
     this.stackError       = [];
 
+    /* connection not authenticated */
+    this.isAuthenticated  = false;
+
     /* save handlers */
     this.createdHandler = connectionCreatedHandler;
     this.createdContext = connectionCreatedContext;
@@ -294,9 +297,9 @@ VortexConnection.prototype.openChannel = function (params) {
     var hasProfileContent = (params.profileContent != null) && (params.profileContent != undefined);
 
     /* build start request operation */
-    var _message = "<start number='" + params.channelNumber + "'>\r\n" +
-	(hasProfileContent ? " <profile uri='" + params.profile + "'>" + params.profileContent + " </profile>\r\n" :
-	                     " <profile uri='" + params.profile + "' />\r\n") +
+    var _message = "<start " + ((params.serverName != null) ? "serverName='" + params.serverName + "' " : "" ) + "number='" + params.channelNumber + "'>\r\n" +
+	(hasProfileContent ? "   <profile uri='" + params.profile + "'><![CDATA[" + params.profileContent + "]]></profile>\r\n" :
+	                     "   <profile uri='" + params.profile + "' />\r\n") +
 	 "</start>\r\n";
 
     /* acquire channel 0 to send request */
@@ -649,7 +652,7 @@ VortexConnection.prototype.saslAuth = function (params) {
     } /* end if */
 
     /* check that the connection is not already authenticated */
-    if (this.isAuth) {
+    if (this.isAuthenticated) {
 	var saslData = {
 	    conn : this,
 	    status : false,
@@ -684,7 +687,7 @@ VortexConnection.prototype.saslAuth = function (params) {
     this.openChannel ({
 	/* SASL profile requested */
 	profile: "http://iana.org/beep/SASL/" + params.mech,
-	profileContent : "<![CDATA[<blob>" + params.saslEngine.blob + "</blob>]]>",
+	profileContent : "<blob>" + params.saslEngine.blob + "</blob>",
 	onFrameReceivedHandler : this.saslAuth._frameReceived,
 	onFrameReceivedContext : params,
 	onChannelCreatedHandler : this.saslAuth._channelCreated,
@@ -703,10 +706,14 @@ VortexConnection.prototype.saslAuth._channelCreated = function (replyData) {
     if (channel == null) {
 	/* failed to complete SASL authentication */
 	var saslData = {
-	    conn : this,
+	    conn : replyData.conn,
+	    /* SASL level error */
 	    status : false,
 	    statusMsg :	"Failed to complete SASL authentication, received a negative reply to create the channel. Error was: (" +
-		replyData.replyCode + ") " + replyData.replyMsg
+		replyData.replyCode + ") " + replyData.replyMsg,
+	    /* specific channel creaion errors */
+	    replyCode : replyData.replyCode,
+	    replyMsg : replyData.replyMsg
 	};
 
 	/* nullify engine */
@@ -746,6 +753,10 @@ VortexConnection.prototype.saslAuth._frameReceived = function (frameReceived) {
 	return;
     } /* end if */
 
+    /* provide content received to the saslEngine */
+    Vortex.log ("VortexConnection.saslAuth._frameReceived: providing blob received to SASL engine: '" + node.content + "'");
+    this.saslEngine.nextStep (node.content);
+
     /* check for status attribute */
     for (position in node.attrs) {
 
@@ -760,11 +771,11 @@ VortexConnection.prototype.saslAuth._frameReceived = function (frameReceived) {
 		    statusMsg :	"Authentication OK"
 		};
 
+		/* configure connection */
+		this.saslEngine.configureCredentials (this.conn);
+
 		/* nullify engine */
 		this.saslEngine = null;
-
-		/* update connection credentials */
-		
 
 		/* notify connection error */
 		VortexEngine.apply (this.onAuthFinishedHandler, this.onAuthFinishedContext, [saslData]);
@@ -798,6 +809,132 @@ VortexConnection.prototype.saslAuth._frameReceived = function (frameReceived) {
 	} /* end if */
     } /* end for */
 
+    return;
+};
+
+/**
+ * @brief Allows to start TLS protection for the current BEEP session.
+ */
+VortexConnection.prototype.enableTLS = function (params) {
+
+    /* check connection is ok */
+    if (! this.isOk ()) {
+	var tlsStatus = {
+	    conn : this,
+	    status : false,
+	    statusMsg :	"Unable to proceed with TLS profile, connection is not ready or unconnected."
+	};
+	/* notify connection error */
+	VortexEngine.apply (params.onTLSFinishHandler, params.onTLSFinishContext, [tlsStatus]);
+	return;
+    } /* end if */
+
+    /* set a reference to the connection */
+    params.conn = this;
+
+    Vortex.log ("VortexConnection.enableTLS: create TLS channel");
+    this.openChannel ({
+	/* request TLS profile */
+	profile: "http://iana.org/beep/TLS",
+	profileContent : "<ready />",
+	onFrameReceivedHandler : this.enableTLS._frameReceived,
+	onFrameReceivedContext : params,
+	onChannelCreatedHandler : this.enableTLS._channelCreated,
+	onChannelCreatedContext : params
+    });
+    return;
+};
+
+VortexConnection.prototype.enableTLS._channelCreated = function (replyData) {
+    var channel = replyData.channel;
+    if (channel == null) {
+	/* failed to create TLS channel */
+	var tlsStatus = {
+	    conn : replyData.conn,
+	    /* tls status error */
+	    status : false,
+	    statusMsg :	"Failed to start TLS channel required to perform BEEP session security activation" +
+		replyData.replyCode + ") " + replyData.replyMsg,
+	    /* specific channel creaion errors */
+	    replyCode : replyData.replyCode,
+	    replyMsg : replyData.replyMsg
+	};
+
+	/* notify connection error */
+	VortexEngine.apply (this.onTLSFinishHandler, this.onTLSFinishContext, [tlsStatus]);
+	return;
+    }
+    Vortex.log ("VortexConnection.enableTLS._channelCreated: TLS channel created, now wait frames");
+    return;
+};
+
+VortexConnection.prototype.enableTLS._frameReceived = function (frameReceived) {
+    /* get a reference to the frame */
+    var frame = frameReceived.frame;
+
+    /* check frame type */
+    Vortex.log ("VortexConnection.enableTLS._frameReceived: content received: " + frame.content);
+
+    /* check reply received */
+    if (frame.content != '<proceed />') {
+	/* error found, manage here */
+	return;
+    }
+
+    /* install on disconnect handler to get a notification of failure */
+    var conn = frameReceived.conn;
+    conn.enableTLSonDisconnectId = conn.onDisconnect (
+	function (conn) {
+	    /* this = params */
+	    /* failed to create TLS channel */
+	    var tlsStatus = {
+		conn : conn,
+		/* tls status error */
+		status : false,
+		statusMsg : "TLS failure during handshake. "
+	    };
+
+	    /* notify connection error */
+	    VortexEngine.apply (this.onTLSFinishHandler, this.onTLSFinishContext, [tlsStatus]);
+	    return;
+
+	}, this);
+
+    /* start here the TLS handshake */
+    conn._transport.enableTLS ();
+
+    /* check connection status here to reset its status */
+    if (conn.isOk ()) {
+	Vortex.log ("VortexConnection.enableTLS._frameReceived: connection status ok after TLS, prepare for greetings exchange");
+	conn.resetConnection = true;
+	conn.createdHandler  = VortexConnection._enableTLSConnectionCreated;
+	conn.createdContext  = this;
+    }
+
+    return;
+};
+
+/**
+ * @internal Handler used to get a notification about the connection
+ * setup after all TLS handshake.
+ *
+ */
+VortexConnection._enableTLSConnectionCreated = function (conn) {
+    Vortex.log ("VortexConnection._enableTLSConnectionCreated: notifying TLS status after handshake");
+
+    /* uninstall disconnect handler to avoid twice notifications */
+    conn.uninstallOnDisconnect (conn.enableTLSonDisconnectId);
+    delete conn.enableTLSonDisconnectId;
+
+    /* create status variable to report */
+    var tlsStatus = {
+	conn : conn,
+	status : conn.isOk (),
+	statusMsg : (conn.isOk () ? "TLS handshake finished ok, connection secured!" : "FAILED to finish TLS handshake, connection is broken after negotiation")
+    };
+
+    /* notify connection */
+    VortexEngine.apply (this.onTLSFinishHandler, this.onTLSFinishContext, [tlsStatus]);
     return;
 };
 
@@ -929,6 +1066,17 @@ VortexConnection.prototype._onStop = function () {
 VortexConnection.prototype._onRead = function (connection, data) {
     /* handle data received from the transport */
     Vortex.log2 ("VortexConnection._onRead, data received: " + data);
+
+    /* check for tuning reset */
+    if (connection.resetConnection) {
+	/* call to init the connection */
+	Vortex.log ("VortexConnection._onRead: during connection reset");
+	connection._onStart ();
+	Vortex.log ("VortexConnection._onRead: connection reset finished, now follow normal processing");
+
+	/* remove the reference to avoid future resets */
+	delete connection.resetConnection;
+    }
 
     /* create the frame */
     var frameList = VortexEngine.getFrame (connection, data);
@@ -1089,6 +1237,7 @@ VortexConnection.prototype._onError = function (error) {
  * not created).
  */
 VortexConnection.prototype._reportConnCreated = function () {
+
     Vortex.log ("reporting reportConnCreated, status: " + this.isOk ());
     /* check if the connection handler notification is defined */
     if (this.createdHandler != null) {

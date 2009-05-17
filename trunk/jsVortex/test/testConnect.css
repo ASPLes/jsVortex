@@ -6,14 +6,21 @@ body {
 
 h1 {
   color: white;
-  background: #383838;
   margin: 0px;
 }
 
 .vortex-regtest-header {
   width: 100%;
   padding: 0px;
+  padding-top: 2px;
   margin: 0px;
+  height: 46px;
+  background: #062149;
+}
+
+.vortex-regtest-header img {
+  float: left;
+  padding-right: 10px;
 }
 
 .vortex-regtest-header h1 {
