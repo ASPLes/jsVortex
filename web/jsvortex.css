@@ -1,7 +1,7 @@
 body {
   font-family: Verdana,Tahoma,Arial,Sans-Serif;
   font-weight: normal;
-  font-size:   small;
+  font-size:   11pt;
   color: #4c5257;
   padding: 0px;
   margin: 0px;
@@ -141,6 +141,10 @@ ol.enumeration {
   width: 100%;
   padding:0px;
   margin: 0px;
+}
+
+.bottom-page a {
+  color: white;
 }
 
 
