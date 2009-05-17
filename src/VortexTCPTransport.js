@@ -15,16 +15,19 @@ function VortexTCPTransport () {
 	var socket    = null;
 
 	/* define default connect method */
-	this.connect  = VortexFirefoxConnect;
+	this.connect    = VortexFirefoxConnect;
 
 	/* define default write method */
-	this.write    = VortexFirefoxWrite;
+	this.write      = VortexFirefoxWrite;
 
 	/* define default isOk method */
-	this.isOk     = VortexFirefoxIsOk;
+	this.isOk       = VortexFirefoxIsOk;
 
 	/* define default close method */
-	this.close    = VortexFirefoxClose;
+	this.close      = VortexFirefoxClose;
+
+	/* define default start TLS operation */
+	this.enableTLS  = VortexFirefoxEnableTLS;
 
 	/* do not require permissions */
 	this.requirePerms = true;
@@ -61,7 +64,7 @@ function VortexFirefoxConnect (host, port) {
     var transportService =	Components.classes["@mozilla.org/network/socket-transport-service;1"].getService(Components.interfaces.nsISocketTransportService);
 
     /* create a socket */
-    this.socket    = transportService.createTransport(null, 0, host, port, null);
+    this.socket    = transportService.createTransport(["starttls"], 1, host, port, null);
 
     /* create output stream for write operations */
     this.outstream = this.socket.openOutputStream (0, 0, 0);
@@ -153,6 +156,90 @@ function VortexFirefoxClose () {
     return;
 };
 
+function VortexFirefoxEnableTLS () {
+
+    var securityInfo = this.socket.securityInfo.QueryInterface(Components.interfaces.nsISSLSocketControl);
+
+    /* ignore for now cert problems: more work is required here */
+    securityInfo.notificationCallbacks = {
+	/* place a reference to the transport */
+	transport: this,
+	getInterface : function(iid) {
+	    try {
+		/* acquire priviledges */
+		if (this.transport.requirePerms) {
+		    netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
+		} /* end if */
+	    } catch (e) {
+		this.transport._reportError ("VortexBadCertHandler.getInterface: Unable to acquire permissions to get TLS interface. Error found: " + e.message +
+					     ". Did you config signed.applets.codebase_principal_support = true");
+		return null;
+	    }
+
+	    if (iid.equals(Components.interfaces.nsIBadCertListener) ||	iid.equals(Components.interfaces.nsIBadCertListener2))
+		return this;
+
+	    /* interface not supported */
+	    Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
+	    return null;
+	},
+	notifyCertProblem : function (socketInfo, /*nsISSLStatus*/SSLStatus, /*String*/targetSite) {
+	    try {
+		/* acquire priviledges */
+		if (this.transport.requirePerms) {
+		    netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
+		} /* end if */
+	    } catch (e) {
+		this.transport._reportError ("VortexBadCertHandler.notifyCertProblem: Unable to acquire permissions to notify certificate problem. Error found: " + e.message +
+					     ". Did you config signed.applets.codebase_principal_support = true");
+		return false;
+	    }
+
+	    Vortex.log ("Certificate problem with target site: " + targetSite);
+
+	    /* see http://lxr.mozilla.org/seamonkey/source/security/manager/pki/resources/content/exceptionDialog.js
+	     * addEcsption Method..
+	     */
+	    var overrideService = Components.classes["@mozilla.org/security/certoverride;1"].getService(Components.interfaces.nsICertOverrideService);
+
+	    var flags = 0;
+	    /* override untrusted */
+	    flags |= overrideService.ERROR_UNTRUSTED;
+
+	    /* override domain mismatch */
+	    flags |= overrideService.ERROR_MISMATCH;
+
+	    /* override certificate expired */
+	    flags |= overrideService.ERROR_TIME;
+
+	    /* get certificate */
+	    var cert = SSLStatus.QueryInterface(Components.interfaces.nsISSLStatus).serverCert;
+	    Vortex.log ("Server certificate: " + cert);
+	    Vortex.log ("commonName: " + cert.commonName);
+	    Vortex.log ("issuer: " + cert.issuer);
+	    Vortex.log ("issuerCommonName: " + cert.issuerCommonName);
+	    Vortex.log ("validity: " + cert.validity);
+	    Vortex.log ("verifyForUsage: " + cert.verifyForUsage);
+
+	    /* TODO: add server cert inorder to establish line of trust */
+	    //    overrideService.rememberValidityOverride (
+	    //	targetSite, /* Host Name with port (host:port) */
+	    //	cert,                            // -> SSLStatus
+	    //	flags,
+	    //	false, ""); /* temporary */
+
+	    return true;
+	},
+	notifySSLError : function (socketInfo, error, targetSite) {
+	    Vortex.log ("SSL Error found: " + targetSite + ", error was: " + error);
+	    return true;
+	}
+    };
+
+    /* start TLS negotiation */
+    securityInfo.StartTLS();
+}
+
 VortexTCPTransport.prototype.onStartRequest  = function (request, context) {
     /* nothing defined. */
     Vortex.log ("VortexTCPTransport.onStartRequest: request=" + request + ", context=" + context);
@@ -179,6 +266,10 @@ VortexTCPTransport.prototype.onStopRequest   = function (request, context, statu
 	this._reportError ("Connection refused: host is down or refusing connections");
     } else if (status == 0) {
 	/* call to notify stop */
+	this.onStopHandler.apply (this.onStopObject, [this.onStopObject]);
+    } else if (status == 2153390050) {
+	/* TLS handshake error */
+	this._reportError ("TLS handshake error found.");
 	this.onStopHandler.apply (this.onStopObject, [this.onStopObject]);
     } /* end if */
 
@@ -294,17 +385,16 @@ VortexTCPTransport.prototype.onError = function (object, handler) {
  * @param error to be reported.
  */
 VortexTCPTransport.prototype._reportError = function (error) {
-    /* report console error */
-    Vortex.error (error);
-
     /* report error through the handler */
-    if (this.onErrorObject != null)  {
-	this.onErrorHandler.apply (this.onErrorObject, [error]);
-	return;
+    VortexEngine.apply (this.onErrorHandler, this.onErrorObject [error]);
+
+    try {
+	/* report console error */
+	Vortex.error (error);
+    } catch (e) {
+	/* under some cases this symbol is not found */
     }
 
-    /* report error without defining this reference */
-    this.onErrorHandler.apply (null, [error]);
     return;
 };
 

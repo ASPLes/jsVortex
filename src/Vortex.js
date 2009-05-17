@@ -21,7 +21,7 @@ if (typeof console == "undefined") {
  * document.
  */
 if (typeof Vortex == "undefined") {
-    this.Vortex = {
+    var Vortex = {
 	log: function (message) {
 	    /* check if log is enabled */
 	    if (! Vortex.logEnabled)
@@ -88,6 +88,8 @@ Vortex.load = function (basepath) {
     Vortex.loadJs (basepath + "VortexFrame.js");
     Vortex.loadJs (basepath + "VortexMimeHeader.js");
     Vortex.loadJs (basepath + "VortexSASLEngine.js");
+    Vortex.loadJs (basepath + "VortexSASLEnginePlain.js");
+    Vortex.loadJs (basepath + "VortexSASLEngineAnonymous.js");
 
     return;
 };
