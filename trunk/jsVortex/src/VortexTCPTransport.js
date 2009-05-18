@@ -67,13 +67,14 @@ function VortexFirefoxConnect (host, port) {
     this.socket    = transportService.createTransport(["starttls"], 1, host, port, null);
 
     /* create output stream for write operations */
-    this.outstream = this.socket.openOutputStream (0, 0, 0);
+    this.outstream = this.socket.openOutputStream (0, 4096, 2);
+
 
     /* create pump object to get notifications for data
      * ready to be read */
-    var input_stream = this.socket.openInputStream (0, 0, 0);
+    var input_stream = this.socket.openInputStream (0, 4096, 2);
     this.pump = Components.classes["@mozilla.org/network/input-stream-pump;1"].createInstance(Components.interfaces.nsIInputStreamPump);
-    this.pump.init(input_stream, -1, -1, 0, 0, false);
+    this.pump.init(input_stream, -1, -1, 5000, 2, false);
 
     /* notify handlers. We pass a reference to our own
      * class which implements onStartRequest,
@@ -113,6 +114,7 @@ function VortexFirefoxWrite (data, length) {
     /* do write */
     try {
 	var result = this.outstream.write (data, length);
+	this.outstream.flush ();
     } catch (e){
 	this._reportError ("VortexFirefoxWrite: failed to write content, message was: " + e.message);
 	return false;
@@ -150,13 +152,42 @@ function VortexFirefoxIsOk () {
 };
 
 function VortexFirefoxClose () {
+    try {
+	/* acquire priviledges */
+	if (this.requirePerms) {
+	    netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
+	} /* end if */
+    } catch (e) {
+	this._reportError (
+	    "Failed to acquire permissions to close input stream, socket and output stream. Error found: " + e.message +
+	    ". Did you config signed.applets.codebase_principal_support = true");
+	return;
+    } /* end try */
+
+    /* close streams */
     this.instream.close();
     this.outstream.close();
+
+    /* close the socket */
+    if (this.socket != -1)
+	this.socket.close (0);
+
     this.socket = -1;
     return;
 };
 
 function VortexFirefoxEnableTLS () {
+
+    try {
+	/* acquire priviledges */
+	if (this.requirePerms) {
+	    netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
+	} /* end if */
+    } catch (e) {
+	this._reportError ("VortexFirefoxEnableTLS: Unable to acquire permissions to enable TLS interface. Error found: " + e.message +
+			   ". Did you config signed.applets.codebase_principal_support = true");
+	return;
+    }
 
     var securityInfo = this.socket.securityInfo.QueryInterface(Components.interfaces.nsISSLSocketControl);
 
@@ -244,14 +275,21 @@ function VortexFirefoxEnableTLS () {
 
     /* start TLS negotiation */
     securityInfo.StartTLS();
+
+    return;
 }
 
 VortexTCPTransport.prototype.onStartRequest  = function (request, context) {
     /* nothing defined. */
     Vortex.log ("VortexTCPTransport.onStartRequest: request=" + request + ", context=" + context);
 
-    /* call to notify start of the request */
-    this.onStartHandler.apply (this.onStartObject, []);
+    try {
+	/* call to notify start of the request */
+	VortexEngine.apply (this.onStartHandler, this.onStartObject, []);
+/*	this.onStartHandler.apply (this.onStartObject, []);  */
+    } catch (e) {
+	Vortex.error ("VortexTCPTransport.onStartRequest: exception found at onStartRequest: " + e.message);
+    }
     return;
 };
 
@@ -291,11 +329,11 @@ VortexTCPTransport.prototype.onDataAvailable = function (request, context, input
 	netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
     }
 
-    var instream = Components.classes["@mozilla.org/scriptableinputstream;1"].createInstance(Components.interfaces.nsIScriptableInputStream);
-    instream.init(inputStream);
+/*    var instream = Components.classes["@mozilla.org/scriptableinputstream;1"].createInstance(Components.interfaces.nsIScriptableInputStream);
+    instream.init(inputStream); */
 
     /* read data received */
-    var data = instream.read(count);
+    var data = this.instream.read(count);
 
     /* call to notify data read */
     this.onReadHandler.apply (this.onReadObject, [this.onReadObject, data]);
@@ -391,15 +429,12 @@ VortexTCPTransport.prototype.onError = function (object, handler) {
  * @param error to be reported.
  */
 VortexTCPTransport.prototype._reportError = function (error) {
-    /* report error through the handler */
-    VortexEngine.apply (this.onErrorHandler, this.onErrorObject [error]);
 
-    try {
-	/* report console error */
-	Vortex.error (error);
-    } catch (e) {
-	/* under some cases this symbol is not found */
-    }
+    /* report console error */
+    Vortex.error (error);
+
+    /* report error through the handler */
+    VortexEngine.apply (this.onErrorHandler, this.onErrorObject, [error]);
 
     return;
 };
