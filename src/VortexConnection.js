@@ -218,7 +218,7 @@ VortexConnection.prototype.openChannel = function (params) {
 	    replyCode : "504",
 	    replyMsg : "Caller didn't define profile to start."
 	};
-	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
+	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData], true);
 	return false;
     }
 
@@ -242,7 +242,7 @@ VortexConnection.prototype.openChannel = function (params) {
 		replyCode : "550",
 		replyMsg : errMsg
 	    };
-	    VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
+	    VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData], true);
 	    return false;
 	} /* end if */
     } /* end if */
@@ -271,7 +271,7 @@ VortexConnection.prototype.openChannel = function (params) {
 	    VortexEngine.apply (
 		this.onChannelCreatedHandler,
 		this.onChannelCreatedContext,
-		[replyData]);
+		[replyData], true);
 
 	    /* nothing more */
 	    return;
@@ -317,7 +317,7 @@ VortexConnection.prototype.openChannel = function (params) {
 	    replyCode : "451",
 	    replyMsg : "Failed to send start request"
 	};
-	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
+	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData], true);
 	return false;
     } /* end if */
 
@@ -338,7 +338,7 @@ VortexConnection.prototype.openChannel = function (params) {
 	    replyCode : "451",
 	    replyMsg : "After sneding start request, broken connection was found"
 	};
-	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
+	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData], true);
 	return false;
     }
 
@@ -394,7 +394,7 @@ VortexConnection.prototype.closeChannel = function (params) {
 	    replyMsg  : "Received request to close a channel without providing the channel number to close"
 	};
 	/* notify user */
-	VortexEngine.apply (params.onChannelCloseHandler, params.onChannelCloseContext, [replyData]);
+	VortexEngine.apply (params.onChannelCloseHandler, params.onChannelCloseContext, [replyData], true);
 	return false;
     }
 
@@ -407,7 +407,7 @@ VortexConnection.prototype.closeChannel = function (params) {
 	    replyMsg  : "Received a request to close channel: " + params.channelNumber + ", but that channel is not available on the connection"
 	};
 	/* notify user */
-	VortexEngine.apply (params.onChannelCloseHandler, params.onChannelCloseContext, [replyData]);
+	VortexEngine.apply (params.onChannelCloseHandler, params.onChannelCloseContext, [replyData], true);
 	return false;
     }
 
@@ -421,7 +421,7 @@ VortexConnection.prototype.closeChannel = function (params) {
 	    replyMsg  : "Received a request to close channel: " + params.channelNumber + ", but that channel is already in process of being closed"
 	};
 	/* notify user */
-	VortexEngine.apply (params.onChannelCloseHandler, params.onChannelCloseContext, [replyData]);
+	VortexEngine.apply (params.onChannelCloseHandler, params.onChannelCloseContext, [replyData], true);
 	return false;
     }
 
@@ -450,7 +450,7 @@ VortexConnection.prototype.closeChannel = function (params) {
 	    VortexEngine.apply (
 		this.onChannelCloseHandler,
 		this.onChannelCloseContext,
-		[replyData]);
+		[replyData], true);
 
 	    /* nothing more */
 	    return;
@@ -487,7 +487,7 @@ VortexConnection.prototype.closeChannel = function (params) {
 	};
 
 	/* call to notify */
-	VortexEngine.apply (params.onChannelCloseHandler, params.onChannelCloseContext, [replyData]);
+	VortexEngine.apply (params.onChannelCloseHandler, params.onChannelCloseContext, [replyData], true);
 	return false;
     } /* end if */
 
@@ -510,7 +510,7 @@ VortexConnection.prototype.closeChannel = function (params) {
 	};
 
 	/* call to notify */
-	VortexEngine.apply (params.onChannelCloseHandler, params.onChannelCloseContext, [replyData]);
+	VortexEngine.apply (params.onChannelCloseHandler, params.onChannelCloseContext, [replyData], true);
 	return false;
     } /* end if */
 
@@ -1242,10 +1242,13 @@ VortexConnection.prototype._reportConnCreated = function () {
     /* check if the connection handler notification is defined */
     if (this.createdHandler != null) {
 	/* report using a particular context if defined */
-	if (this.createdContext != null)
-	    this.createdHandler.apply (this.createdContext, [this]);
-	else
-	    this.createdHandler.apply (this, [this]);
+	if (this.createdContext != null) {
+/*	    this.createdHandler.apply (this.createdContext, [this]); */
+	    VortexEngine.apply (this.createdHandler, this.createdContext, [this], true);
+	} else{
+/*	    this.createdHandler.apply (this, [this]); */
+	    VortexEngine.apply (this.createdHandler, this, [this], true);
+	}
     } else {
 	Vortex.warn ("Vortex: WARNING connection notification not defined!");
     } /* end if */

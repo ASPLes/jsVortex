@@ -199,13 +199,13 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
     }
 
     this.position = iterator;
-    Vortex.log2 ("(0) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position);
+    /* Vortex.log2 ("(0) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position); */
 
     /* consume more whitespaces */
     iterator      = VortexXMLEngine.consumeWhiteSpaces (data, iterator);
     this.position = iterator;
 
-    Vortex.log2 ("(1) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position + ", data: " + data[iterator] + data[iterator + 1]);
+    /* Vortex.log2 ("(1) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position + ", data: " + data[iterator] + data[iterator + 1]); */
 
     /* process childs inside */
     if (node.haveChilds) {

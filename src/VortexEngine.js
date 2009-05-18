@@ -76,16 +76,33 @@ VortexEngine.checkReference = function (object, attr, msg) {
  * handler. In the case of no arguments, do provide nothing (or null
  * or undefined).
  *
+ * @param deffer [boolean] Signal function to call the method via
+ * setTimeout.
+ *
  * @return The function returns the value returned by the application
  * if the handler, with the arguments provided, under the optional
  * context.
  *
  */
-VortexEngine.apply = function (handler, context, arguments) {
+VortexEngine.apply = function (handler, context, arguments, deffer) {
     /* check handler */
     if (typeof handler == undefined || handler == null)
 	return false;
 
+    if ((typeof deffer != undefined) && deffer) {
+	/* set a timeout function */
+	setTimeout (
+	    function (context, arguments) {
+		/* call next test */
+		handler.apply(context, arguments);
+		return;
+	    },
+	    /* one millisecond in the future */
+	    1,
+	    /* pass context and arguments */
+	    context, arguments);
+	return true;
+    }
     /* check context */
     return handler.apply (context, arguments);
 };
@@ -262,7 +279,8 @@ VortexEngine.parseMimeHeaders = function (mimeHeaders, data) {
 	} /* end while */
 
 	/* if no data was found, go next */
-	if (data[this.position + iterator] != ':')
+	Vortex.log2 ("VortexEngine.parseMimeHeaders: this.position: " + this.position + ", iterator=" + iterator + ", data.length=" + data.length);
+	if ((this.position + iterator) ==  data.length)
 	    return data;
 
 	/* get mime head */
@@ -569,7 +587,7 @@ VortexEngine.channel0Received = function (frameReceived) {
 	};
 
 	/* notify the channel crated */
-	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData]);
+	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData], true);
 
 	/* check if the node has content to deliver it as a frame piggy back */
 	if (node.content != undefined) {
@@ -582,7 +600,7 @@ VortexEngine.channel0Received = function (frameReceived) {
 	    };
 
 	    /* notify frame */
-	    VortexEngine.apply (params.onFrameReceivedHandler, params.onFrameReceivedContext, [_frameReceived]);
+	    VortexEngine.apply (params.onFrameReceivedHandler, params.onFrameReceivedContext, [_frameReceived], true);
 	} /* end if */
 
 	return;
@@ -629,7 +647,7 @@ VortexEngine.channel0Received = function (frameReceived) {
 	VortexEngine.apply (
 	    params.onChannelCloseHandler,
 	    params.onChannelCloseContext,
-	    [replyData]);
+	    [replyData], true);
 
 	return;
     } else if (node.name == "error") {

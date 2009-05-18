@@ -125,18 +125,39 @@ testTlsProfile.channelCreated = function (replyData) {
     testContentTransfer.nextMsg  = 1;
 
     /* send content */
+    log ("info", "Sending content (first message)");
     if (! channel.sendMSG (testContentTransfer.testMSG1)) {
 	log ("error", "Expected fo be able to send content but failed VortexChannel.sendMSG");
 	return false;
     }
 
+    /* check that all content was sent (without partials) */
+    if (channel.lastStatusCode != 1) {
+	log ("error", "TLS: Expected complete send operation after first message, but found different status code: " + channel.lastStatusCode);
+	return false;
+    }
+
+    log ("info", "Sending content (second message)");
     if (! channel.sendMSG (testContentTransfer.testMSG2)) {
 	log ("error", "Expected fo be able to send content but failed VortexChannel.sendMSG (2)");
 	return false;
     }
 
+    /* check that all content was sent (without partials) */
+    if (channel.lastStatusCode != 1) {
+	log ("error", "TLS: Expected complete send operation after second message, but found different status code: " + channel.lastStatusCode);
+	return false;
+    }
+
+    log ("info", "Sending content (third message)");
     if (! channel.sendMSG (testContentTransfer.testMSG3)) {
 	log ("error", "Expected fo be able to send content but failed VortexChannel.sendMSG (3)");
+	return false;
+    }
+
+    /* check that all content was sent (without partials) */
+    if (channel.lastStatusCode != 1) {
+	log ("error", "TLS: Expected complete send operation after third message, but found different status code: " + channel.lastStatusCode);
 	return false;
     }
 
@@ -199,6 +220,7 @@ testSaslAnonymousFailure.onAuthFinished = function (saslResult) {
     /* check first connection status */
     if (! conn.isOk ()) {
 	log ("error", "Expected to find connection proper status no matter the SASL authentication result");
+	this.stopTests = true;
 	return false;
     } /* end if */
 
@@ -1247,6 +1269,7 @@ testReceivedContentOnConnection.closeChannel = function (replyData) {
 
 /******* BEGIN: testContentTransfer ******/
 function testLargeContentTransfer () {
+    log ("info", "doing connection..");
     var conn = new VortexConnection (this.host,
 				     this.port,
 				     new VortexTCPTransport (),
@@ -1260,9 +1283,14 @@ function testLargeContentTransfer () {
 };
 
 testLargeContentTransfer.Result = function (conn) {
+
+    log ("info", "received connection reply..checking..");
+
     /* check connection here */
     if (! checkConnection (conn))
 	return false;
+
+    log ("info", "ok, now open a channel to test transfer..");
 
     /* create a channel */
     conn.openChannel ({
@@ -1276,6 +1304,8 @@ testLargeContentTransfer.Result = function (conn) {
 };
 
 testLargeContentTransfer.ResultCreated = function (replyData) {
+
+    log ("info", "channel created reply received..checking..");
 
     /* get channel reference */
     var channel = replyData.channel;
@@ -1373,6 +1403,7 @@ testLargeContentTransfer.frameReceived = function (frameReceived) {
 	if (frame.content != (testLargeContentTransfer.testMSG1 + "msg3")) {
 	    log ("error", "Frame received: '" + frame.content + "'");
 	    log ("error", "Expected to find frame content not found in reply.." + frame.content.length + " != " + testLargeContentTransfer.testMSG1.length);
+	    this.stopTests = true;
 	    return false;
 	}
 
@@ -1380,6 +1411,7 @@ testLargeContentTransfer.frameReceived = function (frameReceived) {
 	log ("info", "Frame msgno value: " + frame.msgno);
 	if (frame.msgno != 2) {
 	    log ("error", "Expected to find msgno equal to 2 but found: " + frame.msgno);
+	    this.stopTests = true;
 	    return false;
 	}
 
@@ -1410,7 +1442,7 @@ testLargeContentTransfer.frameReceived = function (frameReceived) {
 
 /******* BEGIN: testContentTransfer ******/
 function testContentTransfer () {
-    log ("info", "Connect remote host" + this.host + ":" + this.port);
+    log ("info", "Connect remote host " + this.host + ":" + this.port);
     var conn = new VortexConnection (this.host,
 				     this.port,
 				     new VortexTCPTransport (),
@@ -1424,6 +1456,7 @@ function testContentTransfer () {
 };
 
 testContentTransfer.Result = function (conn) {
+    log ("info", "Received connect reply..checking..");
     if (! conn.isOk ()) {
 	log ("error", "Expected connection ok to test channel denial, but found an error: " +
 	    conn.isReady + ", socket: " + conn._transport.socket);
@@ -1489,13 +1522,32 @@ testContentTransfer.ResultCreated = function (replyData) {
 	return false;
     }
 
+    /* check that all content was sent (without partials) */
+    if (channel.lastStatusCode != 1) {
+	log ("error", "Expected complete send operation after first message, but found different status code: " + channel.lastStatusCode);
+	return false;
+    }
+
     if (! channel.sendMSG (testContentTransfer.testMSG2)) {
 	log ("error", "Expected fo be able to send content but failed VortexChannel.sendMSG (2)");
 	return false;
     }
 
+    /* check that all content was sent (without partials) */
+    if (channel.lastStatusCode != 1) {
+	log ("error", "Expected complete send operation after second message, but found different status code: " + channel.lastStatusCode);
+	return false;
+    }
+
+
     if (! channel.sendMSG (testContentTransfer.testMSG3)) {
 	log ("error", "Expected fo be able to send content but failed VortexChannel.sendMSG (3)");
+	return false;
+    }
+
+    /* check that all content was sent (without partials) */
+    if (channel.lastStatusCode != 1) {
+	log ("error", "Expected complete send operation after third message, but found different status code: " + channel.lastStatusCode);
 	return false;
     }
 
@@ -1556,6 +1608,7 @@ testContentTransfer.frameReceived = function (frameReceived) {
 
     /* update next test messag expected */
     testContentTransfer.nextMsg++;
+    log ("info", "Message received status is: " + testContentTransfer.nextMsg);
 
     /* check if last message was found */
     if (testContentTransfer.nextMsg == 4) {
@@ -2211,6 +2264,22 @@ function testInfraestructure () {
 	return false;
     }
 
+    /* check deffer mechanism */
+    log ("info", "Calling next test by doing a deferred invocation..");
+    VortexEngine.apply (testInfraestructure.nextTest, this, [3, currentlog], true);
+
+    return true;
+};
+
+testInfraestructure.nextTest = function (number, currentlog)
+{
+    log ("info", "Received deferred invocation..");
+
+    if (number != 3) {
+	log ("error", "Expected to find argument value 3 but found " + number + ", after requesting deferred execution");
+	return false;
+    }
+
     /* restore log level */
     Vortex.logEnabled = currentlog;
 
@@ -2219,6 +2288,8 @@ function testInfraestructure () {
 
     return true;
 };
+
+
 
 function testjsVortexAvailable () {
 
@@ -2337,7 +2408,14 @@ RegressionTest.prototype.nextTest = function () {
 	/* call next test */
 	Vortex.log ("INFO: running test-" + this.nextTestId);
 	log ("info", "Running TEST-" + this.nextTestId + ": " + this.tests[this.nextTestId].name);
-	this.tests[this.nextTestId].testHandler.apply (this);
+
+	VortexEngine.apply (this.tests[this.nextTestId].testHandler, this, [], true);
+/*	setTimeout (function (_this) {
+			log ("info", "Inside settimeout: " + _this); */
+			/* call next test */
+/*			_this.tests[_this.nextTestId].testHandler.apply (_this);
+		    }, 1, this); */
+/*	this.tests[this.nextTestId].testHandler.apply (this);*/
 	return;
     } /* end while */
 };
@@ -2370,15 +2448,41 @@ RegressionTest.prototype.tests = [
 ];
 
 
-function log (status, log) {
+function log (status, logMsg) {
+
+    var timeStamp;
+    if (status != 'ok' && status != 'final-ok') {
+	var end;
+	if (log.start == undefined) {
+	    /* create an start */
+	    log.start = new Date();
+		timeStamp = "Diff 0: ";
+	} else {
+	    /* create the stop */
+	    end = new Date ();
+
+	    /* compare with previous */
+	    timeStamp = "Diff " + String ((end.getTime()) - (log.start.getTime ())) + ": ";
+
+	    /* init new start */
+	    log.start = end;
+	}
+    } else {
+	timeStamp = "";
+    } /* end if */
+
+    logMsg = logMsg.replace (/</g, "&lt;");
+
+    /* add timestamp */
+    logMsg = timeStamp + logMsg;
 
     /* create the node that wild hold the content to log */
-    var newNode = document.createElement ("p");
+    var newNode = document.createElement ("pre");
     dojo.addClass (newNode, "log-line");
     dojo.addClass (newNode, status);
 
     /* configure log line into the node */
-    newNode.innerHTML = log;
+    newNode.innerHTML = logMsg;
 
     /* place the node into the panel */
     var logpanel = dojo.byId ("log-panel");
@@ -2514,10 +2618,10 @@ function prepareTest () {
     dijit.byId ("logEnabled").attr ("checked", true);
 
     /* configure window height */
-    var heightValue = (window.innerHeight - 110) + "px";
+    var heightValue = (window.innerHeight - 120) + "px";
     dojo.style(dojo.byId ("test-available-panel"), "height", heightValue);
     dojo.style(dojo.byId ("log-panel"), "height", heightValue);
-    dojo.style(dojo.byId ("global-container"), "height", (window.innerHeight - 88) + "px");
+    dojo.style(dojo.byId ("global-container"), "height", (window.innerHeight - 98) + "px");
 
     /* call to resize */
     dijit.byId ("global-container").resize ();
