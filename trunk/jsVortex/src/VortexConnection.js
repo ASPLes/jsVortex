@@ -72,6 +72,11 @@ function VortexConnection (host,
     this._transport.connect (host, port);
     Vortex.log ("Socket status after connection: " + this._transport.socket);
 
+    /* check direct connection errors (like permissions) */
+    if (this._transport.socket == -1) {
+	/* report we have failed to create connection */
+	this._reportConnCreated ();
+    } /* end if */
 };
 
 /**
