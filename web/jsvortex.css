@@ -15,11 +15,13 @@ body {
 
 h1 {
   border-bottom: 1px solid #cc0000;
+  font-size: 16pt;
 }
 
 a {
   color: #062149;
   font-weight: bold;
+  font-size: 10pt;
 }
 
 .top-page {
@@ -211,12 +213,15 @@ div.lang {
 
 div.lang div {
   width: 37px;
-  padding-left: 10px;
+  padding-top: 4px;
+  padding-left: 7px;
   
 }
 
 div.lang a {
-  color: #000000;
+  color: black;
+  font-weight: bold;
+  font-size: 14pt;
 }
 
 div.download {
@@ -247,7 +252,7 @@ p.link {
   text-align: center;
   padding: 4px;
   padding-top: 10px;
-  paddin-bottom: 10px;
+  padding-bottom: 10px;
 }
 
 pre.code {
