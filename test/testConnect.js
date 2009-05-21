@@ -880,6 +880,7 @@ testSuddentlyClosed3.Result = function (conn) {
     conn.openChannel ({
 	profile: REGRESSION_URI_SUDDENTLY_CLOSE,
 	channelNumber: 0,
+	profileContent: "3",
 	onChannelCreatedHandler : testSuddentlyClosed3.channelCreated,
 	onChannelCreatedContext : this
     });
@@ -1002,6 +1003,7 @@ testSuddentlyClosed2.Result = function (conn) {
     conn.openChannel ({
 	profile: REGRESSION_URI_SUDDENTLY_CLOSE,
 	channelNumber: 0,
+	profileContent: "2",
 	onChannelCreatedHandler : testSuddentlyClosed2.channelCreated,
 	onChannelCreatedContext : this
     });
