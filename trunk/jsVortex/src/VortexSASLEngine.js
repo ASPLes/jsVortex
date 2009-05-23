@@ -4,21 +4,25 @@
  **/
 
 /**
- * @brief Creates a new SASL engine using the initial data provided in
- * the params object.
+ * Creates a new SASL engine using the initial data provided in the
+ * params object.
+ *
+ * This object is not used directly the usual API consumer since it is
+ * implictly activated by VortexConnection.saslAuth method.
  *
  * @param params This object contains the initial data required to
  * produce the client blob. This object is expected to contain the
  * following data:
  *
- * - mech : [string] The SASL mechanism to use for this engine instance.
+ * @param params.mech {string} The SASL mechanism to use for this engine instance.
  *
- * - authorizationId : [string] (Optional) authorization string.
+ * @param params.authorizationId {String} (Optional) authorization string.
  *
- * - authenticationId : [string] The actual credential identity.
+ * @param params.authenticationId {String} The actual credential identity.
  *
- * - password : [string] (Optional) Password associated to the the authentication user.
+ * @param params.password {string} (Optional) Password associated to the the authentication user.
  *
+ * @method VortexSASLEngine
  */
 function VortexSASLEngine (params) {
     /* record initial data provided (copy all attribues) */
@@ -39,7 +43,7 @@ function VortexSASLEngine (params) {
 };
 
 /**
- * @brief Initialize SASL engine with the current data.
+ * Initialize SASL engine with the current data.
  *
  * @return true if the initialization was ok. After proper
  * initialization, the caller must access to blob parameter and send
@@ -67,7 +71,7 @@ VortexSASLEngine.prototype.clientInit = function () {
 };
 
 /**
- * @brief Allows to continue with the SASL process by providing to the
+ * Allows to continue with the SASL process by providing to the
  * SASL Engine the content received from remote BEEP peer.
  *
  * @param blob A utf-8 base64 encoded string providing more data to
@@ -83,7 +87,7 @@ VortexSASLEngine.prototype.nextStep = function (blob) {
 };
 
 /**
- * @brief Taking a session properly configured and authenticated, this
+ * Taking a session properly configured and authenticated, this
  * function configures credentials used in the object provided as
  * item.
  *
@@ -107,7 +111,7 @@ VortexSASLEngine.prototype.configureCredentials = function (item) {
 };
 
 /**
- * @brief Allows to register new SASL profiles to be used by the
+ * Allows to register new SASL profiles to be used by the
  * VortexSASLEngine module.
  *
  * The method register an object that implements a set of methods that
@@ -143,13 +147,13 @@ VortexSASLEngine.prototype.addMech = function (saslDefinition) {
 };
 
 /**
- * @brief Allows to check if the provided sasl profile (an string like
+ * Allows to check if the provided sasl profile (an string like
  * 'PLAIN' or 'ANONYMOUS') is currently supported by the
  * VortexSASLEngine class.
  *
- * @param saslProfile [string] An string representing the profile to be checked.
+ * @param saslProfile {String} An string representing the profile to be checked.
  *
- * @param selectMech [boolean] (Optional) boolean value that allows
+ * @param selectMech {Boolean} (Optional) boolean value that allows
  * the caller to signal that the current engine must select the
  * mechanism to be used if it is found.
  */
@@ -172,8 +176,7 @@ VortexSASLEngine.prototype.isSupported = function (saslProfile, selectMech) {
 };
 
 /**
- * Base64 encode / decode functions taken from:
- * http://www.webtoolkit.info/
+ * Base64 encode / decode functions used by SASL implementation.
  **/
 var VortexBase64 = {
     /* private property */
