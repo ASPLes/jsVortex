@@ -18,6 +18,11 @@ h1 {
   font-size: 16pt;
 }
 
+h2 {
+  border-bottom: 1px solid #cc0000;
+  font-size: 15pt;
+}
+
 a {
   color: #062149;
   font-weight: bold;
@@ -135,6 +140,10 @@ ol.enumeration {
  margin: 0px;
  padding-left: 60px;
  padding-right: 60px;
+}
+
+ol.enumeration li { 
+ padding-bottom: 15px;
 }
 
 .bottom-page {
