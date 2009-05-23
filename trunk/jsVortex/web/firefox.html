@@ -57,7 +57,48 @@ be accepted, setting "rembember this decision for this site".</li>
 </div>
 </ol>
 
-  </div><!-- middle-page -->
+<h1>Advanced configuration</h1>
+
+<p>Enabling <b>signed.applets.codebase_principal_support</b> is
+problematic because may enable other sites to ask for permission that
+may be granted by unwary users. The following are the steps to keep
+permissions granted having disabled
+<b>signed.applets.codebase_principal_support</b>:</p>
+
+<ol class="enumeration">
+<li>Once you have granted the site using jsVortex to acquire its
+  permissions to run, you have to edit the file <b>prefs.js</b>
+  located in you profile. See the following document to <a
+  href="http://support.mozilla.com/en-US/kb/Profiles">find your
+  profile location</a>.
+  </li>
+<li>Having the brower stopped, search for the lines that have granted
+  permissions to the particular site. They should look like:
+
+<pre class="code">
+user_pref("capability.principal.codebase.p1.granted", "UniversalXPConnect");
+user_pref("capability.principal.codebase.p1.id", "http://jsvortex-regtest");
+user_pref("capability.principal.codebase.p1.subjectName", "");
+</pre>
+</li>
+
+<li>Now update them by replacing <b>".codebase."</b> with
+<b>".codebaseTrusted."</b>, leaving them as follow:
+
+<pre class="code">
+user_pref("capability.principal.codebaseTrusted.p1.granted", "UniversalXPConnect");
+user_pref("capability.principal.codebaseTrusted.p1.id", "http://jsvortex-regtest");
+user_pref("capability.principal.codebaseTrusted.p1.subjectName", "");
+</pre>
+</li>
+
+<li>Now you can safely disable
+<b>signed.applets.codebase_principal_support</b> as described in
+previous section.</b>
+</li>
+</ol>
+
+</div><!-- single-page -->
 </td>
 <td>
 <div class="lateral-page">
