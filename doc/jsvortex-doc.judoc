@@ -12,5 +12,6 @@
     </accepted-extensions>
     <html-output>
         <template value='template1' />
+        <out-dir value='html' />
     </html-output>
 </ju-doc-conf>
