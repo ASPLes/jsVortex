@@ -2,8 +2,8 @@
 <ju-doc-conf>
     <project-name>jsVortex</project-name>
     <project-description>Open Source Javascript BEEP implementation</project-description>
-    <project-version>1.0</project-version>
-    <project-url value='http://www.aspl.es/jsVortex' />
+    <project-version>0.2.1</project-version>
+    <project-url>http://www.aspl.es/jsVortex</project-url>
     <source-files>
         <directory src='../src' />
     </source-files>
@@ -14,4 +14,8 @@
         <template value='template1' />
         <out-dir value='html' />
     </html-output>
+    <options>
+        <!-- This option allows to include the configured return type in the function header summary. -->
+        <include-function-return-in-header value='no' />
+    </options>
 </ju-doc-conf>
