@@ -4,25 +4,25 @@
  **/
 
 /**
- * @brief Creates a new BEEP session against the remote
- * host and port configured. The constructor requires a
- * transport object that implements the particular details
- * for the data exchange.
+ * @brief Creates a new BEEP session against the remote host and port
+ * configured. The constructor requires a transport object that
+ * implements the particular details for the data exchange. Current it
+ * is only implemented \ref VortexTCPTransport.
  *
- * @param host The host name to connect to.
+ * @param host {String} The host name to connect to.
  *
- * @param port The port to connect to.
+ * @param port {String} The port to connect to.
  *
- * @param timeout A connection timeout after which the operation
+ * @param timeout {Number} A connection timeout after which the operation
  * must be aborted.
  *
- * @param transport Object implementing transport details
+ * @param transport {VortexTCPTransport} Object implementing transport details
  * to perform the low-level (usually TCP) communication.
  *
- * @param connectionCreatedContext The object under which the
+ * @param connectionCreatedContext {Object} The object under which the
  * connectionCreatedHandler will execute (this reference).
  *
- * @param connectionCreatedHandler The function or method to execute
+ * @param connectionCreatedHandler {Handler} The function or method to execute
  * when the connect operation has finished. This method will be
  * used to notify the connection created or errors found during
  * the operation.
@@ -83,7 +83,7 @@ function VortexConnection (host,
  * @brief Allows to check if the connection is
  * properly setup and running.
  *
- * @return true if the connection is ok (ready to use),
+ * @return {Boolean} true if the connection is ok (ready to use),
  * otherwise false is returned.
  */
 VortexConnection.prototype.isOk = function () {
@@ -105,14 +105,20 @@ VortexConnection.prototype.isOk = function () {
 
 /**
  * @brief Allows to check if the provided connection supports the
- * profile. This function allows to check if in the greetings phase
- * the profile was advised as supported by the remote BEEP peer.
+ * given profile. This function allows to check if, during the
+ * greetings phase, the profile was advised as supported by the remote
+ * BEEP peer.
  *
- * Keep also in mind that some BEEP peers may hide profiles the really
- * support, acepting or denying them at channel start request.
+ * Bear in mind that some BEEP peers may hide profiles the really
+ * support, acepting or denying them on channel start request,
+ * according to runtime configuration (profile hiding). See
+ * http://www.turbulence.ws profile path configuration: http://www.aspl.es/turbulence/configuring.html#profile_path_conf
  *
- * @param profile The profile to check to be supported by remote BEEP
+ * @param profile {String} The profile to check to be supported by remote BEEP
  * peer.
+ *
+ * @return {Boolean} true if the profile was adviced, otherwise false
+ * is returned.
  */
 VortexConnection.prototype.isProfileSupported = function (profile) {
     for (position in this.profiles)  {
