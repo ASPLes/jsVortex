@@ -109,10 +109,11 @@ VortexConnection.prototype.isOk = function () {
  * greetings phase, the profile was advised as supported by the remote
  * BEEP peer.
  *
- * Bear in mind that some BEEP peers may hide profiles the really
+ * Bear in mind that some BEEP peers may hide profiles they really
  * support, acepting or denying them on channel start request,
  * according to runtime configuration (profile hiding). See
- * http://www.turbulence.ws profile path configuration: http://www.aspl.es/turbulence/configuring.html#profile_path_conf
+ * http://www.turbulence.ws profile path configuration:
+ * http://www.aspl.es/turbulence/configuring.html#profile_path_conf
  *
  * @param profile {String} The profile to check to be supported by remote BEEP
  * peer.
@@ -129,14 +130,14 @@ VortexConnection.prototype.isProfileSupported = function (profile) {
 };
 
 /**
- * @brief Allows to create a new BEEP channel in the provided BEEP
- * session (connection).
+ * @brief Allows to create a new BEEP channel on the provided BEEP
+ * session (\ref VortexConnection).
  *
- * @param channelNumber [int] (Optional) The BEEP channel number that
+ * @param params.channelNumber {Number} ? The BEEP channel number that
  * is requested. You can use 0 to request jsVortex to asign the next
  * available channel number.
  *
- * @param serverName [string] The serverName token. Configuring this
+ * @param params.serverName {String} ? The serverName token. Configuring this
  * value request the remote BEEP peer to act as the value provided by
  * serverName. The first channel completely created that request this
  * value will be the serverName value for all channels in the
@@ -146,77 +147,78 @@ VortexConnection.prototype.isProfileSupported = function (profile) {
  * decides whether to operate as the indicated "serverName"; if not,
  * an "error" element is sent in a negative reply.
  *
- * @param profile [string] The BEEP profile identification string.
+ * @param params.profile {String} The BEEP profile identification string.
  *
- * @param profileContent [string] Optional content to be configured as
+ * @param params.profileContent {String} ? content to be configured as
  * content for the channel start request.
  *
- * @param profileContentEncoding [int] Optional	profileContent encoding.
- * This is used to notify remote BEEP peer which is the encoding
- * used for the profileContent configured. In the case you are not using
- * profileContent, use 0 for this variable. Allowed values are:
- * - 0: not defined,
- * - 1: none,
- * - 2: base64
+ * @param params.profileContentEncoding {Number} Optional
+ * profileContent encoding. This is used to notify remote BEEP peer
+ * which is the encoding used for the profileContent configured. In
+ * the case you are not using profileContent, use 0 for this
+ * variable. Allowed values are:
+ *   - 0: not defined,
+ *   - 1: none,
+ *   - 2: base64
  *
- * @param onCloseHandler [handler] Optional handler that is used by
+ * @param params.onCloseHandler {Handler} ? handler that is used by
  * jsVortex engine to notify that a channel close request was received
  * and a confirmation or refusal is required. If the handler is not
  * configured it is used default handler installed on the
  * connection. If the connection have no handler it is used global
  * handler which accept the channel to be closed.
  *
- * @param closeContext [object] Optional object used to run the
- * handler under the context (this reference) of this object. Use null
- * to not configure any context (do not use "this" reference under
- * such case).
+ * @param params.closeContext {Context} ? object used to run the handler
+ * under the context (this reference) of this object. Use null to not
+ * configure any context (do not use "this" reference under such
+ * case).
  *
- * @param onFrameReceivedHandler [handler] Optional handler that is used by
+ * @param params.onFrameReceivedHandler {Handler} ? handler that is used by
  * jsVortex engine to notify that a frame was received. If the handler
  * is not configured the default handler configured in the connection
  * will be used. In the case This handler is also not configured, it
  * is used global handler configured. If no handler is found in that
  * chain the frame is dropped.
  *
- * @param receivedContext [object] Optional object used to run the
- * handler under the context ("this" reference) of this object. Use
- * null to not configure any context (do not use "this" reference
- * under such case).
+ * @param params.receivedContext {Context} ? object used to run the handler
+ * under the context ("this" reference) of this object. Use null to
+ * not configure any context (do not use "this" reference under such
+ * case).
  *
- * @param onChannelCreatedHandler [handler] Optional handler that is
- * used by jsVortex engine to notify that the channel creation process
- * has finished, reporting either a failure or a sucess. If this
- * handler is not configured, the connection handler configured is
- * used. If this is also not defined, it is used configured global
- * handler. If no handler is configured, channel creation termination
- * status is not notified.
+ * @param params.onChannelCreatedHandler {Handler} ? handler that is used by
+ * jsVortex engine to notify that the channel creation process has
+ * finished, reporting either a failure or a sucess. If this handler
+ * is not configured, the connection handler configured is used. If
+ * this is also not defined, it is used configured global handler. If
+ * no handler is configured, channel creation termination status is
+ * not notified.
  *
- * @param onChannelCreatedContext [object] Optional object used to run
+ * @param params.onChannelCreatedContext {Context} ? object used to run
  * the handler under the context ("this" reference) of this
  * object. Use null to not configure any context (do not use "this"
  * reference under such case).
  *
- * @return true if the method has issued the request to start the channel,
- * otherwise false is returned. Check errors found at the connection
- * stack error (\ref VortexConnection.hasErrors and
+ * @return {Boolean} true if the method has issued the request to
+ * start the channel, otherwise false is returned. Check errors found
+ * at the connection stack error (\ref VortexConnection.hasErrors and
  * \ref VortexConnection.popError).
  *
  * onChannelCreatedHandler is called with an object argument that
  * contains the following attributes:
  *
- * - conn [VortexConnection] : the connection where the channel was created.
+ * - conn [\ref VortexConnection] : the connection where the channel was created.
  *
- * - channel [VortexChannel] : channel reference that was created. If
- * channel is null channel was not created. Check replyCode and
- * replyMsg for additional information. In the case a connection error
- * is found, see VortexConnection.hasErrors and
+ * - channel [\ref VortexChannel] : channel reference that was
+ * created. If channel is null channel was not created. Check
+ * replyCode and replyMsg for additional information. In the case a
+ * connection error is found, see VortexConnection.hasErrors and
  * VortexConnection.popError
  *
- * - replyCode [string] : A tree digit error code as defined by
+ * - replyCode [\ref string] : A tree digit error code as defined by
  * section 8 from RFC 3080. Error code 200 means operation ok. Other
  * codes means error, detailed at replyMsg.
  *
- * - replyMsg [string] : A textual diagnostic error describing replyCode.
+ * - replyMsg [\ref string] : A textual diagnostic error describing replyCode.
  *
  */
 VortexConnection.prototype.openChannel = function (params) {
