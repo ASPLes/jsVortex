@@ -27,8 +27,12 @@
  * used to notify the connection created or errors found during
  * the operation.
  *
- * @return Returns a reference to a newly created connection. Note
- * the reference returned may still not be connected. Use
+ * @return {VortexConnection} Returns a reference to a newly created
+ * connection. Note the reference returned may still not be
+ * connected. Use \ref VortexConnection.isOk method to check
+ * connection status. Do not implement any operation until the
+ * connection creation is notified through connectionCreatedHandler.
+ *
  */
 function VortexConnection (host,
 			   port,
