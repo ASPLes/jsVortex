@@ -153,11 +153,10 @@ VortexConnection.prototype.isProfileSupported = function (profile) {
  *
  * @param params.profile {String} The BEEP profile identification string.
  *
- * @param params.profileContent {String} ? content to be configured as
+ * @param params.profileContent {String} ? Content to be configured as
  * content for the channel start request.
  *
- * @param params.profileContentEncoding {Number} Optional
- * profileContent encoding. This is used to notify remote BEEP peer
+ * @param params.profileContentEncoding {Number} ? Optional profileContent encoding. This is used to notify remote BEEP peer
  * which is the encoding used for the profileContent configured. In
  * the case you are not using profileContent, use 0 for this
  * variable. Allowed values are:
@@ -172,12 +171,12 @@ VortexConnection.prototype.isProfileSupported = function (profile) {
  * connection. If the connection have no handler it is used global
  * handler which accept the channel to be closed.
  *
- * @param params.closeContext {Context} ? object used to run the handler
+ * @param params.closeContext {Context} ? Object used to run the handler
  * under the context (this reference) of this object. Use null to not
  * configure any context (do not use "this" reference under such
  * case).
  *
- * @param params.onFrameReceivedHandler {Handler} ? handler that is used by
+ * @param params.onFrameReceivedHandler {Handler} ? Handler that is used by
  * jsVortex engine to notify that a frame was received. If the handler
  * is not configured the default handler configured in the connection
  * will be used. In the case This handler is also not configured, it
@@ -189,7 +188,7 @@ VortexConnection.prototype.isProfileSupported = function (profile) {
  * not configure any context (do not use "this" reference under such
  * case).
  *
- * @param params.onChannelCreatedHandler {Handler} ? handler that is used by
+ * @param params.onChannelCreatedHandler {Handler} ? Handler that is used by
  * jsVortex engine to notify that the channel creation process has
  * finished, reporting either a failure or a sucess. If this handler
  * is not configured, the connection handler configured is used. If
@@ -197,14 +196,14 @@ VortexConnection.prototype.isProfileSupported = function (profile) {
  * no handler is configured, channel creation termination status is
  * not notified.
  *
- * @param params.onChannelCreatedContext {Context} ? object used to run
+ * @param params.onChannelCreatedContext {Context} ? Object used to run
  * the handler under the context ("this" reference) of this
  * object. Use null to not configure any context (do not use "this"
  * reference under such case).
  *
  * @return {Boolean} true if the method has issued the request to
  * start the channel, otherwise false is returned. Check errors found
- * at the connection stack error (\ref VortexConnection.hasErrors and
+ * using the connection stack error (\ref VortexConnection.hasErrors and
  * \ref VortexConnection.popError).
  *
  * The channel created will be notified at the configured \ref
@@ -369,37 +368,44 @@ VortexConnection.prototype.openChannel = function (params) {
  * optionally doing a notification on the application level handler
  * provided.
  *
- * @param channelNumber [int] Number of the channel to close on the
- * connection. If the channel is not available, the method reports
+ * @param params An object that includes a list of attributes that are
+ * parameters for this method.
+ *
+ * @param params.channelNumber {Number} The channel number to close on the
+ * connection. If the channel is not available, the method report
  * error found.
  *
- * @param onChannelCloseHandler [handler] The handler that is used by
+ * @param params.onChannelCloseHandler {Handler} ? The handler that is used by
  * the method to notify the caller with the termination status. On
  * this method is notified either if the channel was closed or the
  * error found.
  *
- * @param onChannelCloseContext [object] The context object under which
- * the handler will be executed.
+ * @param params.onChannelCloseContext {Object} ? The context object under
+ * which the handler will be executed.
  *
- * @return true in the case the close operation start without incident
+ * @return {Boolean} true in the case the close operation start without incident
  * (request to close the message sent waiting for reply). Otherwise
  * false is returned indicating the close operation was not
  * started. You can safely skip value returned by the function and
  * handle all cases at the notification handler (onChannelCloseHandler).
  *
- * onChannelCloseHandler receives an object with the following
- * attributes:
+ * The handler \ref
+ * VortexConnection.closeChannel.params.onChannelCloseHandler.param will be
+ * called with an object with the following attributes once the
+ * channel close process has finished (the channel may still be
+ * available, so check status).
  *
- * - conn : the connection where the channel was closed.
+ * - \ref VortexConnection conn : the connection where the channel was closed.
  *
- * - status : true to signal that the channel was closed, otherwise
- * false is returned.
+ * - \ref Boolean status : true to signal that the channel was closed,
+ * otherwise false is returned.
  *
- * - replyCode : tree digit error code indicating the motive to deny
- * channel close operation.
+ * - \ref String replyCode : tree digit error code indicating the
+ * motive to deny channel close operation.
  *
- * - replyMsg : Human readable textual diagnostic reporting motivy to
- * deny channel close operation (or faillure found).
+ * - \ref String replyMsg : Human readable textual diagnostic
+ * reporting motivy to deny channel close operation (or faillure
+ * found).
  *
  */
 VortexConnection.prototype.closeChannel = function (params) {
@@ -539,19 +545,18 @@ VortexConnection.prototype.closeChannel = function (params) {
 };
 
 /**
- * @brief Allows to configure a handler and a context to run on, to
- * enable the caller getting a notification when the connection is
- * closed either because a failure found (BEEP channel management
- * protocol violation) or because remote BEEP peer have closed the
- * connection.
+ * @brief Allows to configure a handler (and a context), to get a
+ * notification when the connection is closed either because a failure
+ * found (BEEP channel management protocol violation) or because
+ * remote BEEP peer have closed the connection.
  *
- * @param onDisconnectHandler The handler to be executed when the
+ * @param onDisconnectHandler {Handler} The handler to be executed when the
  * disconnect operation is found.
  *
- * @param onDisconnectContext The context object to run the handler on.
+ * @param onDisconnectContext {Object} ? The context object to run the handler on.
  *
  * @return true if handler were installed, otherwise false is
- * returned.  The method can only return false if handler provided is
+ * returned. The method can only return false if handler provided is
  * null or undefined.
  *
  */
@@ -585,14 +590,16 @@ VortexConnection.prototype.onDisconnect = function (onDisconnectHandler, onDisco
 };
 
 /**
- * @brief Allows to uinstall a configured onDisconnect handler by
- * providing the onDisconnectId (value returned by
+ * @brief Allows to uinstall a configured disconnect handler by
+ * providing the onDisconnectId (value returned by \ref
  * VortexConnection.onDisconnect as the result of handler
  * configuration).
  *
- * @param onDisconnectId The handler unique identifier to remove.
+ * @param onDisconnectId {Number} The handler unique identifier to
+ * remove. This identifier was returned by a previous call to \ref
+ * VortexConnection.onDisconnect.
  *
- * @return true if handler was removed, otherwise false is returned.
+ * @return {Boolean} true if handler was removed, otherwise false is returned.
  */
 VortexConnection.prototype.uninstallOnDisconnect = function (onDisconnectId) {
 
@@ -618,42 +625,52 @@ VortexConnection.prototype.uninstallOnDisconnect = function (onDisconnectId) {
 };
 
 /**
- * @brief Allows to start SASL authentication process on the connected
- * BEEP session.
+ * @brief Allows to start a SASL authentication process on the
+ * connected BEEP session.
  *
- * The method receives a params object with the following members to
- * complete the request.
+ * @param params.mech {String} SASL mechamis to use for this
+ * authentication process. Currently allowed SASL authentication
+ * process are: PLAIN and ANONYMOUS.
  *
- * @param mech [string] SASL mechamis to use for this authentication
- * process. Currently allowed SASL authentication process are: PLAIN.
+ * @param params.serverName {String} ? Optional string that allows to
+ * configure/request under which domain will work this SASL
+ * negotiation. This is used to provide different authentication
+ * domains (according to the serverName).
  *
- * @param authorizationId [string] Optional. This is the user or
+ * @param params.anonymousToken {String} ? Optional string used to
+ * configure the anonymous token used by the ANONYMOUS SASL profile.
+ *
+ * @param params.authorizationId {string} ? This is the user or
  * identity we are requesting to act as. If not provided, the
  * authorizationId is derived from authenticationId.
  *
- * @param authenticationId [string] This is the actual authentication
- * credential to be validated. Keep in mind that it is possible to
- * provided a valid authenticationId and password but the server side
- * may deny the authorizationId (for example, requesting to act as an
- * administrator providing user level credentials).
+ * @param params.authenticationId {String} This is the actual
+ * authentication credential to be validated. Keep in mind that it is
+ * possible to provided a valid authenticationId and password but the
+ * server side may deny the authorizationId (for example, requesting
+ * to act as an administrator providing user level credentials).
  *
- * @param password [string] This the password associated to the
- * authenticationId.
+ * @param params.password {String} ? This the password associated to the
+ * authenticationId. Some mechanism may not require this value.
  *
- * @param onAuthFinishedHandler [handler] A handler which is called to
- * notify the SASL auth termination. This handler receives an object
- * which the following values:
- *
- * - conn : The connection where the authentication request was
- * performed.
- *
- * - status : Termination status of the request. true to signal
- * authentication finished ok, otherwise false is returned.
- *
- * - statusMsg : The error message (if any).
+ * @param params.onAuthFinishedHandler {Handler} A handler which is
+ * called to notify the SASL auth termination.
  *
  * @param onAuthFinishedContext [object] (Optional) user object
  * context to run the handler on.
+ *
+ * When the auth process finishes, no matter the result, the status is
+ * notified through \ref
+ * VortexConnection.saslAuth.params.onAuthFinishedHandler.param. This
+ * handler receives a object that contains the following attributes:
+ *
+ * - \ref VortexConnection conn : The connection where the
+ * authentication request was performed.
+ *
+ * - \ref String status : Termination status of the request. true to
+ * signal authentication finished ok, otherwise false is returned.
+ *
+ * - \ref String statusMsg : The error message (if any).
  *
  */
 VortexConnection.prototype.saslAuth = function (params) {
@@ -706,6 +723,7 @@ VortexConnection.prototype.saslAuth = function (params) {
     this.openChannel ({
 	/* SASL profile requested */
 	profile: "http://iana.org/beep/SASL/" + params.mech,
+	serverName: params.serverName,
 	profileContent : "<blob>" + params.saslEngine.blob + "</blob>",
 	onFrameReceivedHandler : this.saslAuth._frameReceived,
 	onFrameReceivedContext : params,
@@ -833,6 +851,24 @@ VortexConnection.prototype.saslAuth._frameReceived = function (frameReceived) {
 
 /**
  * @brief Allows to start TLS protection for the current BEEP session.
+ *
+ * @param params.onTLSFinishHandler {Handler} ? The handler where the
+ * TLS termination status is notified. You must not use the connection
+ * until you get the notification on this handler.
+ *
+ * @param params.onTLSFinishContext {Object} ? Optional object that
+ * provides the context to \ref
+ * VortexConnection.enableTLS.params.onTLSFinishHandler.param.
+ *
+ * When the TLS process finishes, the handler \ref VortexConnection.enableTLS.params.onTLSFinishHandler.param is
+ * called with a single object having the following properties:
+ *
+ * - \ref VortexConnection conn : The connection that was activated to
+ * run TLS according to the termination status.
+ *
+ * - \ref Boolean  status : Boolean value to signal if the process finished properly or not.
+ *
+ * - \ref String statusMsg : An string providing a textual diagnostic if an error is found.
  */
 VortexConnection.prototype.enableTLS = function (params) {
 
