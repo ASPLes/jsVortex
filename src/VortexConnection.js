@@ -161,11 +161,11 @@ VortexConnection.prototype.isProfileSupported = function (profile) {
  * which is the encoding used for the profileContent configured. In
  * the case you are not using profileContent, use 0 for this
  * variable. Allowed values are:
- *   - 0: not defined,
- *   - 1: none,
- *   - 2: base64
+ * - 0: not defined,
+ * - 1: none,
+ * - 2: base64
  *
- * @param params.onCloseHandler {Handler} ? handler that is used by
+ * @param params.onCloseHandler {Handler} ? Handler that is used by
  * jsVortex engine to notify that a channel close request was received
  * and a confirmation or refusal is required. If the handler is not
  * configured it is used default handler installed on the
@@ -207,22 +207,24 @@ VortexConnection.prototype.isProfileSupported = function (profile) {
  * at the connection stack error (\ref VortexConnection.hasErrors and
  * \ref VortexConnection.popError).
  *
- * onChannelCreatedHandler is called with an object argument that
- * contains the following attributes:
+ * The channel created will be notified at the configured \ref
+ * VortexConnection.openChannel.params.onChannelCreatedHandler.param. The
+ * handler is called with an object argument that contains the
+ * following attributes:
  *
- * - conn [\ref VortexConnection] : the connection where the channel was created.
+ * - \ref VortexConnection conn : the connection where the channel was created.
  *
- * - channel [\ref VortexChannel] : channel reference that was
+ * - \ref VortexChannel channel : channel reference that was
  * created. If channel is null channel was not created. Check
  * replyCode and replyMsg for additional information. In the case a
  * connection error is found, see VortexConnection.hasErrors and
  * VortexConnection.popError
  *
- * - replyCode [\ref string] : A tree digit error code as defined by
+ * - \ref String replyCode : A tree digit error code as defined by
  * section 8 from RFC 3080. Error code 200 means operation ok. Other
  * codes means error, detailed at replyMsg.
  *
- * - replyMsg [\ref string] : A textual diagnostic error describing replyCode.
+ * - \ref String replyMsg : A textual diagnostic error describing replyCode.
  *
  */
 VortexConnection.prototype.openChannel = function (params) {
