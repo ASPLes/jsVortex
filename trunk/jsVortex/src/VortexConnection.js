@@ -47,10 +47,15 @@ function VortexConnection (host,
     /* internal flag to now we still are waiting for greetings */
     this.greetingsPending = true;
 
-    /* PUBLIC: create stack error */
+    /* create stack error */
     this.stackError       = [];
 
-    /* connection not authenticated */
+    /**
+     * @brief Allows to check if the connection is authenticated.
+     *
+     * After a complete call to \ref VortexConnection.saslAuth, this
+     * variable signals if the connection was already authenticated.
+     */
     this.isAuthenticated  = false;
 
     /* save handlers */
@@ -59,7 +64,15 @@ function VortexConnection (host,
     Vortex.log ("VortexConnection.ctor: requesting to create a connection to " + host + ":" + port);
 
     /* PUBLIC: store properties */
+
+    /**
+     * @brief Contains the host to which this BEEP session is created.
+     */
     this.host      = host;
+
+    /**
+     * @brief Contains the port to which this BEEP session is connected.
+     */
     this.port      = port;
 
     /* define transport */
@@ -997,7 +1010,7 @@ VortexConnection._enableTLSConnectionCreated = function (conn) {
  * @brief Closes the transport connection without doing BEEP close
  * negotiation phase.
  *
- * @param error [string] Optional message to report as error. If
+ * @param error {String} ? Optional message to report as error. If
  * defined, this value will be queued to be retrieved by the users
  * using VortexConnection.hasErrors () method.
  *
@@ -1030,10 +1043,12 @@ VortexConnection.prototype.shutdown = function (error) {
 };
 
 /**
- * @brief Allows to check if there are pending error messages to check.
+ * @brief Allows to check if there are pending error messages to
+ * check.
  *
- * @return true if there are pending error messages, otherwise false
- * is returned.
+ * @return {Boolean} true if there are pending error messages,
+ * otherwise false is returned.
+ *
  */
 VortexConnection.prototype.hasErrors = function () {
     /* check if there are at least one message to check */
@@ -1043,6 +1058,9 @@ VortexConnection.prototype.hasErrors = function () {
 /**
  * @brief Allows to get the next error message found on this
  * connection.
+ *
+ * @return {String} Next available message. You must check
+ * \ref VortexConnection.hasErrors first.
  */
 VortexConnection.prototype.popError = function () {
     /* return next element */
