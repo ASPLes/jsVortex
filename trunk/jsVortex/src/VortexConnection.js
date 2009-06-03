@@ -67,11 +67,13 @@ function VortexConnection (host,
 
     /**
      * @brief Contains the host to which this BEEP session is created.
+     * @type String
      */
     this.host      = host;
 
     /**
      * @brief Contains the port to which this BEEP session is connected.
+     * @type String
      */
     this.port      = port;
 
