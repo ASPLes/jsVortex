@@ -7,31 +7,38 @@
  * @brief Creates a channel object associated to the connection
  * provided, channel number and profile provided.
  *
- * @param conn Connection to be associated to the channel.
+ * This constructor is not used directly the by API consumer. \ref
+ * VortexConnection already creates the channel instance during the
+ * BEEP process through \ref VortexConnection.openChannel
  *
- * @param number The channel number.
+ * @param conn {VortexConnection} Connection to be associated to the channel.
  *
- * @param profile The profile associated to the channel.
+ * @param number {Number} The channel number.
  *
- * @param onFrameReceivedHandler Handler called to notify frames
- * received on this channel.
+ * @param profile {String} The profile associated to the channel.
  *
- * @param onFrameReceivedContext Optional context to run
+ * @param onFrameReceivedHandler {Handler} ? Handler called to notify
+ * frames received on this channel.
+ *
+ * @param onFrameReceivedContext {Object} ? context to run
  * onFrameReceivedHandler.
  *
- * @param onCloseHandler Handler called if a channel close
+ * @param onCloseHandler {Handler} ? Handler called if a channel close
  * notification is received for this channel.
  *
- * @param onCloseContext Optional context to run onCloseContext.
+ * @param onCloseContext {Object} ? Optional context to run
+ * onCloseContext.
  *
- * @return A new reference to the channel object created.
+ * @return A new reference to the channel object created. This
+ * reference can't be used until the BEEP channel negotation finishes.
  *
- * onFrameReceivedHandler receives an object that provides the
- * following attributes:
+ * The handler \ref VortexChannel.onFrameReceivedHandler.param is activated
+ * each time a frame is received. This handler receives an object that
+ * provides the following attributes:
  *
- * - frame : The frame that was received.
- * - channel : The channel where the frame was received.
- * - conn : The connection where the frame was received.
+ * - \ref VortexFrame frame : The frame that was received.
+ * - \ref VortexChannel channel : The channel where the frame was received.
+ * - \ref VortexConnection conn : The connection where the frame was received.
  */
 function VortexChannel (conn,
 			number,
@@ -42,26 +49,40 @@ function VortexChannel (conn,
 			onCloseContext) {
 
     /**
-     * @brief Channel's connection.
+     * @brief Channel's connection reference.
+     * @type VortexConnection
      */
     this.conn                   = conn;
 
     /**
      * @brief Channel number.
+     * @type Number
      */
     this.number                 = number;
     /**
      * @brief Channel profile
+     * @type String
      */
     this.profile                = profile;
+
     /**
      * @brief Channel received handler.
+     * @type Handler
+     *
+     * This is activated each time a frame is received.
+     * This handler receives an object that provides the
+     *  following attributes:
+     *
+     * - \ref VortexFrame frame : The frame that was received.
+     * - \ref VortexChannel channel : The channel where the frame was received.
+     * - \ref VortexConnection conn : The connection where the frame was received.
      */
     this.onFrameReceivedHandler = onFrameReceivedHandler;
     this.onFrameReceivedContext = onFrameReceivedContext;
 
     /**
      * @brief Channel close handler.
+     * @type Handler
      */
     this.onCloseHandler         = onCloseHandler;
     this.onCloseContext         = onCloseContext;
@@ -124,6 +145,9 @@ function VortexChannel (conn,
     this.isReady   = (number == 0);
 
     /**
+     * @brief Allows to control if the channel should deliver complete
+     * frames (joining fragments automatically).
+     *
      * By default all frames received on this channel will be
      * delivered complete. This means that partial frames received
      * won't be notified until all pieces are received.
@@ -133,12 +157,58 @@ function VortexChannel (conn,
      * handle frame joining (if required).
      */
     this.completeFrames = true;
+
+    /**
+     * @brief Holds an status code value for the last send operation
+     * done with \ref VortexChannel.sendMSG or \ref
+     * VortexChannel.sendRPY.
+     *
+     * The following values are indicated after a send operation:
+     *
+     * - 1 : All content was sent into a single message (no content was left
+     * waiting for a SEQ frame to complete the sequence). In this case the
+     * function returns true.
+     *
+     * - 2 : Part of the message was sent and the rest was queued to later
+     * delivery (until SEQ frame from remote side is received). In this
+     * case the function returns true.
+     *
+     * - 0 : Failed to send the content. Error found during the
+     * operation. Check connection stack error. In this case the send function
+     * returns false. See \ref VortexConnection.hasErrors.
+     *
+     * - -1 : Channel is stalled and no more send operations are
+     * allowed. The entire message was queued for later delivery. In this
+     * case the function returns true.
+     *
+     * - -2 : No pending content to be sent. This is useful when content and
+     * type are null references (to request a flush operation for pending
+     * queued content when a SEQ frame is received). This is mostly used
+     * by jsVortex engine. In this case the function returns true.
+     *
+     */
+     this.lastStatusCode = 0;
 };
 
 /**
- * @brief Allows to send a message over the channe selected.
+ * @brief Allows to send a message over the channe selected using MSG
+ * frame type.
  *
- * @param message The message to be sent over this channel
+ * The method receives the content to be sent and an array of MIME
+ * headers (\ref VortexMimeHeader).
+ *
+ * @param content {String} The message to be sent over this channel.
+ *
+ * @param mimeHeaders {VortexMimeHeader []} ? An list of MIME headers to
+ * associate with the message.
+ *
+ * @return {Boolean} The function returns true if the send operation was
+ * completed or partially completed or still not send because the
+ * message was queued (pending for a SEQ frame) but no error was
+ * found. In the case an unrecoverable error is found, the function
+ * returns false. You must also check for \ref channel.lastStatusCode to
+ * get more information for the last operation.
+ *
  */
 VortexChannel.prototype.sendMSG = function (content, mimeHeaders) {
     /* build mime headers provided by the user */
@@ -149,25 +219,22 @@ VortexChannel.prototype.sendMSG = function (content, mimeHeaders) {
 };
 
 /**
- * @brief Sends content the provided over the channel. The method
- * checks if the connection is ready and the transport available.
+ * @brief Sends content the provided over the channel using RPY frame
+ * type. The method checks if the connection is ready and the
+ * transport available.
  *
- * @param content [string] The content to be sent.
+ * @param content {String} The content to be sent.
  *
- * @param mimeHeaders [array of VortexMimeHeader] An array containing a list of VortexMimeHeader
- * objects having the list of mime headers to configure. In the case null is
- * provided, no MIME header is placed on the frame sent.
+ * @param mimeHeaders {VortexMimeHeader []} ? An array containing a list
+ * of VortexMimeHeader objects having the list of mime headers to
+ * configure.
  *
- * @return The function returns the following status codes:
- *
- * - 1 : All content was sent into a single message (no content was
- * left waiting for a SEQ frame to complete the sequence).
- *
- * - 2 : Part of the message was sent and the rest was queued to later
- * delivery (until SEQ frame from remote side is received).
- *
- * - 0 : Failed to send the content. Error found during the
- * operation. Check connection stack error.
+ * @return The function returns true if the send operation was
+ * completed or partially completed or still not send because the
+ * message was queued (pending for a SEQ frame) but no error was
+ * found. In the case an unrecoverable error is found, the function
+ * returns false. You must also check for \ref channel.lastStatusCode to
+ * get more information for the last operation.
  *
  */
 VortexChannel.prototype.sendRPY = function (content, mimeHeaders) {
@@ -181,34 +248,38 @@ VortexChannel.prototype.sendRPY = function (content, mimeHeaders) {
 /**
  * @brief Closes a channel defined by the caller reference.
  *
+ * This function allows to close a channel using its reference. It is
+ * implemented on top of \ref VortexConnection.closeChannel.
  *
- * @param onChannelCloseHandler [handler] The handler that is used by
+ * @param params.onChannelCloseHandler {Handler} The handler that is used by
  * the method to notify the caller with the termination status. On
  * this method is notified either if the channel was closed or the
  * error found.
  *
- * @param onChannelCloseContext [object] The context object under which
- * the handler will be executed.
+ * @param params.onChannelCloseContext {Object} The context object under
+ * which the handler will be executed.
  *
- * @return true in the case the close operation start without incident
- * (request to close the message sent waiting for reply). Otherwise
- * false is returned indicating the close operation was not
- * started. You can safely skip value returned by the function and
- * handle all cases at the noti
- fication handler (onChannelCloseHandler).
+ * @return {Boolean} true in the case the close operation start
+ * without incident (request to close the message sent waiting for
+ * reply). Otherwise false is returned indicating the close operation
+ * was not started. You can safely skip value returned by the function
+ * and handle all cases at the notification handler
+ * (VortexChannel.close.params.onChannelCloseHandler.param).
  *
- * onChannelCloseHandler receives an object with the following
- * attributes:
+ * The handler \ref
+ * VortexChannel.close.params.onChannelCloseHandler.param is called
+ * when the close operation finishes and receives an object with the
+ * following attributes:
  *
- * - conn : the connection where the channel was closed.
+ * - \ref VortexConnection conn : the connection where the channel was closed.
  *
- * - status : true to signal that the channel was closed, otherwise
+ * - \ref Boolean status : true to signal that the channel was closed, otherwise
  * false is returned.
  *
- * - replyCode : tree digit error code indicating the motive to deny
+ * - \ref String replyCode : tree digit error code indicating the motive to deny
  * channel close operation.
  *
- * - replyMsg : Human readable textual diagnostic reporting motivy to
+ * - \ref String replyMsg : Human readable textual diagnostic reporting motivy to
  * deny channel close operation (or faillure found).
  *
  */
@@ -228,9 +299,9 @@ VortexChannel.prototype.close = function (params) {
  * @internal Method used as a base implementation for
  * VortexChannel.sendRPY and VortexChannel.sendMSG.
  *
- * @param content [string] The content to be sent.
+ * @param content {string} The content to be sent.
  *
- * @param mimeHeaders [array of VortexMimeHeader] An array containing
+ * @param mimeHeaders {array of VortexMimeHeader} An array containing
  * a list of VortexMimeHeader objects having the list of mime headers
  * to configure. In the case null is provided, no MIME header is
  * placed on the frame sent.

@@ -17,5 +17,6 @@
     <options>
         <!-- This option allows to include the configured return type in the function header summary. -->
         <include-function-return-in-header value='no' />
+	<include-class-in-function-header value='no' />
     </options>
 </ju-doc-conf>
