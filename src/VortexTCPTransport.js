@@ -7,34 +7,39 @@
  * @brief TCP constructor for the set of functions that support I/O
  * with direct sockets.
  *
- * One instance must be created for each connection for this class.
+ * This class implement the direct TCP support to make jsVortex to
+ * interact with networking. This class implements the specific
+ * browser I/O networking. At this moment it is only supported
+ * Firefox.
+ *
+ * @class
  */
 function VortexTCPTransport () {
-	var outstream = null;
-	var instream  = null;
-	var socket    = null;
+    var outstream = null;
+    var instream  = null;
+    var socket    = null;
 
-	/* define default connect method */
-	this.connect    = VortexFirefoxConnect;
+    /* define default write method */
+    this.connect    = VortexFirefoxConnect;
 
-	/* define default write method */
-	this.write      = VortexFirefoxWrite;
+    /* define default write method */
+    this.write      = VortexFirefoxWrite;
 
-	/* define default isOk method */
-	this.isOk       = VortexFirefoxIsOk;
+    /* define default isOk method */
+    this.isOk       = VortexFirefoxIsOk;
 
-	/* define default close method */
-	this.close      = VortexFirefoxClose;
+    /* define default close method */
+    this.close      = VortexFirefoxClose;
 
-	/* define default start TLS operation */
-	this.enableTLS  = VortexFirefoxEnableTLS;
+    /* define default start TLS operation */
+    this.enableTLS  = VortexFirefoxEnableTLS;
 
-	/* do not require permissions */
-	this.requirePerms = true;
+    /* do not require permissions */
+    this.requirePerms = true;
 };
 
 /**
- * @brief Firefox support for TCP connect.
+ * @internal Firefox support for TCP connect.
  *
  * @param host The host to connect to.
  * @param port The port to connect to.
@@ -340,14 +345,9 @@ VortexTCPTransport.prototype.onDataAvailable = function (request, context, input
 };
 
 /**
- * @brief Public method that allows to register a callback (handler)
+ * @internal Method that allows to register a callback (handler)
  * that is called under the context of object when the connection is
  * ready to start the exchange.
- *
- * The handler to be configured must have the following form:
- *
- * function ();
- *
  *
  * @param object The context under which the handler will be executed
  * (special reference this will point to this object).
@@ -360,13 +360,9 @@ VortexTCPTransport.prototype.onStart = function (object, handler) {
 };
 
 /**
- * @brief Public method that allows to register a callback (handler)
+ * @internal Method that allows to register a callback (handler)
  * that is called under the context of object when the connection is
  * closed.
- *
- * The handler to be configured must have the following form:
- *
- * function ();
  *
  * @param object The context under which the handler will be executed
  * (special reference this will point to this object).
@@ -379,19 +375,12 @@ VortexTCPTransport.prototype.onStop = function (object, handler) {
 };
 
 /**
- * @brief Public method that allows to register a callback (handler)
- * that is called under the context of object when data was received
- * in the connection.
- *
- * The handler to be configured must have the following form:
- *
- * function (connection, data);
- *
- * WHERE: connection is the connection where that is available
- * and data is the data received.
+ * @internal Method that allows to register a callback (handler) that
+ * is called under the context of object when data was received in the
+ * connection.
  *
  * @param object The context under which the handler will be executed
- *  (special reference this will point to this object).
+ * (special reference this will point to this object).
  *
  * @param handler The method that is executed when the data is available.
  */
@@ -401,19 +390,12 @@ VortexTCPTransport.prototype.onRead = function (object, handler) {
 };
 
 /**
- * @brief Public method that allows to registar a callback (handler)
- * that is called under the context of object when some error was
- * found during the transport function.
- *
- * The handler to be configured must have the following form:
- *
- * function (error);
- *
- * WHERE: connection is the connection where that is available
- * and data is the data received.
+ * @internal Method that allows to registar a callback (handler) that
+ * is called under the context of object when some error was found
+ * during the transport function.
  *
  * @param object The context under which the handler will be executed
- *  (special reference this will point to this object).
+ * (special reference this will point to this object).
  *
  * @param handler The method that is executed when the data is available.
  */
