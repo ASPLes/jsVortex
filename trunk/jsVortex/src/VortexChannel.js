@@ -263,8 +263,11 @@ VortexChannel.prototype.sendRPY = function (content, mimeHeaders) {
  * without incident (request to close the message sent waiting for
  * reply). Otherwise false is returned indicating the close operation
  * was not started. You can safely skip value returned by the function
- * and handle all cases at the notification handler
- * (VortexChannel.close.params.onChannelCloseHandler.param).
+ * and handle all cases at the notification handler (\ref
+ * VortexChannel.close.params.onChannelCloseHandler.param). Note that
+ * this function may return true but the close operation may be
+ * defined. The channel isn't closed until its notified through \ref
+ * VortexChannel.close.params.onChannelCloseHandler.param.
  *
  * The handler \ref
  * VortexChannel.close.params.onChannelCloseHandler.param is called
