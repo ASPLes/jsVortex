@@ -206,7 +206,7 @@ function VortexChannel (conn,
  * completed or partially completed or still not send because the
  * message was queued (pending for a SEQ frame) but no error was
  * found. In the case an unrecoverable error is found, the function
- * returns false. You must also check for \ref channel.lastStatusCode to
+ * returns false. You must also check for \ref VortexChannel.lastStatusCode to
  * get more information for the last operation.
  *
  */
@@ -233,7 +233,7 @@ VortexChannel.prototype.sendMSG = function (content, mimeHeaders) {
  * completed or partially completed or still not send because the
  * message was queued (pending for a SEQ frame) but no error was
  * found. In the case an unrecoverable error is found, the function
- * returns false. You must also check for \ref channel.lastStatusCode to
+ * returns false. You must also check for \ref VortexChannel.lastStatusCode to
  * get more information for the last operation.
  *
  */
