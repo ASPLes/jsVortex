@@ -9,9 +9,17 @@
  * @param header The MIME header name.
  * @param content The MIME header content.
  *
- * @return A newly created MIME header unit.
+ * @return {VortexMimeHeader} A newly created MIME header unit.
+ *
+ * @class
  */
 function VortexMimeHeader (header, content) {
+    /**
+     * @brief The MIME header name configured (for example "Received").
+     */
     this.header  = header;
+    /**
+     * @brief The MIME header content.
+     */
     this.content = content;
 }

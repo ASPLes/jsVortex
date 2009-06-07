@@ -19,20 +19,22 @@ if (typeof VortexEngine == "undefined") {
 }
 
 /**
- * @brief Allows to check if the object reference
- * received is not null or undefined. The function also
- * checks the attribute to be present in the object.
+ * @brief Allows to check if the object reference received is not null
+ * or undefined. The function also checks the attribute to be present
+ * in the object.
  *
- * @param object The reference to check.
+ * @param object {Object} The reference to check.
  *
- * @param attr Optional attribute to check. null to skip attribute check.
- * This can be used check if the object is really the reference expected by
- * selected a particular attribute that should be available.
+ * @param attr {String} ? Optional attribute to check. null to skip attribute
+ * check. This can be used check if the object is really the
+ * reference expected by selected a particular attribute that should
+ * be available.
  *
- * @param msg Optional error message to register in the case of error.
+ * @param msg {String} ? Optional error message to register in the
+ * case of error.
  *
- * @return true If the reference is ok, therwise false is returned.
- */
+ * @return {Boolean} true If the reference is ok, therwise false is returned.
+  */
 VortexEngine.checkReference = function (object, attr, msg) {
 
     /* check for null reference */
@@ -66,23 +68,23 @@ VortexEngine.checkReference = function (object, attr, msg) {
  * arguments provided. In the case the context is not provided, the
  * handler is executed with no context (this keyword points to null).
  *
- * @param handler [function] The handler to executed.
+ * @param handler {Handler} The handler to executed.
  *
- * @param context [object] Optional reference to the context that is
+ * @param context {Object} ? Optional reference to the context that is
  * required to run the handler on. In the case of null or undefined is
  * provided, the 'this' keyword will be the global object.
  *
- * @param arguments [array] A list of arguments to provided to the
+ * @param arguments {Array} A list of arguments to provided to the
  * handler. In the case of no arguments, do provide nothing (or null
  * or undefined).
  *
- * @param deffer [boolean] Signal function to call the method via
+ * @param deffer {Boolean} Signal function to call the method via
  * setTimeout.
  *
  * @return The function returns the value returned by the application
  * if the handler, with the arguments provided, under the optional
- * context.
- *
+ * context. In the case deffer option is set to true, the function
+ * always return true
  */
 VortexEngine.apply = function (handler, context, arguments, deffer) {
     /* check handler */
@@ -108,14 +110,14 @@ VortexEngine.apply = function (handler, context, arguments, deffer) {
 };
 
 /**
- * @brief Allows to count the number of items that are stored
- * in the provided object. This function is useful if the object
- * is used as an associative array.
+ * @brief Allows to count the number of items that are stored in the
+ * provided object. This function is useful if the object is used as
+ * an associative array.
  *
- * @param object The object that is required to return the number
- * of properties or items stored.
+ * @param object {Object} The object that is required to return the
+ * number of properties or items stored.
  *
- * @return 0 or the number of items stored.
+ * @return {Number} 0 or the number of items stored.
  */
 VortexEngine.count = function (object) {
     var size = 0;
@@ -132,10 +134,19 @@ VortexEngine.count = function (object) {
  * that are consecutive in the seqno serie, that is, frameA goes
  * before frameB.
  *
- * @param frameA The frame to join. It can be null, In such case,
- * it is returned frameB untouched.
+ * @param conn {VortexConnection} A reference to the BEEP connection
+ * where the frame was received.
  *
- * @param frameB The second frame to join. It cannot be null.
+ * @param frameA {VortexFrame} The frame to join. It can be null, In such case, it
+ * is returned frameB untouched.
+ *
+ * @param frameB {VortexFrame} The second frame to join. It cannot be null.
+ *
+ * @return {VortexFrame} The function returns a newly joined frame
+ * reference or Null if it fails. In case of fail, check connection
+ * errors (\ref VortexConnection.hasErrors and \ref
+ * VortexConnection.popError).
+ *
  */
 VortexEngine.joinFrame = function (conn, frameA, frameB) {
     /* check errors */
@@ -873,7 +884,7 @@ VortexEngine.checkSendSEQFrame = function (channel, frame) {
 };
 
 /**
- * @internal Value used to represent maximum allosed seqno value.
+ * @brief Value used to represent maximum allosed seqno value.
  */
 VortexEngine.MaxSeqNo =	4294967295;
 
