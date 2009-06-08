@@ -176,13 +176,28 @@ VortexSASLEngine.prototype.isSupported = function (saslProfile, selectMech) {
 };
 
 /**
- * Base64 encode / decode functions used by SASL implementation.
+ * @brief Base64 encode / decode functions used by SASL
+ * implementation.
+ *
+ * This module includes functions to encode and decode content using
+ * base64 representation. See for more details:
+ *
+ * - \ref VortexBase64.encode
+ * - \ref VortexBase64.decode
+ *
  **/
 var VortexBase64 = {
     /* private property */
     _keyStr : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
 
-    /* public method for encoding */
+    /**
+     * @brief Public function to encode an string with Base64.
+     *
+     * To decode content produced by this function check \ref VortexBase64.decode.
+     *
+     * @param input {String} The string to be encoded with Base64.
+     * @return {String} A reference to a new string representing the content encoded.
+     */
     encode : function (input) {
 	var output = "";
 	var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
@@ -215,7 +230,14 @@ var VortexBase64 = {
 	return output;
     }, /* encode */
 
-    /* public method for decoding */
+    /**
+     * @brief Public function to decode an string with Base64.
+     *
+     * @param input {String} The string to be decoded (already encoded
+     * with Base64, maybe content created by \ref VortexBase64.encode).
+     *
+     * @return {String} A reference to a new string representing the content decoded.
+     */
     decode : function (input) {
 	var output = "";
 	var chr1, chr2, chr3;
