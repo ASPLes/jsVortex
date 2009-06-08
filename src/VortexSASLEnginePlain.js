@@ -4,7 +4,9 @@
  **/
 
 /**
- * PLAIN support for VortexSASLEngine.
+ * @internal PLAIN support for VortexSASLEngine.
+ * This class is not directly used by the API consumer.
+ * Check \ref VortexSASLEngine.
  */
 var VortexSASL_PLAIN = {
     /**

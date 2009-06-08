@@ -15,13 +15,20 @@ if (typeof console == "undefined") {
     };
 }
 
-/**
- * @brief Check for console log to define it. This is done because
- * having firebug disabled causes to stop processing the rest of the
- * document.
- */
 if (typeof Vortex == "undefined") {
+    /**
+     * @brief Base functions used by jsVortex implementation. Vortex
+     * module includes logging functions and support code to load required
+     * content.
+     */
     var Vortex = {
+	/**
+	 * @brief Logs a message to the console.log method defined. In
+	 * the case Firebug is not available, nothing is showed. You can hook
+	 * to this function to define your own logging function.
+	 *
+	 * @param message {String} The message to be showed.
+	 */
 	log: function (message) {
 	    /* check if log is enabled */
 	    if (! Vortex.logEnabled)
@@ -29,6 +36,15 @@ if (typeof Vortex == "undefined") {
 	    /* do log */
 	    console.log (message);
 	},
+	/**
+	 * @brief Logs a second level message to the console.log
+	 * method defined. This second level is considered a more detailed log
+	 * which in general is not required. In the case Firebug is not
+	 * available, nothing is showed. You can hook to this function to
+	 * define your own logging function.
+	 *
+	 * @param message {String} The message to be showed.
+	 */
 	log2: function (message) {
 	    /* check if log is enabled */
 	    if (! Vortex.log2Enabled)
@@ -36,6 +52,13 @@ if (typeof Vortex == "undefined") {
 	    /* do log */
 	    console.log (message);
 	},
+	/**
+	 * @brief Logs a message to the console.error method defined. In
+	 * the case Firebug is not available, nothing is showed. You can hook
+	 * to this function to define your own logging function.
+	 *
+	 * @param message {String} The error message to be showed.
+	 */
 	error: function (message) {
 	    /* check if log is enabled */
 	    if (! Vortex.logEnabled)
@@ -43,6 +66,14 @@ if (typeof Vortex == "undefined") {
 	    /* do log */
 	    console.error (message);
 	},
+	/**
+	 * @brief Logs a message to the console.warn method
+	 * defined. In the case Firebug is not available, nothing is
+	 * showed. You can hook to this function to define your own logging
+	 * function.
+	 *
+	 * @param message {String The warn message to be showed.
+	 */
 	warn: function (message) {
 	    /* check if log is enabled */
 	    if (! Vortex.logEnabled)
@@ -64,7 +95,7 @@ if (typeof Vortex == "undefined") {
 /**
  * @brief Loads all required vortex sources.
  *
- * @param basepath [string] is the base location where
+ * @param basepath {String} is the base location where
  * all jsVortex sources are located.
  */
 Vortex.load = function (basepath) {
@@ -111,6 +142,7 @@ Vortex.loadJs = function (filename){
 };
 
 /**
+ * @internal
  * The following code tries to figure the baseurl used to load Vortex.js
  * so the rest of files can be loaded.
  */

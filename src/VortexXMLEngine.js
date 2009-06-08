@@ -4,6 +4,13 @@
  **/
 
 if (typeof VortexXMLEngine == "undefined") {
+    /**
+     * @brief Simple XML parser used by jsVortex to implement BEEP
+     * channel 0 functions.
+     *
+     * Take a look into \ref VortexXMLEngine.parseFromString to
+     * know how to parse XML content, producing a javascript oject.
+     */
     var VortexXMLEngine = {
 	/**
 	 * @internal Variable used to track XML
@@ -17,9 +24,26 @@ if (typeof VortexXMLEngine == "undefined") {
 /**
  * @brief Do an xml parse operation on the provided stream
  *
- * @param document The document	to parse.
+ * This function parses an XML document inside the provided data
+ * parameter a returns a object with the following recursive
+ * attributes:
  *
- * @return An object representing the document or null if it fails.
+ * - <b>name</b>: Name to the xml node, that is, having the following
+ * example: <jsvortex it-rocks='yes' />, the xml node name will be
+ * 'jsvortex'.
+ *
+ * - <b>attrs</b>: List of attributes associated to the XML node. Each
+ * attribute item of the list have have <b>name</b> and <b>value</b>.
+ *
+ * - <b>childs</b>: List of child nodes that this node has, each one
+ * recursively representing this structure (name, attrs and childs).
+ *
+ * @param data {String} The XML document to parse. This parameter
+ * represents an string that contains an XML document.
+ *
+ * @return {Object} An object representing the document or null if it
+ * fails.
+ *
  */
 VortexXMLEngine.parseFromString = function (data) {
 

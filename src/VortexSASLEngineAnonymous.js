@@ -4,7 +4,9 @@
  **/
 
 /**
- * ANONYMOUS support for VortexSASLEngine.
+ * @internal ANONYMOUS support for VortexSASLEngine.
+ * This class is not directly used by the API consumer.
+ * Check \ref VortexSASLEngine.
  */
 var VortexSASL_ANONYMOUS = {
     /**

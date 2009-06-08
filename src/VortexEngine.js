@@ -4,7 +4,11 @@
  **/
 
 if (typeof VortexEngine == "undefined") {
-    /* define engine module */
+    /**
+     * @brief VortexEngine provides some internal functions to process
+     * incoming BEEP content and some public API used by other
+     * jsVortex modules. 
+     */
     var VortexEngine = {
 	/**
 	 * Variable used by VortexEngine object to report
