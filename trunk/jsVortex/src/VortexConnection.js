@@ -671,7 +671,7 @@ VortexConnection.prototype.uninstallOnDisconnect = function (onDisconnectId) {
  * @param params.onAuthFinishedHandler {Handler} A handler which is
  * called to notify the SASL auth termination.
  *
- * @param onAuthFinishedContext [object] (Optional) user object
+ * @param params.onAuthFinishedContext [object] (Optional) user object
  * context to run the handler on.
  *
  * When the auth process finishes, no matter the result, the status is
