@@ -167,3 +167,69 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
     }
 } /* end for */
 
+/**
+ * \startpage jsVortex: An Open Source Javascript BEEP
+ * (RFC3080/RFC3081) implementation
+ *
+ * \section intro Introduction
+ *
+ * jsVortex is javascript implementation of the BEEP protocol
+ * specially designed to work in the context of a web
+ * browser. Currently it is only supported Firefox and direct TCP
+ * mapping but it is expected to support other browser and transport
+ * mappings, especially Websocket.
+ *
+ * Currently it provides the following features:
+ *
+ * - Almost all core BEEP protocol is supported (still missing ANS/NUL frame support).
+ * - Support TLS profile
+ * - Support SASL profiles: PLAIN and ANONYMOUS
+ *
+ * BEEP provides many advanced features to develop rich internet
+ * applications especially for the new single-page oriented method
+ * used by ajax and many moderm javascript toolkis such http://www.dojotoolkit.org.
+ *
+ * jsVortex is being developed using a regression test suite (using
+ * Dojo) to check and ensure all function implemented is stable across
+ * releases. See it in action at: http://www.aspl.es/jsVortex/testConnect.html
+ *
+ * See the following documents for more information:
+ *
+ *  - \ref jsvortex_license
+ *  - \ref jsvortex_manual
+ *  - \ref classes_and_modules
+ *
+ */
+
+/**
+ * \page jsvortex_license jsVortex License
+ *
+ * All source code, utils, script and material associated to jsVortex
+ * is license under the terms of the LGPL 2.1. You can get a full
+ * english copy of this license at: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+ *
+ * In simple terms, this license allows you:
+ *
+ * - To create open source and closed source (also known as
+ * proprietary) projects that uses jsVortex as part of its function.
+ *
+ * - In the case some modification is done to jsVortex, specially on
+ * its API, this change must be returned back to the main official
+ * jsVortex repository (the best approach) or to be provided to your
+ * end users, including changes introduced along with the jsVortex
+ * distribution with all the instructions required to apply the
+ * modification.
+ *
+ * - You can't use the image of the jsVortex project or ASPL company
+ * in form that is confused with your project image. End users must
+ * not be confused in any form about these points.
+ *
+ */
+
+/**
+ * \page jsvortex_tutorial jsVortex Manual
+ *
+ * \section jsvortex_tutorial_intro Introduction
+ *
+ * This is some test...
+ */
