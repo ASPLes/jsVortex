@@ -22,7 +22,7 @@
  * @param ansno {Number} ? Frame ansno value to configure. This value
  * is optional if you aren't producing RPY, ERR or MSG frame.
  *
- * @param msgno {VortexMimeHeader []} Optional array of MIME headers
+ * @param msgno {Number} Optional array of MIME headers
  * to be configured as content received in the frame.
  *
  * @param content {String} The frame content.
