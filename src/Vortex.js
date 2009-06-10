@@ -232,7 +232,36 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
 /**
  * \page jsvortex_manual jsVortex Manual
  *
- * \section jsvortex_tutorial_intro Introduction
+ * \section jsvortex_tutorial_intro Introduction (a quick guide)
  *
- * This is some test...
+ * Before starting, if you want to know more about BEEP and its basic
+ * concepts it is recommended to take a look into the Vortex Library
+ * 1.1 BEEP introduction (especially Section 1): http://www.aspl.es/fact/files/af-arch/vortex-1.1/html/starting_to_program.html
+ *
+ * To start with BEEP you have to create a session with a
+ * listener. For this quick tutorial you can use vortex-regression-listener (
+ * it's the Vortex Library regression test server) but any BEEP server will do
+ *  (http://www.turbulence.ws).
+ *
+ * \code
+ * function createConnection () {
+ *    // create a BEEP connection against localhost:44010
+ *    new VortexConnection (
+ *           "localhost",
+ *           "44010",
+ *           new VortexTCPTransport (),
+ *           connectionCreatedHandler, null);
+ *
+ *    // now jsVortex engine will notify connection created status
+ *    // on handler connectionCreatedHandler
+ * }
+ * \endcode
+ *
+ * Previous piece of code will create a BEEP session against a BEEP peer
+ * located at localhost:44010. It will do all greetings negotiation and,
+ * if remote peer accepts the connection will be created.
+ *
+ * Due to the nature of Javascript execution context, this call will
+ * return immediatly, notifying connection result on: \ref VortexConnection.connectionCreatedHandler.param
+ *
  */
