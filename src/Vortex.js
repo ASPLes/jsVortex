@@ -176,10 +176,10 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  * jsVortex is javascript implementation of the BEEP protocol
  * specially designed to work in the context of a web
  * browser. Currently it is only supported Firefox, using a direct TCP
- * mapping but it is expected to support other browser and transport
+ * mapping (\ref VortexTCPTransport) but it is expected to support other browsers and transport
  * mappings, especially Websocket.
  *
- * Currently jsVortex it provides or implements the following features:
+ * Currently jsVortex it provides and implements the following features:
  *
  * - Almost all core BEEP protocol is supported (still missing ANS/NUL
  * frame support). MSG, ERR and RPY frames are fully supported,
@@ -189,10 +189,10 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  * - Support SASL profiles: PLAIN and ANONYMOUS
  *
  * jsVortex is being developed using a regression test suite (using
- * http://www.dojotoolkit.org) to check and ensure all function implemented is stable across
+ * http://www.dojotoolkit.org) to check and ensure all functions implemented are stable across
  * releases. See it in action at: http://www.aspl.es/jsVortex/testConnect.html
  *
- * See the following documents for more information:
+ *
  *
  * - \ref jsvortex_license
  * - \ref jsvortex_manual
@@ -234,34 +234,79 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  *
  * \section jsvortex_tutorial_intro Introduction (a quick guide)
  *
- * Before starting, if you want to know more about BEEP and its basic
- * concepts it is recommended to take a look into the Vortex Library
+ * Before starting, if you are new to BEEP you have to know first something about its basic
+ * concepts. It is recommended to take a look into the Vortex Library
  * 1.1 BEEP introduction (especially Section 1): http://www.aspl.es/fact/files/af-arch/vortex-1.1/html/starting_to_program.html
+ *
+ * That introduction includes useful information about BEEP and how
+ * its elements are used together to enable you using and developing
+ * BEEP enabled products.
+ *
+ * \section jsvortex_manual_creating_a_connection Creating a BEEP connection with jsVortex
  *
  * To start with BEEP you have to create a session with a
  * listener. For this quick tutorial you can use vortex-regression-listener (
  * it's the Vortex Library regression test server) but any BEEP server will do
- *  (http://www.turbulence.ws).
+ * (http://www.turbulence.ws).
  *
  * \code
  * function createConnection () {
- *    // create a BEEP connection against localhost:44010
- *    new VortexConnection (
- *           "localhost",
- *           "44010",
- *           new VortexTCPTransport (),
- *           connectionCreatedHandler, null);
+ *     // create a BEEP connection against localhost:44010
+ *     new VortexConnection (
+ *         "localhost",
+ *         "44010",
+ *         new VortexTCPTransport (),
+ *         connectionCreatedHandler, null);
  *
- *    // now jsVortex engine will notify connection created status
- *    // on handler connectionCreatedHandler
+ *     // now jsVortex engine will notify connection created status
+ *     // on handler connectionCreatedHandler
  * }
  * \endcode
  *
- * Previous piece of code will create a BEEP session against a BEEP peer
+ * Previous piece of code will create a BEEP session to a BEEP peer
  * located at localhost:44010. It will do all greetings negotiation and,
- * if remote peer accepts the connection will be created.
+ * if remote peer accepts the connection, then a working connection will be created.
  *
  * Due to the nature of Javascript execution context, this call will
- * return immediatly, notifying connection result on: \ref VortexConnection.connectionCreatedHandler.param
+ * return immediatly, notifying connection result on: \ref VortexConnection.connectionCreatedHandler.param.
+ * For your application management you can store the reference returned by new \ref VortexConnection, but this
+ * reference must not be used until notified by \ref VortexConnection.connectionCreatedHandler.param.
  *
+ * Reached this point, your web application will receive the connection created at the handler
+ * <b>connectionCreatedHandler</b> previously configured:
+ *
+ * \code
+ * function connectionCreatedHandler (conn) {
+ *     // check here connection status
+ *     if (! conn.isOk ()) {
+ *          // failed to connect, do some logging
+ *          document.write ("<p>Connection to " + conn.host + ":" + conn.port + ", have failed: <p>");
+ *          while (conn.hasErrors ()) {
+ *               document.write ("<p>error found: " + conn.popError () + " </p>");
+ *          }
+ *     }
+ *     // NICE: connection created
+ *     document.write ("<p>Connection to " + conn.host + ":" + conn.port + ", created OK");
+ * }
+ * \endcode
+ *
+ * \note Obviously previous example uses <b>document.write</b> which is, in most cases, not the best
+ * option for doing application logging. For example, if you can get firebug (http://getfirebug.org)
+ * and use console.{log,warn,error} functions to do a better logging.
+ *
+ * After a successful connection creation, it is required to create a channel (\ref VortexChannel),
+ * running a particular profile (\ref VortexChannel.profile) to exchange data. For this tutorial we will
+ * use the <i>"echo profile"</i> used by vortex-regression-listener: \noref http://iana.org/beep/transient/vortex-regression.
+ * This profiles replies to all messages received with the same content, doing an "echo".
+ *
+ * At the end, the BEEP channel is the responsible of sending and receiving MIME
+ * messages (formed by frames \ref VortexFrame) while the connection (\ref VortexConnection)
+ * provides the abstraction to control all running channels, authentication and connection security.
+ *
+ * \note It is by no mean required to use profile names using http://. In fact, this is a practice
+ * deprecated in favor of URN references (for example <b>urn:your-company:beep:profiles:your-profile-name</b>).
+ * However, at the time vortex-regression-listener was created, the common practise was using http://.
+ * Having said that, you can safely use any unique string identifier as long as it is different from other's profiles id.
+ *
+ * 
  */
