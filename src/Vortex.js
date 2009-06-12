@@ -294,19 +294,64 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  * option for doing application logging. For example, if you can get firebug (http://getfirebug.org)
  * and use console.{log,warn,error} functions to do a better logging.
  *
+ * \section jsvortex_manual_creating_a_channel Creating a BEEP channel with jsVortex
+ *
  * After a successful connection creation, it is required to create a channel (\ref VortexChannel),
  * running a particular profile (\ref VortexChannel.profile) to exchange data. For this tutorial we will
- * use the <i>"echo profile"</i> used by vortex-regression-listener: \noref http://iana.org/beep/transient/vortex-regression.
- * This profiles replies to all messages received with the same content, doing an "echo".
+ * use the <i>"echo profile"</i> used by vortex-regression-listener: \noref <b>http://iana.org/beep/transient/vortex-regression</b>.
+ * This profile replies to all messages received with the same content, doing an "echo".
  *
  * At the end, the BEEP channel is the responsible of sending and receiving MIME
  * messages (formed by frames \ref VortexFrame) while the connection (\ref VortexConnection)
  * provides the abstraction to control all running channels, authentication and connection security.
  *
- * \note It is by no mean required to use profile names using http://. In fact, this is a practice
+ * Now we open the channel with the following:
+ *
+ * \code
+ * // open a channel running the profile http://iana.org/beep/transient/vortex-regression
+ * conn.openChannel ({
+ *      profile: "http://iana.org/beep/transient/vortex-regression",
+ *      // request jsVortex to assign next available number
+ *      channelNumber: 0,
+ *      // configure the handler to be called on channel created
+ *      onChannelCreatedHandler : channelCreated,
+ * });
+ * \endcode
+ *
+ * Previous code will ask to open a new channel running the profile configured
+ * and it will notify channel created on the handler
+ * (\ref VortexConnection.openChannel.params.onChannelCreatedHandler.param) configured,
+ * in this case: <b>channelCreated</b>.	On that handler we should do something like:
+ *
+ * \code
+ * function channelCreated (channelCreatedData) {
+ *    if (channelCreatedData.channel == null) {
+ *         // channel creation failed. Reply status
+ *         document.write ("<p>Failed to create channel, reply code received: " + channelCreatedData.replyCode + ", textual error: " + channelCreatedData.replyMsg + "</p>");
+ *         return;
+ *    }
+ *
+ *    // reached this point, channel is created. Now, we are prepared to send and received content.
+ * }
+ * \endcode
+ *
+ * \note It is by no mean required to use profile names using \noref <b>http://</b>. In fact, this is a practice
  * deprecated in favor of URN references (for example <b>urn:your-company:beep:profiles:your-profile-name</b>).
- * However, at the time vortex-regression-listener was created, the common practise was using http://.
+ * However, at the time vortex-regression-listener was created, the common practise was using <b>http://</b>.
  * Having said that, you can safely use any unique string identifier as long as it is different from other's profiles id.
  *
- * 
+ * \section jsvortex_manual_sending_messages Sending messages over a channel
+ *
+ * Now we have created the channel we can send and receive messages.
+ * In BEEP a peer can issue messages and receive its replies, but that peer can also
+ * receive messages issued by the remote peer. This is important:
+ *
+ * \note BEEP is peer oriented, there is no client or server concept but initiator and
+ * listener with the only intention to differenciate what peer created the connection. After
+ * that point, both peers, initiator and listener, can create channels and issue messages, and as such, both peers but be prepared
+ * for this situation.
+ *
+ * For now, we will cover the traditional request-response pattern, where the
+ * client issue a message and the server replies with some content.
+ *
  */
