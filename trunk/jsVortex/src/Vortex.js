@@ -214,25 +214,43 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  * In simple terms, this license allows you:
  *
  * - To create open source and closed source (also known as
- * proprietary) projects that uses jsVortex as part of its function.
+ * proprietary) projects that uses jsVortex as part of its function without having to buy a license.
  *
- * - In the case some modification is done to jsVortex, specially on
+ * - In the case some modification is done to jsVortex, especially to
  * its API, this change must be returned back to the main official
  * jsVortex repository (the best approach) or to be provided to your
  * end users, including changes introduced along with the jsVortex
  * distribution with all the instructions required to apply the
- * modification.
+ * modification. In other words, your end users must be able to get your
+ * modifications either because they were included in the official jsVortex
+ * repository or because they are available along with the software acquired.
  *
  * - You can't use the image of the jsVortex project or ASPL company
  * in form that is confused with your project image. End users must
  * not be confused in any form about these points.
+ *
  *
  */
 
 /**
  * \page jsvortex_manual jsVortex Manual
  *
- * \section jsvortex_tutorial_intro Introduction (a quick guide)
+ * \section# jsvortex_manual_index Index
+ *
+ * <ol>
+ *   <li><b>Introduction:</b>
+ *    - \ref jsvortex_manual_intro
+ *    - \ref jsvortex_manual_creating_a_connection
+ *    - \ref jsvortex_manual_creating_a_channel
+ *    - \ref jsvortex_manual_sending_messages
+ *   </li><!-- test -->
+ *
+ *   <li><b>Session authentication and protection</b><br />
+ *    - \ref jsvortex_manual_sasl_auth
+ *   </li>
+ * </ol>
+ *
+ * \section jsvortex_manual_intro Introduction (a quick guide)
  *
  * Before starting, if you are new to BEEP you have to know first something about its basic
  * concepts. It is recommended to take a look into the Vortex Library
@@ -327,17 +345,19 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  * function channelCreated (channelCreatedData) {
  *    if (channelCreatedData.channel == null) {
  *         // channel creation failed. Reply status
- *         document.write ("<p>Failed to create channel, reply code received: " + channelCreatedData.replyCode + ", textual error: " + channelCreatedData.replyMsg + "</p>");
+ *         document.write ("<p>Failed to create channel, reply code received: " + channelCreatedData.replyCode +
+ *                         ", textual error: " + channelCreatedData.replyMsg + "</p>");
  *         return;
  *    }
  *
  *    // reached this point, channel is created. Now, we are prepared to send and received content.
+ *    var channel = channelCreatedData.channel;
  * }
  * \endcode
  *
  * \note It is by no mean required to use profile names using \noref <b>http://</b>. In fact, this is a practice
  * deprecated in favor of URN references (for example <b>urn:your-company:beep:profiles:your-profile-name</b>).
- * However, at the time vortex-regression-listener was created, the common practise was using <b>http://</b>.
+ * However, at the time vortex-regression-listener was created, the common practise was using \noref <b>http://</b>.
  * Having said that, you can safely use any unique string identifier as long as it is different from other's profiles id.
  *
  * \section jsvortex_manual_sending_messages Sending messages over a channel
@@ -348,10 +368,105 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  *
  * \note BEEP is peer oriented, there is no client or server concept but initiator and
  * listener with the only intention to differenciate what peer created the connection. After
- * that point, both peers, initiator and listener, can create channels and issue messages, and as such, both peers but be prepared
+ * that point, both peers, initiator and listener, can create channels and issue messages, and as such, both peers must be prepared
  * for this situation.
  *
  * For now, we will cover the traditional request-response pattern, where the
- * client issue a message and the server replies with some content.
+ * client issue a message and the server replies with some content. BEEP has 5 predefined frame types that are used for different data interactions:
+ *
+ * - MSG frame is used as the basic frame request.
+ *
+ * - RPY frame is used to reply to a MSG frame received. A BEEP peer
+ * can't init an interaction with this frame (there is an exception,
+ * inside greetings, but this is only informative, in practical terms
+ * there is no exception for this rule).
+ *
+ * - ERR frame is used to reply to a MSG frame received in an negative
+ * way. Again, a BEEP peer can't init an interaction with this
+ * frame. It is also important to note that some profiles uses ERR
+ * message as a way to notify error replies but other profiles still
+ * use MSG/RPY interaction implementing the error handling inside the
+ * body exchanged. BEEP do not enforce how to implement error handling and error reply.
+ *
+ * - ANS frame is used to implement a one-to-many reply style to a MSG
+ * frame received. The NUL frame is used to finish such reply.
+ *
+ * Now we know BEEP frame types, we will use MSG/RPY basic interaction like follows:
+ *
+ * \code
+ * // with the channel we have created in previous example, we configure the
+ * // frame received handler (you can configure it at openChannel):
+ * channel.onFrameReceivedHandler = frameReceived;
+ * channel.onFrameReceivedContext = this; // this provides a context for frameReceived
+ *                                        // it is not required.
+ *
+ * // now send a MSG frame
+ * channel.sendMSG ("BEEP rocks!");
+ * \endcode
+ *
+ * Now, when the reply arrives, a call to the handler <b>frameReceived</b> will process the content as follows:
+ *
+ * \code
+ * function frameReceived (received) {
+ *     // received object contains a reference to frame, channel and conn (connection)
+ *     var frame   = received.frame;
+ *
+ *     // show content received
+ *     document.write ("<p>Received frame with type: " + frame.type + ", and content: " + frame.content + "</p>");
+ * }
+ * \endcode
+ *
+ * \section jsvortex_manual_sasl_auth Using SASL to authenticate BEEP peers
+ *
+ * BEEP has built-in support for peer authentication using SASL framework. This provides session central
+ * authentication making all channels running on the same connection to be bound to such authentication
+ * credentials.
+ *
+ * Currently jsVortex supports SASL PLAIN and ANONYMOUS mechanism. The first, PLAIN, is the most usual
+ * for simple user/password authentication. Keep in mind that it should be combined with TLS profile since
+ * all auth exchange goes uncyphered over the wire.
+ *
+ * ANONYMOUS mechanism is provided to support such services (like anonymous FTP) that may require
+ * public anonymous access but still requires a tracking string.
+ *
+ * For now, we will concentrate on SASL PLAIN. The idea with SASL is that you use the same activation
+ * code (or really similar) to enable authentication. Thus, enabling PLAIN or CRAM-MD5 requires from
+ * the developer the same steps because SASL framework hides all the details that makes each mechanism different.
+ *
+ * First, you'll have to connect to a BEEP listener. Once you have a connection created, SASL
+ * authentication is enabled as follows:
+ *
+ * \code
+ * // assuming "conn" is a BEEP connection created with new VortexConnection ()
+ * conn.saslAuth ({
+ *    // request sasl PLAIN mechanism
+ *    mech: "PLAIN",
+ *    // provides authentication crendentials
+ *    authenticationId: "alice",
+ *    password: "mySecretPassword",
+ *    // provide notification handlers
+ *    onAuthFinishedHandler: saslAuthFinished,
+ *    onAuthFinishedContext: this
+ * });
+ * \endcode
+ *
+ * Once the authentication process finishes, the handler <b>onAuthFinishedHandler</b> is called.
+ * Here is a template to check auth status:
+ *
+ * \code
+ * function saslAuthFinished (saslResult) {
+ *    // check sasl status
+ *    if (! saslResult.status) {
+ *        document.write ("<p>SASL auth failed, error reported: " + saslResult.statusMsg + "</p>");
+ *        return;
+ *    }
+ *
+ *    // Once SASL auth finish, the connection remains authenticated with the Id
+ *    // provided. A connection can't be reauthenticated
+ *    var conn = saslResult.conn;
+ *
+ *    document.write ("<p>Connection is authenticated? " + conn.isAuthenticated + "</p>");
+ * }
+ * \endcode
  *
  */

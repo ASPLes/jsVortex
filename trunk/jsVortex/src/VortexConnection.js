@@ -9,6 +9,8 @@
  * implements the particular details for the data exchange. Current it
  * is only implemented \ref VortexTCPTransport.
  *
+ * See the following for connection creation examples: \ref jsvortex_manual_creating_a_connection.
+ *
  * @param host {String} The host name to connect to.
  *
  * @param port {String} The port to connect to.

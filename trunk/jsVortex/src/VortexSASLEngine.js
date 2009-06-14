@@ -22,7 +22,6 @@
  *
  * @param params.password {string} (Optional) Password associated to the the authentication user.
  *
- * @method VortexSASLEngine
  */
 function VortexSASLEngine (params) {
     /* record initial data provided (copy all attribues) */
