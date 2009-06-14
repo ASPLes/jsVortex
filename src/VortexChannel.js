@@ -7,9 +7,8 @@
  * @brief Creates a channel object associated to the connection
  * provided, channel number and profile provided.
  *
- * This constructor is not used directly the by API consumer. \ref
- * VortexConnection already creates the channel instance during the
- * BEEP process through \ref VortexConnection.openChannel
+ * This constructor is not used directly the by API consumer. A \ref
+ * VortexConnection instance is used to create channels using:  \ref VortexConnection.openChannel
  *
  * @param conn {VortexConnection} Connection to be associated to the channel.
  *
@@ -39,6 +38,8 @@
  * - \ref VortexFrame frame : The frame that was received.
  * - \ref VortexChannel channel : The channel where the frame was received.
  * - \ref VortexConnection conn : The connection where the frame was received.
+ *
+ * See also the following reference to know more about creating channels: \ref jsvortex_manual_creating_a_channel.
  */
 function VortexChannel (conn,
 			number,
