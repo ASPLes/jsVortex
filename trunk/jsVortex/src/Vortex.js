@@ -101,7 +101,7 @@ if (typeof Vortex == "undefined") {
 Vortex.load = function (basepath) {
 
     /** start **/
-    if (basepath == "undefined") {
+    if (typeof basepath == "undefined") {
 	basepath = "";
     } else if (basepath[basepath.length - 1] != "/") {
 	basepath = basepath + "/";
@@ -179,7 +179,7 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  * mapping (\ref VortexTCPTransport) but it is expected to support other browsers and transport
  * mappings, especially Websocket.
  *
- * Currently jsVortex it provides and implements the following features:
+ * Currently jsVortex provides and implements the following features:
  *
  * - Almost all core BEEP protocol is supported (still missing ANS/NUL
  * frame support). MSG, ERR and RPY frames are fully supported,
@@ -190,13 +190,26 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  *
  * jsVortex is being developed using a regression test suite (using
  * http://www.dojotoolkit.org) to check and ensure all functions implemented are stable across
- * releases. See it in action at: http://www.aspl.es/jsVortex/testConnect.html
+ * releases. The objective is to deliver a professional and commercial grade Javascript BEEP implementation that ensures its function on each release done.
+ * See it in action at: http://www.aspl.es/jsVortex/testConnect.html
  *
- *
+ * See the following documents to know more about jsVortex API and its function:
  *
  * - \ref jsvortex_license
  * - \ref jsvortex_manual
  * - \ref classes_and_modules
+ *
+ * \section community_support Community support
+ *
+ * Community assisted support is provided through the the mailing list located: http://lists.aspl.es/cgi-bin/mailman/listinfo/jsvortex
+ *
+ * \section professional_support Professional ensured support
+ *
+ * <a href="http://www.aspl.es">ASPL</a> provides professional support
+ * for jsVortex inside <i><b>Vortex Library Tech Support program</b></i>. See the
+ * following for more information: http://www.aspl.es/vortex/professional.html
+ *
+ *
  *
  */
 
