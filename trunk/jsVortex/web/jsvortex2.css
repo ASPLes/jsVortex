@@ -1,0 +1,185 @@
+/* azul claro:   #204a87; */
+/* azul oscuro:  #172e4b; */
+
+body { 
+  background-image: url("images/page-rule.png");
+  background-repeat: x-repeat;
+}
+
+img { 
+  border: 0px;
+}
+
+.outerpage { 
+  width: 700px;
+  position: absolute; left: 50%; top: 0%; z-index: 1;
+  margin-left: -350px;
+  height: 100%;
+  font-family: Verdana,Tahoma,Arial,Sans-Serif;
+  font-weight: normal;
+  font-size:   small;
+}
+
+.thepage { 
+  padding: 0px;
+  margin: 0px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+.top-header { 
+  height: 78px;
+  width: 100%;
+  background-image: url("images/header-rule.png");
+  background-repeat: x-repeat;
+  border: 0px;
+  margin: 0px;
+}
+
+.top-header table { 
+  height: 78px;
+  width: 100%;
+  padding: 0px;
+  margin: 0px;
+  border-collapse: collapse;
+}
+
+.top-header table td { 
+  height: 78px;
+  padding: 0px;
+  margin: 0px;
+  vertical-align: top;
+}
+
+td.td-begin { 
+  width: 24px;
+}
+
+td.td-end { 
+  width: 24px;
+}
+
+td.td-image { 
+  width: 75px;
+}
+
+td.td-head-content { 
+  width: 500px;
+}
+
+.top-header-content table { 
+  padding: 0px;
+  margin: 0px;
+  margin-top: 9px;
+}
+
+.head-title { 
+  font-size: 18pt;
+  font-weight: bold;
+  color: #172e4b;
+}
+
+.top-header-content { 
+  height: 78px;
+  background-image: url("images/head-middle.png");
+  background-repeat: x-repeat;
+  padding: 0px;
+  margin: 0px;
+}
+
+.content { 
+  padding: 0px;
+  margin: 0px;
+  padding-top: 8px;
+}
+
+.content table { 
+  padding: 0px;
+  margin: 0px;
+  width: 700px;
+  border-collapse: collapse;
+  border: 0px;
+}
+
+.content table td { 
+  padding: 0px;
+  margin: 0px;
+}
+
+.content table tr { 
+  padding: 0px;
+  margin: 0px;
+}
+
+.body-content { 
+  background-image: url("images/content-middle.png");
+  background-repeat: y-repeat;
+  padding: 20px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+}
+
+.body-content > p { 
+  margin-bottom: 0px;
+}
+
+.body-content > ul { 
+  margin-bottom: 0px;
+}
+
+.body-content > h1 { 
+  padding: 0px;
+  margin: 0px;
+  color: #172e4b;
+  font-size: 14pt;
+  border-left: 5px solid #edd400;
+  padding-left: 5px;
+}
+
+.buttons-menu {
+  padding: 0px;
+  margin: 0px;
+  width: 100%;
+  height: 30px;
+  padding-bottom: 15px;
+}
+
+div.button {
+  align: center;
+  height: 29px;
+  float: left;
+  padding: 0px;
+  margin: 0px;
+  margin-right: 5px;
+}
+
+.button a {
+  font-size: bold;
+  color: white;
+  text-decoration: none;
+}
+
+div.button div {
+  padding: 0px;
+  margin: 0px;
+  width: 75px;
+  padding-top: 7px;
+  padding-left: 28px;
+}
+
+
+div.download {
+  background-image: url("images/download.png");
+  background-repeat: no-repeat;
+}
+
+div.start {
+  background-image: url("images/start.png");
+  background-repeat: no-repeat;
+}
+
+div.doc {
+  background-image: url("images/doc.png");
+  background-repeat: no-repeat;
+}
+
