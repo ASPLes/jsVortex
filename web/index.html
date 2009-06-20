@@ -2,108 +2,99 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<link rel="stylesheet" type="text/css" href="jsvortex.css">
-<title>jsVortex, Javascript BEEP implementation, js BEEP</title>
+<link rel="stylesheet" type="text/css" href="jsvortex2.css">
+<title>jsVortex: javascript BEEP implementation, javascript RFC3080 implementation, Open source javascript BEEP</title>
+
+<!-- load dojo -->
+<script type="text/javascript" src="dojo.js"></script>
+
+<!-- load page content -->
+<script type="text/javascript" src="jsVortexPage.js"></script>
+
 </head>
 
 <body>
-<div class="top-page">
-<div class="top-page-content">
-<div class="top-image">
-<img alt="" src="jsvortex-header-logo.png">
-</div>
-<div class="top-info">
-<h1>Open source Javascript BEEP implementation</h1>
-</div>
-</div><!-- top-page-content -->
-</div>
-<div class="content">
-<div class="buttons-menu">
-   <div class="start button"><div><a href="index.html">Start</a></div></div>
-   <div class="download button"><div><a href="download.html">Download</a></div></div>
-   <div class="doc button"><div><a href="doc.html">Docs!</a></div></div>
-   <div class="spanish button lang"><div><a href="es/index.html">ES</a></div></div>
-</div>
-<table class="page-table">
-  <tr>
-    <td>
-<div class="middle-page">
-
-<h1>What is jsVortex?</h1>
-
-<p>jsVortex is a javascript implementation of the Block Extensible
-Exchange Protocol (BEEP), known as the Beepcore, mainly defined in
-RFC3080 and RFC3081 documents. jsVortex provides an extensible network
-application protocol foundation to produce highly interative internet
-applications on top of the WEB platform.</p>
-
-<p>It is by no mean a complete replacement of the HTTP protocol, but a
-complement and, in some cases an alternative, that is useful were it
-is required "more" features and a "new" way to exchange data between
-the browser and the server.</p>
-
-<p>Currently <a href="http://www.mozilla.org">Firefox</a> it is the only supported browser, but the intention is
-to cover more browsers in the future. </p>
-
-<p>jsVortex was written by <a href="http://www.aspl.es">ASPL</a>,
-developers of <a href="http://www.aspl.es/vortex">Vortex Library</a>
-and <a href="http://www.aspl.es/turbulence">Turbulence</a>.</p>
-
-<h1>What is BEEP?</h1>
-
-<p>BEEP (<a href="http://www.beepcore.org">http://www.beepcore.org</a>) is a
-powerful network application protocol definition that allows to
-design the best solution for your data exchange needs. To do so, it provides the
-better practices and features that are "always" required by any networked application:</p>
-<ul class="features">
-
-<li>Built-in authentication framework with SASL.</li>
-<li>Secure sessions with TLS.</li>
-<li>Asynchronous exchange: both peers may issue and receive a BEEP
-message at any time.</li>
-<li>Support for channels which allows to separate and better reuse
-several application protocols on top of the same BEEP session.</li>
-<li>A rich set of predefined message types and exchange styles: MSG, RPY, ERR and ANS/NUL.</li>
-<li>Built-in MIME support.</li>
-
-<li>Built-in real-time profile negotiation which allows deploying
-different versions of the same protocol without problems, mixing diffent profiles or to
-implement true TLS virtual hosting on the same IP.</li>
-
-</ul>
-
-
+<div class="outerpage">
+  <div class="thepage">
+   <div class="top-header">
+     <table>
+       <tr><td class="td-begin"><img src="images/head-begin.png"></img></td><td>
+          <div class="top-header-content">
+            <table>
+	      <tr>
+  	        <td class="td-image"><img alt="[jsvortex logo]" src="images/jsvortex-logo.png"></img></td>
+                <td class="td-head-content"><span class="head-title"><a href="http://www.aspl.es/jsVortex">jsVortex</a>: </span><br /><span class="head-subtitle">Open Source Javascript BEEP implementation!</span></td>
+  	        <td class="td-aspl-logo"><a href="http://www.aspl.es"><img alt="[aspl logo]" src="images/aspl-alt-logo.png"></img></a></td>
+	      </tr>
+	    </table>
+	  </div>
+       </td><td class="td-end"><img src="images/head-end.png"></img></td></tr>
+     </table>
+   </div>
+   <div class="content">
+    <table>
+      <tr><td><img src="images/content-begin.png" alt="[content begin]"></img></td></tr>
+      <tr><td>
+        <div class="body-content">
+	  <div class="buttons-menu">
+	    <div class="start button"><div><a href="index.html">Start</a></div></div>
+	    <div class="news button"><div><a href="news.html"> News!</a></div></div>
+	    <div class="download button"><div><a href="download.html">Download</a></div></div>
+	    <div class="doc button"><div><a href="doc.html">Docs!</a></div></div>
+	    <div class="professional button"><div><a href="professional.html">Services</a></div></div>
+	    <div class="about button"><div><a href="about.html">About</a></div></div>
+	  </div>
+	  <h1>What is <a href="http://www.aspl.es/jsVortex">jsVortex</a>?</h1>
+	  
+	  <p><a href="http://www.aspl.es/jsVortex">jsVortex</a> is a javascript implementation of the Block
+	  Extensible Exchange Protocol (BEEP), known as the Beepcore,
+	  defined
+	  in <a href="http://www.rfc-editor.org/rfc/rfc3080.txt">RFC3080</a>
+	  and <a href="http://www.rfc-editor.org/rfc/rfc3080.txt">RFC3081</a> documents. <a href="http://www.aspl.es/jsVortex">jsVortex</a>
+	  provides an extensible network application protocol to
+	  produce highly interactive Internet applications on top of
+	  the WEB platform.</p>
+	  
+	  <p>It is by no mean a complete replacement of the HTTP protocol, but a
+	  complement and in some cases an alternative. <a href="http://www.aspl.es/jsVortex">jsVortex</a> is useful were it
+	  is required "more" features and a "better" way to exchange data between
+	  the browser and the server.</p>
+	  
+	  <p>Currently <a href="http://www.mozilla.org">Firefox</a> it is the only supported browser, but the intention is
+	  to cover more browsers in the future. </p>
+	  
+	  <p><a href="http://www.aspl.es/jsVortex">jsVortex</a> was
+	  written and maintained by <a href="http://www.aspl.es">ASPL</a>,
+	  developers of <a href="http://www.aspl.es/vortex">Vortex Library</a>
+	  and <a href="http://www.aspl.es/turbulence">Turbulence</a>.</p>
+	  
+	  <br/>  
+	  <h1>What is BEEP?</h1>
+	  
+	  <p>BEEP (<a href="http://www.beepcore.org">http://www.beepcore.org</a>) is a
+	  powerful network application protocol definition that allows to
+	  design the best solution for your data exchange needs. To do so, it provides the
+	  better practices and features that are "always" required by any networked application:</p>
+	  <ul class="features">
+	    
+	    <li>Built-in authentication framework with SASL.</li>
+	    <li>Secure sessions with TLS.</li>
+	    <li>Asynchronous exchange: both peers may issue and receive a BEEP
+	    message at any time.</li>
+	    <li>Support for channels which allows to separate and better reuse
+	    several application protocols on top of the same BEEP session.</li>
+	    <li>A rich set of predefined message types and exchange styles: MSG, RPY, ERR and ANS/NUL.</li>
+	    <li>Built-in MIME support.</li>
+	    
+	    <li>Built-in real-time profile negotiation which allows deploying
+	    different versions of the same protocol without problems, mixing different profiles or to
+	    implement true TLS virtual hosting on the same IP.</li>
+	    
+	  </ul>
+	</div><!-- body-content -->
+      </td></tr>
+      <tr><td><img src="images/content-end.png" alt="[content end]"></img></td></tr>
+   </div>
   </div>
-</td>
-<td>
-  <div class="lateral-page">
-<h1>News</h1>
-
-<ul class="news">
-<li><span class="date">2009/05/19:</span> <b>First public release: jsVortex 0.2.1 "There's no spoon"</b><br>
-
-<p>This is the first public release of jsVortex mainly to show the
-progress done until now and to get feedback about the product. It
-comes with a complete regression test checking implemented
-features. This regression test panel was created with the
-impressive <a href="http://www.dojotoolkit.org">Dojo toolkit</a> product. </p>
-
-</li>
-</ul
-
-
-</div>
-    </td>
-  </tr>
-</table>
-</div> <!-- class="content" -->
-<div class="bottom-page">
-
-<div class="footer">
-&copy; 2009 Advanced Software Production Line, S.L. All rights reserved.<br>
-Webmaster: <a href="mailto:webmaster@aspl.es">webmaster@aspl.es</a><br>
-</div>
-
-</div>
-
+</div><!-- thepage -->
 </body> </html>

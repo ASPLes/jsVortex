@@ -2,89 +2,106 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<link rel="stylesheet" type="text/css" href="jsvortex.css">
-<title>jsVortex, Javascript BEEP implementation, js BEEP</title>
+<link rel="stylesheet" type="text/css" href="jsvortex2.css">
+<title>jsVortex: javascript BEEP implementation, javascript RFC3080 implementation, Open source javascript BEEP</title>
+
+<!-- load dojo -->
+<script type="text/javascript" src="dojo.js"></script>
+
+<!-- load page content -->
+<script type="text/javascript" src="jsVortexPage.js"></script>
+
 </head>
 
 <body>
-<div class="top-page">
-<div class="top-page-content">
-<div class="top-image">
-<img alt="" src="jsvortex-header-logo.png">
-</div>
-<div class="top-info">
-<h1>Open source Javascript BEEP implementation</h1>
-</div>
-</div><!-- top-page-content -->
-</div>
-<div class="content">
-<div class="buttons-menu">
-   <div class="start button"><div><a href="index.html">Start</a></div></div>
-   <div class="download button"><div><a href="download.html">Download</a></div></div>
-   <div class="doc button"><div><a href="doc.html">Docs!</a></div></div>
-   <div class="spanish button lang"><div><a href="es/index.html">ES</a></div></div>
-</div>
-<table class="page-table">
-  <tr>
-    <td>
-<div class="single-page">
+<div class="outerpage">
+  <div class="thepage">
+   <div class="top-header">
+     <table>
+       <tr><td class="td-begin"><img src="images/head-begin.png"></img></td><td>
+          <div class="top-header-content">
+            <table>
+	      <tr>
+  	        <td class="td-image"><img alt="[jsvortex logo]" src="images/jsvortex-logo.png"></img></td>
+                <td class="td-head-content"><span class="head-title"><a href="http://www.aspl.es/jsVortex">jsVortex</a>: </span><br /><span class="head-subtitle">Open Source Javascript BEEP implementation!</span></td>
+  	        <td class="td-aspl-logo"><a href="http://www.aspl.es"><img alt="[aspl logo]" src="images/aspl-alt-logo.png"></img></a></td>
+	      </tr>
+	    </table>
+	  </div>
+       </td><td class="td-end"><img src="images/head-end.png"></img></td></tr>
+     </table>
+   </div>
+   <div class="content">
+    <table>
+      <tr><td><img src="images/content-begin.png" alt="[content begin]"></img></td></tr>
+      <tr><td>
+        <div class="body-content">
+	  <div class="buttons-menu">
+	    <div class="start button"><div><a href="index.html">Start</a></div></div>
+	    <div class="news button"><div><a href="news.html"> News!</a></div></div>
+	    <div class="download button"><div><a href="download.html">Download</a></div></div>
+	    <div class="doc button"><div><a href="doc.html">Docs!</a></div></div>
+	    <div class="professional button"><div><a href="professional.html">Services</a></div></div>
+	    <div class="about button"><div><a href="about.html">About</a></div></div>
+	  </div>
 
-<h1>Firefox browser configuration</h1>
+	  <h1>Firefox browser configuration</h1>
 
-<p>Firefox jsVortex support uses mozilla sockets API provided by several interfaces
-that are restricted for security reasons. Thus, you have to enable
-firefox to ask the user to accept those components to be used. This is
-done following the next steps: </p>
+	  <p>Firefox jsVortex support uses mozilla sockets API provided by several interfaces
+	    that are restricted for security reasons. Thus, you have to enable
+	    firefox to ask the user to accept those components to be used. This is
+	    done following the next steps: </p>
 
-<ol class="enumeration">
-<li>Type in your firefox brower the following url: <b>about:config</b> and accept the warning to enter inside firefox user configuration.<br>
-<div class="center" >
- <img src="firefox-about-config.png" alt="firefox-about-config">
-</div>
-</li>
-<li>Now search for "signed" keyword and double click on <b>"signed.applets.codebase_principal_support"</b> to leave it as true.<br>
-
-<div class="center" >
- <img src="firefox-signed-applets.png" alt="firefox-signed-applets">
-</div>
-</li>
-
-<li>Now the first time that the user access to a jsVortex enabled page
-will be asked to allow accessing to priviledge API. This dialog must
-be accepted, setting "rembember this decision for this site".</li>
-<div class="center" >
- <img src="firefox-ask-user-permission-en.png" alt="firefox-ask-user-permission-en">
-</div>
-</ol>
-
-<h1>Advanced configuration</h1>
-
-<p>Enabling <b>signed.applets.codebase_principal_support</b> is
-problematic because may enable other sites to ask for permission that
-may be granted by unwary users. The following are the steps to keep
-permissions granted having disabled
-<b>signed.applets.codebase_principal_support</b>:</p>
-
-<ol class="enumeration">
-<li>Once you have granted the site using jsVortex to acquire its
-  permissions to run, you have to edit the file <b>prefs.js</b>
-  located in you profile. See the following document to <a
-  href="http://support.mozilla.com/en-US/kb/Profiles">find your
-  profile location</a>.
-  </li>
-<li>Having the brower stopped, search for the lines that have granted
-  permissions to the particular site. They should look like:
-
+	  <ol class="enumeration">
+	    <li>Type in your firefox brower the following url: <b>about:config</b> and accept the warning to enter inside firefox user configuration.<br>
+	      <div class="center" >
+		<img src="firefox-about-config.png" alt="firefox-about-config">
+	      </div>
+	    </li>
+	    <li>Now search for "signed" keyword and double click on <b>"signed.applets.codebase_principal_support"</b> to leave it as true.<br>
+	      
+	      <div class="center" >
+		<img src="firefox-signed-applets.png" alt="firefox-signed-applets">
+	      </div>
+	    </li>
+	    
+	    <li>Now the first time that the user access to a jsVortex enabled page
+	      will be asked to allow accessing to priviledge API. This dialog must
+	      be accepted, setting "rembember this decision for this site".</li>
+	    <div class="large-image" >
+	      <img src="firefox-ask-user-permission-en.png" alt="firefox-ask-user-permission-en">
+	    </div>
+	  </ol>
+	  
+	  <br />
+	  <h1>Advanced configuration</h1>
+	  
+	  <p>Enabling <b>signed.applets.codebase_principal_support</b> is
+	    problematic because may enable other sites to ask for permission that
+	    may be granted by unwary users. The following are the steps to keep
+	    permissions granted having disabled
+	    <b>signed.applets.codebase_principal_support</b>:</p>
+	  
+	  <ol class="enumeration">
+	    <li>Once you have granted the site using jsVortex to acquire its
+	      permissions to run, you have to edit the file <b>prefs.js</b>
+	      located in you profile. See the following document to <a
+								       href="http://support.mozilla.com/en-US/kb/Profiles">find your
+		profile location</a>.
+	    </li>
+	    <li>Having the brower stopped, search for the lines that have granted
+	      permissions to the particular site. They should look like:
+	      
 <pre class="code">
 user_pref("capability.principal.codebase.p1.granted", "UniversalXPConnect");
 user_pref("capability.principal.codebase.p1.id", "http://jsvortex-regtest");
 user_pref("capability.principal.codebase.p1.subjectName", "");
 </pre>
-</li>
-
-<li>Now update them by replacing <b>".codebase."</b> with
-<b>".codebaseTrusted."</b>, leaving them as follow:
-
+	    </li>
+	    
+	    <li>Now update them by replacing <b>".codebase."</b> with
+	      <b>".codebaseTrusted."</b>, leaving them as follow:
+	      
 <pre class="code">
 user_pref("capability.principal.codebaseTrusted.p1.granted", "UniversalXPConnect");
 user_pref("capability.principal.codebaseTrusted.p1.id", "http://jsvortex-regtest");
@@ -92,29 +109,16 @@ user_pref("capability.principal.codebaseTrusted.p1.subjectName", "");
 </pre>
 </li>
 
-<li>Now you can safely disable
-<b>signed.applets.codebase_principal_support</b> as described in
-previous section.</b>
-</li>
-</ol>
+	    <li>Now you can safely disable
+	      <b>signed.applets.codebase_principal_support</b> as described in
+	      previous section.</b>
+            </li>
+           </ol>
 
-</div><!-- single-page -->
-</td>
-<td>
-<div class="lateral-page">
-
-</div><!-- lateral-page -->
-    </td>
-  </tr>
-</table>
-</div> <!-- class="content" -->
-<div class="bottom-page">
-
-<div class="footer">
-&copy; 2009 Advanced Software Production Line, S.L. All rights reserved.<br>
-Webmaster: <a href="mailto:webmaster@aspl.es">webmaster@aspl.es</a><br>
-</div>
-
-</div>
-
+	</div><!-- body-content -->
+      </td></tr>
+      <tr><td><img src="images/content-end.png" alt="[content end]"></img></td></tr>
+   </div>
+  </div>
+</div><!-- thepage -->
 </body> </html>
