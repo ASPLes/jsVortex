@@ -9,6 +9,10 @@ h1 {
   margin: 0px;
 }
 
+.aspl-logo {
+  float: right;
+}
+
 .vortex-regtest-header {
   width: 100%;
   padding: 0px;
