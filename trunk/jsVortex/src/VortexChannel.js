@@ -474,7 +474,7 @@ VortexChannel.prototype.sendCommon = function (content, type) {
 	    this.nextReplyMsgno++;
     } else {
 	/* MSG frames */
-	frame        = "MSG " + this.number + " " + this.nextMsgno + " " +
+	frame        = type + " " + this.number + " " + this.nextMsgno + " " +
 	    (isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + (content.length) + "\r\n" + content + "END\r\n";
 
 	/* increase nextMsgno only if we have sent a complete message */
