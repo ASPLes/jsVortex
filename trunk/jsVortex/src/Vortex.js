@@ -482,3 +482,63 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  * \endcode
  *
  */
+
+/**
+ * \page jsvortex_regression_test How to configure a local jsVortex regression test
+ *
+ * \section jsvortex_regression_test_intro Introduction
+ *
+ * The following are the set of instructions to configure a regression test environment
+ * in your local network. To do so, you have to prepare a vortex library installation,
+ * an apache (or similar) and the dojo stuff required by the regression test panel.
+ *
+ * \section jsvortex_regression_test_preparing Preparation
+ *
+ * <ol>
+ *  <li>First, you have to configure an HTTP server to load the panel and jsVortex sources.
+ *      You can use the example found at: https://dolphin.aspl.es/svn/publico/af-arch/trunk/jsVortex/doc/jsvortex-regtest.apache2.conf.
+ *
+ *  Once you have configured it, make sure you can access the regression test page using an
+ *  URL similar to http://jsvortex-regtest/jsVortex/test/testConnect.html. It is assumed you are
+ *  using <b>jsvortex-regtest</b> as host name, but this can be any other value. The important
+ *  element to meet is the url pattern above. Do not worry if the panel does not load properly.
+ *  This is expected.
+ * </li>
+ *
+ * <li>Now, you have to prepare all dojo stuff (http://www.dojotoolkit.org).
+ *  Fortunately we have already prepared a custom dojo built with all pieces required.
+ *  Download the content from: http://www.aspl.es/jsVortex/test/testConnect.dojo.zip and
+ *  unpack it into the <b>test/</b> directory (the same directory where testConnect.html file is located).
+ *
+ * \code
+ * >> cd test/
+ * >> wget http://www.aspl.es/jsVortex/test/testConnect.dojo.zip
+ * >> unzip testConnect.dojo.zip
+ * >> mv testConnect dojoroot
+ * \endcode
+ *
+ * </li>
+ *
+ * <li>Now, we have to place all jsVortex sources in a sibling directory to <b>test/</b>,
+ * called <b>src/</b>. That is, testConnect.html is expecting to find Vortex.js at the
+ * following URL: http://jsvortex-regtest/jsVortex/src/Vortex.js</li>
+ *
+ * <li>Now, make sure you have read http://www.aspl.es/jsVortex/firefox.html to properly run test.</li>
+ *
+ * <li>Now, you'll have to download latest Vortex Library 1.1 and install it on the
+ * system that will act as server. Follow instructions indicated at http://www.aspl.es/vortex.
+ * Once you have Vortex Library installed, you must run regression test server found inside Vortex
+ * Library <b>test/</b> directory.
+ *
+ * \code
+ * >> ./vortex-regression-test
+ * \endcode
+ *
+ * <li>If you did properly configure everything you should be able to load regression
+ * test from http://jsvortex-regtest/jsVortex/test/testConnect.html, using as host the
+ * listener running <b>vortex-regression-test</b> and port <b>44010</b>.
+ * </li>
+ *
+ * </ol>
+ *
+ */
