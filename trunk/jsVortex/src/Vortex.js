@@ -191,7 +191,6 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  * jsVortex is being developed using a regression test suite (using
  * http://www.dojotoolkit.org) to check and ensure all functions implemented are stable across
  * releases. The objective is to deliver a professional and commercial grade Javascript BEEP implementation that ensures its function on each release done.
- * See it in action at: http://www.aspl.es/jsVortex/testConnect.html
  *
  * See the following documents to know more about jsVortex API and its function:
  *
@@ -220,7 +219,7 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  *
  * All source code, utils, script and material associated to jsVortex
  * is license under the terms of the LGPL 2.1. You can get a full
- * english copy of this license at: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+ * English copy of this license at: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  *
  * \section jsvortex_license_implications jsVortex license implications
  *
@@ -299,7 +298,7 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  * if remote peer accepts the connection, then a working connection will be created.
  *
  * Due to the nature of Javascript execution context, this call will
- * return immediatly, notifying connection result on: \ref VortexConnection.connectionCreatedHandler.param.
+ * return immediately, notifying connection result on: \ref VortexConnection.connectionCreatedHandler.param.
  * For your application management you can store the reference returned by new \ref VortexConnection, but this
  * reference must not be used until notified by \ref VortexConnection.connectionCreatedHandler.param.
  *
@@ -380,7 +379,7 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  * receive messages issued by the remote peer. This is important:
  *
  * \note BEEP is peer oriented, there is no client or server concept but initiator and
- * listener with the only intention to differenciate what peer created the connection. After
+ * listener with the only intention to differentiate what peer created the connection. After
  * that point, both peers, initiator and listener, can create channels and issue messages, and as such, both peers must be prepared
  * for this situation.
  *
