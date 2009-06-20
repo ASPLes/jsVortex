@@ -9,14 +9,17 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="568.73114"
-   height="568.73114"
+   width="488.61874"
+   height="497.21078"
    id="svg5114"
    sodipodi:version="0.32"
    inkscape:version="0.46"
    sodipodi:docname="jsVortex3.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
-   version="1.0">
+   version="1.0"
+   inkscape:export-filename="/home/acinom/af-arch/jsVortex/web/images/jsvortex-logo.png"
+   inkscape:export-xdpi="11.05"
+   inkscape:export-ydpi="11.05">
   <defs
      id="defs5116">
     <linearGradient
@@ -53,26 +56,6 @@
     <linearGradient
        inkscape:collect="always"
        xlink:href="#linearGradient5691"
-       id="linearGradient5697"
-       x1="150.9886"
-       y1="119.82904"
-       x2="307.88516"
-       y2="395.3374"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(1.7278389,5.1835166)" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient5701"
-       id="linearGradient5707"
-       x1="624.75067"
-       y1="713.19232"
-       x2="489.97922"
-       y2="570.90234"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.8589352,0,0,1,88.130342,0)" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient5691"
        id="linearGradient5749"
        gradientUnits="userSpaceOnUse"
        gradientTransform="translate(1.7278389,5.1835166)"
@@ -99,8 +82,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.57875767"
-     inkscape:cx="487.61658"
-     inkscape:cy="611.23514"
+     inkscape:cx="387.40192"
+     inkscape:cy="4.7636959"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -125,17 +108,7 @@
      inkscape:label="Capa 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-111.30955,-180.53139)">
-    <path
-       sodipodi:type="arc"
-       style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       id="path5729"
-       sodipodi:cx="404.3143"
-       sodipodi:cy="490.81454"
-       sodipodi:rx="283.36557"
-       sodipodi:ry="283.36557"
-       d="M 687.67987,490.81454 A 283.36557,283.36557 0 1 1 120.94873,490.81454 A 283.36557,283.36557 0 1 1 687.67987,490.81454 z"
-       transform="translate(-8.6391832,-25.917589)" />
+     transform="translate(-151.36574,-216.29156)">
     <g
        id="g5731"
        transform="translate(7.5050102,-8.3569645)">
