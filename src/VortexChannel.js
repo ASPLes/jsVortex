@@ -220,6 +220,34 @@ VortexChannel.prototype.sendMSG = function (content, mimeHeaders) {
 };
 
 /**
+ * @brief Allows to send a message over the channe selected using ERR
+ * frame type.
+ *
+ * The method receives the content to be sent and an array of MIME
+ * headers (\ref VortexMimeHeader).
+ *
+ * @param content {String} The message to be sent over this channel.
+ *
+ * @param mimeHeaders {VortexMimeHeader []} ? An list of MIME headers to
+ * associate with the message.
+ *
+ * @return {Boolean} The function returns true if the send operation was
+ * completed or partially completed or still not send because the
+ * message was queued (pending for a SEQ frame) but no error was
+ * found. In the case an unrecoverable error is found, the function
+ * returns false. You must also check for \ref VortexChannel.lastStatusCode to
+ * get more information for the last operation.
+ *
+ */
+VortexChannel.prototype.sendERR = function (content, mimeHeaders) {
+    /* build mime headers provided by the user */
+    var _mimeHeaders = this.getMimeHeaders (mimeHeaders);
+
+    /* use common implementation */
+    return this.sendCommon (_mimeHeaders + "\r\n" + content, "ERR");
+};
+
+/**
  * @brief Sends content the provided over the channel using RPY frame
  * type. The method checks if the connection is ready and the
  * transport available.
