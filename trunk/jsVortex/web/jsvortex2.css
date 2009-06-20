@@ -6,6 +6,11 @@ body {
   background-repeat: x-repeat;
 }
 
+a {
+ font-weight: bold;
+ color: #172e4b;
+}
+
 img { 
   border: 0px;
 }
@@ -15,7 +20,7 @@ img {
   position: absolute; left: 50%; top: 0%; z-index: 1;
   margin-left: -350px;
   height: 100%;
-  font-family: Verdana,Tahoma,Arial,Sans-Serif;
+  font-family: TrebuchetMS, Verdana,Tahoma,Arial,Sans-Serif;
   font-weight: normal;
   font-size:   small;
 }
@@ -67,10 +72,18 @@ td.td-head-content {
   width: 500px;
 }
 
+.top-header-content { 
+  height: 69px;
+  background-image: url("images/head-middle.png");
+  background-repeat: x-repeat;
+  padding: 0px;
+  margin: 0px;
+  padding-top: 9px;
+}
+
 .top-header-content table { 
   padding: 0px;
   margin: 0px;
-  margin-top: 9px;
 }
 
 .head-title { 
@@ -79,12 +92,14 @@ td.td-head-content {
   color: #172e4b;
 }
 
-.top-header-content { 
-  height: 78px;
-  background-image: url("images/head-middle.png");
-  background-repeat: x-repeat;
-  padding: 0px;
-  margin: 0px;
+.head-title a {
+  text-decoration: none;
+  color: #172e4b;
+}
+
+.head-subtitle {
+  color: #172e4b;
+  font-size: 14pt;
 }
 
 .content { 
@@ -183,3 +198,81 @@ div.doc {
   background-repeat: no-repeat;
 }
 
+div.news {
+  background-image: url("images/news.png");
+  background-repeat: no-repeat;
+}
+
+div.news a {
+  padding-left: 6px;
+}
+
+div.professional {
+  background-image: url("images/professional.png");
+  background-repeat: no-repeat;
+}
+
+div.about {
+  background-image: url("images/about.png");
+  background-repeat: no-repeat;
+}
+
+ul.news {
+  padding-bottom: 0px;
+  margin-bottom: 0px;
+}
+
+ul.news li {
+  list-style: none;
+}
+
+ul.news li p {
+  margin-bottom: 0px;
+  margin-top: 0px;
+  padding-top: 3px;
+  padding-bottom: 6px;
+ 
+}
+
+p.link {
+  margin-left: 30px;
+  margin-right: 30px;
+  padding: 6px;
+  background: #eeeeec;
+  border: 1px solid #cacaca;
+}
+
+pre.code {
+  border: 1px solid #cacaca;
+  background: #2e3436; 
+  color: white;
+  margin-left: 30px;
+  margin-right: 30px;
+  padding: 5px;
+}
+
+pre.code .comment {
+  color: #eec73e;
+}
+
+.center {
+  text-align: center;
+  padding: 4px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+
+ol.enumeration {
+  margin-bottom: 0px;
+}
+
+ol.enumeration li { 
+ padding-bottom: 15px;
+ 
+}
+
+.large-image {
+  overflow: auto;
+  width: 600px;
+}

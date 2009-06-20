@@ -2,42 +2,58 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<link rel="stylesheet" type="text/css" href="jsvortex.css">
-<title>jsVortex, Javascript BEEP implementation, js BEEP</title>
+<link rel="stylesheet" type="text/css" href="jsvortex2.css">
+<title>jsVortex: javascript BEEP implementation, javascript RFC3080 implementation, Open source javascript BEEP</title>
+
+<!-- load dojo -->
+<script type="text/javascript" src="dojo.js"></script>
+
+<!-- load page content -->
+<script type="text/javascript" src="jsVortexPage.js"></script>
+
 </head>
 
 <body>
-<div class="top-page">
-<div class="top-page-content">
-<div class="top-image">
-<img alt="" src="jsvortex-header-logo.png">
-</div>
-<div class="top-info">
-<h1>Open source Javascript BEEP implementation</h1>
-</div>
-</div><!-- top-page-content -->
-</div>
-<div class="content">
-<div class="buttons-menu">
-   <div class="start button"><div><a href="index.html">Start</a></div></div>
-   <div class="download button"><div><a href="download.html">Download</a></div></div>
-   <div class="doc button"><div><a href="doc.html">Docs!</a></div></div>
-   <div class="spanish button lang"><div><a href="es/index.html">ES</a></div></div>
-</div>
-<table class="page-table">
-  <tr>
-    <td>
-<div class="single-page">
+<div class="outerpage">
+  <div class="thepage">
+   <div class="top-header">
+     <table>
+       <tr><td class="td-begin"><img src="images/head-begin.png"></img></td><td>
+          <div class="top-header-content">
+            <table>
+	      <tr>
+  	        <td class="td-image"><img alt="[jsvortex logo]" src="images/jsvortex-logo.png"></img></td>
+                <td class="td-head-content"><span class="head-title"><a href="http://www.aspl.es/jsVortex">jsVortex</a>: </span><br /><span class="head-subtitle">Open Source Javascript BEEP implementation!</span></td>
+  	        <td class="td-aspl-logo"><a href="http://www.aspl.es"><img alt="[aspl logo]" src="images/aspl-alt-logo.png"></img></a></td>
+	      </tr>
+	    </table>
+	  </div>
+       </td><td class="td-end"><img src="images/head-end.png"></img></td></tr>
+     </table>
+   </div>
+   <div class="content">
+    <table>
+      <tr><td><img src="images/content-begin.png" alt="[content begin]"></img></td></tr>
+      <tr><td>
+        <div class="body-content">
+	  <div class="buttons-menu">
+	    <div class="start button"><div><a href="index.html">Start</a></div></div>
+	    <div class="news button"><div><a href="news.html"> News!</a></div></div>
+	    <div class="download button"><div><a href="download.html">Download</a></div></div>
+	    <div class="doc button"><div><a href="doc.html">Docs!</a></div></div>
+	    <div class="professional button"><div><a href="professional.html">Services</a></div></div>
+	    <div class="about button"><div><a href="about.html">About</a></div></div>
+	  </div>
 
-<h1>Download jsVortex sources</h1>
+	  <h1>Download jsVortex sources</h1>
 
-<p>Take a look into vortexlibrary sourceforce site to download latest
-jsVortex sources. </p>
+	  <p>Take a look into vortexlibrary sourceforce site to download latest
+	    jsVortex sources. </p>
 
-<p class="link"><a href="http://www.sf.net/projects/vortexlibrary">http://www.sf.net/projects/vortexlibrary</a></p>
+	  <p class="link"><a href="http://www.sf.net/projects/vortexlibrary">http://www.sf.net/projects/vortexlibrary</a></p>
 
-<p>Uncompress sources and add the following header to your page to
-load the Vortex.js (you have to do appropriate changes to the path to Vortex.js): </p>
+	  <p>Uncompress sources and add the following header to your page to
+	    load the Vortex.js (you have to do appropriate changes to the path to Vortex.js): </p>
 
 <pre class="code">
   <span class="comment">&lt;!-- include jsVortex files: place this code inside &lt;head> --></span>
@@ -45,35 +61,22 @@ load the Vortex.js (you have to do appropriate changes to the path to Vortex.js)
   &lt;script src="/path/to/Vortex.js" type="text/javascript"></script>
 </pre>
 
-<p>Currently it is required to configure your Firefox browser to use
-jsVortex. <a href="firefox.html">See this document.</a></p>
+          <p>Currently it is required to configure your Firefox browser to use
+	    jsVortex. <a href="firefox.html">See this document.</a></p>
 
-<h1>jsVortex regression test</h1>
+	  <br />
+	  <h1>jsVortex regression test</h1>
 
-<p>jsVortex development is checked against a regression test to ensure
-  each release, at least, do not break existing checked
-  functionality. You can check latest regression test at: </p>
+          <p>jsVortex development is checked against a regression test to ensure
+	    each release, at least, do not break existing checked
+	    functionality. You can check latest regression test at: </p>
 
-<p class="link"><a href="http://www.aspl.es/jsVortex/test/testConnect.html">http://www.aspl.es/jsVortex/test/testConnect.html</a></p>
+          <p class="link"><a href="http://www.aspl.es/jsVortex/test/testConnect.html">http://www.aspl.es/jsVortex/test/testConnect.html</a></p>
 
-  </div><!-- single-page -->
-</td>
-<td>
-<div class="lateral-page">
-
-</div><!-- lateral-page -->
-    </td>
-  </tr>
-</table>
-
-</div> <!-- class="content" -->
-<div class="bottom-page">
-
-<div class="footer">
-&copy; 2009 Advanced Software Production Line, S.L. All rights reserved.<br>
-Webmaster: <a href="mailto:webmaster@aspl.es">webmaster@aspl.es</a><br>
-</div>
-
-</div>
-
+	</div><!-- body-content -->
+      </td></tr>
+      <tr><td><img src="images/content-end.png" alt="[content end]"></img></td></tr>
+   </div>
+  </div>
+</div><!-- thepage -->
 </body> </html>
