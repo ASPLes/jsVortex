@@ -200,13 +200,13 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  *
  * \section community_support Community support
  *
- * Community assisted support is provided through the the mailing list located: http://lists.aspl.es/cgi-bin/mailman/listinfo/jsvortex
+ * Community assisted support is provided through Vortex Library mailing list located at: http://lists.aspl.es/cgi-bin/mailman/listinfo/vortex.
  *
  * \section professional_support Professional ensured support
  *
  * <a href="http://www.aspl.es">ASPL</a> provides professional support
  * for jsVortex inside <i><b>Vortex Library Tech Support program</b></i>. See the
- * following for more information: http://www.aspl.es/vortex/professional.html
+ * following for more information: http://www.aspl.es/jsVortex/professional.html
  *
  *
  *
