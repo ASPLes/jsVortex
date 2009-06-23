@@ -20,9 +20,8 @@ img {
   position: absolute; left: 50%; top: 0%; z-index: 1;
   margin-left: -350px;
   height: 100%;
-  font-family: TrebuchetMS, Verdana,Tahoma,Arial,Sans-Serif;
-  font-weight: normal;
-  font-size:   small;
+  font-family: TrebuchetMS, Verdana,Tahoma,Arial,Helvetica,Sans-Serif;
+  font-size: 13px;
 }
 
 .thepage { 
@@ -99,7 +98,8 @@ td.td-head-content {
 
 .head-subtitle {
   color: #172e4b;
-  font-size: 14pt;
+  font-size: 13px;
+  font-weight: bold;
 }
 
 .content { 
@@ -168,7 +168,7 @@ div.button {
   margin-right: 5px;
 }
 
-.button a {
+a.button {
   font-size: bold;
   color: white;
   text-decoration: none;
@@ -203,9 +203,11 @@ div.news {
   background-repeat: no-repeat;
 }
 
-div.news a {
-  padding-left: 6px;
+div.news div { 
+  margin-left: 10px;
+  width: 62px;
 }
+
 
 div.professional {
   background-image: url("images/professional.png");
