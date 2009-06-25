@@ -8,25 +8,25 @@
  * and send content that is replied by remote side. This is an
  * echo profile.
  */
-const REGRESSION_URI      = 'http://iana.org/beep/transient/vortex-regression';
+var REGRESSION_URI      = "http://iana.org/beep/transient/vortex-regression";
 
 /**
  * @brief Profile used to check channel start denial.
  */
-const REGRESSION_URI_DENY = "http://iana.org/beep/transient/vortex-regression/deny";
+var REGRESSION_URI_DENY = "http://iana.org/beep/transient/vortex-regression/deny";
 
 /**
  * @brief Profile used to check support to receive
  * messages from remote peer just after channel creation.
  */
-const REGRESSION_URI_FAST_SEND = "http://iana.org/beep/transient/vortex-regression/fast-send";
+var REGRESSION_URI_FAST_SEND = "http://iana.org/beep/transient/vortex-regression/fast-send";
 
 /**
  * @brief Profile used to check support for connection lost during
  * operation normal operation (frame received, start channel and close
  * channel).
  */
-const REGRESSION_URI_SUDDENTLY_CLOSE = "http://iana.org/beep/transient/vortex-regression/suddently-close";
+var REGRESSION_URI_SUDDENTLY_CLOSE = "http://iana.org/beep/transient/vortex-regression/suddently-close";
 
 /******* BEGIN: testTlsProfile ******/
 function testTlsProfile () {
@@ -2591,7 +2591,11 @@ function prepareTest () {
 
 	/* create the label to be associated to the checkBox */
 	var label = document.createElement ("label");
-	label.for = tests[test].name;
+
+	/* label.for = tests[test].name; */
+	dojo.attr (label, 'for', tests[test].name);
+	dojo.attr (label, 'htmlFor', tests[test].name);
+
 	label.innerHTML = "TEST-" + test + ": " + tests[test].name;
 
 	/* create check box */
