@@ -136,6 +136,7 @@ td.td-head-content {
 
 .body-content > p { 
   margin-bottom: 0px;
+  margin-left: 10px;
 }
 
 .body-content > ul { 
@@ -277,4 +278,23 @@ ol.enumeration li {
 .large-image {
   overflow: auto;
   width: 600px;
+}
+
+.footer { 
+  height: 51px;
+  width: 700px;
+  background-image: url("images/content-end.png");
+  background-repeat: no-repeat;
+  text-align: center;
+  font-size: 9px;
+  padding: 0px;
+  margin: 0px;
+  padding-top: 12px;
+  color: #555753;
+}
+
+.footer div { 
+  border-top: 1px solid #d3d7cf;
+  margin-left: 10px;
+  margin-right: 10px;
 }

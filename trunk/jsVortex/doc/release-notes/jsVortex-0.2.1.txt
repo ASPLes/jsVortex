@@ -1,0 +1,73 @@
+                    >>>> jsVortex 0.2.1 <<<<
+                    There's no spoon release       
+
+>>>> Release note
+----------------------------------------------------------------------
+
+  Advanced Software Production Line is proud to announce jsVortex
+  0.2.1 "There's no spoon" release: an Open Source Javascript BEEP
+  implementation.
+
+  jsVortex is a pure Javascript BEEP implementation that is specially
+  designed to run in the context of a web browser, turning it into an
+  effective BEEP peer without too much effort.
+
+  Check out the following links to get ready with jsVortex:
+
+    - http://www.aspl.es/jsVortex
+      [jsVortex homepage]
+
+    - http://www.aspl.es/jsVortex/docs
+      [jsVortex API documentation]
+
+    - http://www.aspl.es/vortex
+      [Vortex Library homepage, used to validate jsVortex]
+ 
+    - http://www.sf.net/projects/vortexlibrary
+      [Source download]
+
+    - http://www.beepcore.org
+      [BEEP Core community web site]
+    
+
+>>>> First release done
+----------------------------------------------------------------------
+
+This is the first public release includes the following general
+features:
+
+ * Implemented initial core BEEP protocol: MSG, RPY, ERR. It is still
+   missing support ANS/NUL. SEQ frame are fully supported.
+
+ * Implemented initial core SASL framework. Used to implement PLAIN
+   and ANONYMOUS mechanism.
+
+ * Implemented initial core support TLS profile.
+
+ * Implemented a regression test application that will be used to
+   increase and validate all functions implemented:
+    
+     http://www.aspl.es/jsVortex/test/testConnect.html
+
+>>>> About Us
+----------------------------------------------------------------------
+
+  ASPL (Advanced Software Production Line) is a Spanish company that
+  provides services and support to introduce open source products,
+  especially GNU/Linux, into organization's processes.
+
+  Since 2000, ASPL has been providing software development and support
+  services to install GNU/Linux enterprise servers that provides mail,
+  file and firewall services.
+
+  Contact us, English or Spanish, to get commercial support and/or
+  BEEP based development services.
+
+  You can reach us:
+
+       http://www.aspl.es - info@aspl.es
+
+--
+Francis Brosnan Blázquez           - francis@aspl.es
+Advanced Software Production Line  - http://www.aspl.es
+26th jun 2009, Madrid (Spain)
