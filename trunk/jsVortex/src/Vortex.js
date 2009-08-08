@@ -344,7 +344,7 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  *      // request jsVortex to assign next available number
  *      channelNumber: 0,
  *      // configure the handler to be called on channel created
- *      onChannelCreatedHandler : channelCreated,
+ *      onChannelCreatedHandler : channelCreated
  * });
  * \endcode
  *
