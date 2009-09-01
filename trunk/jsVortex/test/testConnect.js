@@ -1888,6 +1888,94 @@ testChannels.CloseResult = function (replyData) {
 };
 /******* END: testChannels ******/
 
+/******* BEGIN: testChannelFind ******/
+function testChannelFind () {
+    /* open a connection */
+    var conn = new VortexConnection (this.host,
+				     this.port,
+				     new VortexTCPTransport (),
+				     testChannelFind.Result, this);
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+}
+
+testChannelFind.Result = function (conn) {
+    /* check connection */
+    if (! checkConnection (conn))
+	return false;
+
+    /* open a channel, now open a channel here to do some useful work */
+    conn.openChannel ({
+	profile: REGRESSION_URI,
+	channelNumber: 0,
+	onChannelCreatedHandler : testChannelFind.ResultCreated,
+	onChannelCreatedContext : this
+    });
+
+    return true;
+};
+
+testChannelFind.ResultCreated = function (channelCreated) {
+    var channel = channelCreated.channel;
+    if (channel == null) {
+	log ("error", "Found channel not created when it was expected proper results..");
+	return false;
+    }
+
+    /* now open again the channel */
+    var conn = channelCreated.conn;
+
+    /* find channel by uri */
+    var channel2 = conn.getChannelByUri (REGRESSION_URI);
+    if (channel2 == null) {
+	log ("error", "Expected to find channel running profile=" + REGRESSION_URI + " but found null reference");
+	return false;
+    }
+
+    /* now check reference returned */
+    if (channel2.profile != REGRESSION_URI) {
+	log ("error", "Expected (2) to find channel running profile=" + REGRESSION_URI + " but found null reference");
+	return false;
+    }
+
+    /* no check find by function */
+    channel2 = conn.getChannelByUri (REGRESSION_URI, function (channel, profile, data) {
+					 if (profile == REGRESSION_URI &&
+					     channel.profile == profile &&
+					     data == 3) {
+					     /* channel found */
+					     return true;
+					 }
+					 /* channel not found */
+					 return false;
+				     }, 3);
+
+    /* find channel by uri */
+    if (channel2 == null) {
+	log ("error", "Expected (3) to find channel running profile=" + REGRESSION_URI + " but found null reference");
+	return false;
+    }
+
+    /* now check reference returned */
+    if (channel2.profile != REGRESSION_URI) {
+	log ("error", "Expected (4) to find channel running profile=" + REGRESSION_URI + " but found null reference");
+	return false;
+    }
+
+    /* close the connection */
+    conn.shutdown ();
+
+    /* call to run the text test */
+    this.nextTest ();
+    return true;
+};
+
+/******* END: testChannelFind ******/
+
 /******* BEGIN: testChannelsInUse ******/
 function testChannelsInUse () {
     /* open a connection */
@@ -2446,7 +2534,8 @@ RegressionTest.prototype.tests = [
     {name: "SASL profile PLAIN support",                testHandler: testSaslPlain},
     {name: "SASL profile PLAIN support (failure)",      testHandler: testSaslPlainFailure},
     {name: "TLS profile support",                       testHandler: testTlsProfile},
-    {name: "BEEP opening channels already in use",      testHandler: testChannelsInUse}
+    {name: "BEEP opening channels already in use",      testHandler: testChannelsInUse},
+    {name: "BEEP check channel find by uri/func",       testHandler: testChannelFind}
 ];
 
 
