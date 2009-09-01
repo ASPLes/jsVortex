@@ -68,6 +68,14 @@ function VortexConnection (host,
     /* PUBLIC: store properties */
 
     /**
+     * @brief Channels available on the connection. The attribute
+     * contains a hash where the index is the channel number and the
+     * value is the \ref VortexChannel object.
+     * @type Hash
+     */
+    this.channels = {};
+
+    /**
      * @brief Contains the host to which this BEEP session is created.
      * @type String
      */
@@ -1069,6 +1077,50 @@ VortexConnection.prototype.hasErrors = function () {
 VortexConnection.prototype.popError = function () {
     /* return next element */
     return this.stackError.shift ();
+};
+
+/**
+ * @brief Allows to get the first channel running a particular profile
+ * or, if defined channelSelector, the first channel that makes that
+ * function to return true.
+ *
+ * @param profile {String} The profile that the channel must run to be selected.
+ *
+ * @param channelSelector {Handler} ? An optional handler that will be
+ * called to select the channel to be returned by the function.
+ *
+ * @param data {Object} ? Optional data to be passed to the \ref
+ * VortexConnection.getChannelByUri.channelSelector handler if
+ * defined.
+ *
+ * The \ref VortexConnection.getChannelByUri.channelSelector handler,
+ * if defined, will receive the following parameters, and will return
+ * true or false to select or not the channel:
+ *
+ * - channel : reference to the channel checked (\ref VortexChannel).
+ * - profile : the profile as configured at the function call.
+ * - data : data configured by the caller.
+ */
+VortexConnection.prototype.getChannelByUri = function (profile, channelSelector, data) {
+
+    if (typeof channelSelector == "undefined") {
+	/* find by uri */
+	for (position in this.channels)  {
+	    if (this.channels[position].profile == profile) {
+		return this.channels[position];
+	    } /* end while */
+	}
+	/* no channel found */
+	return null;
+    }
+
+    /* find by function */
+    for (position in this.channels) {
+	/* call to check if the selector matches the function */
+	if (channelSelector (this.channels[position], profile, data))
+	    return this.channels[position];
+    }
+    return null;
 };
 
 /**
