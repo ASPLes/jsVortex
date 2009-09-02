@@ -1241,6 +1241,11 @@ VortexConnection.prototype._onRead = function (connection, data) {
 			frame.size + " " + (frame.ansno == undefined ? "" : frame.ansno));
 	} /* end if */
 
+	/* check to update RPY status */
+	if (! frame.more && frame.type == 'RPY') {
+	    channel.lastMsgnoReplyReceived = frame.msgno;
+	}
+	
 	/* update channel SEQ frame to continue receiving content */
 	VortexEngine.checkSendSEQFrame (channel, frame);
 

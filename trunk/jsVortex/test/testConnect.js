@@ -1524,6 +1524,12 @@ testContentTransfer.ResultCreated = function (replyData) {
 	return false;
     }
 
+    /* check here that the channel now is not ready */
+    if (channel.isReady ()) {
+	log ("error", "Expected to find channel not in ready state, but found in such state");
+	return false;
+    }
+
     /* check that all content was sent (without partials) */
     if (channel.lastStatusCode != 1) {
 	log ("error", "Expected complete send operation after first message, but found different status code: " + channel.lastStatusCode);
@@ -1532,6 +1538,12 @@ testContentTransfer.ResultCreated = function (replyData) {
 
     if (! channel.sendMSG (testContentTransfer.testMSG2)) {
 	log ("error", "Expected fo be able to send content but failed VortexChannel.sendMSG (2)");
+	return false;
+    }
+
+    /* check here that the channel now is not ready */
+    if (channel.isReady ()) {
+	log ("error", "Expected to find channel not in ready state, but found in such state");
 	return false;
     }
 
@@ -1544,6 +1556,12 @@ testContentTransfer.ResultCreated = function (replyData) {
 
     if (! channel.sendMSG (testContentTransfer.testMSG3)) {
 	log ("error", "Expected fo be able to send content but failed VortexChannel.sendMSG (3)");
+	return false;
+    }
+
+    /* check here that the channel now is not ready */
+    if (channel.isReady ()) {
+	log ("error", "Expected to find channel not in ready state, but found in such state");
 	return false;
     }
 
@@ -1636,6 +1654,12 @@ testContentTransfer.frameReceived = function (frameReceived) {
 	    log ("error", "Expected to find 2 channels opened but found: " + VortexEngine.count (frameReceived.conn.channels));
 	    showErrors (frameReceived.conn);
 	    this.stopTests = true;
+	    return false;
+	}
+
+	/* check here that the channel now is not ready */
+	if (! channel.isReady ()) {
+	    log ("error", "Expected to find channel not in ready state, but found in such state");
 	    return false;
 	}
 
@@ -1814,7 +1838,7 @@ testChannels.ResultCreated = function (replyData) {
     var conn = replyData.conn;
 
     /* check the channel to be created and ready */
-    if (! channel.isReady) {
+    if (! channel.isOpened) {
 	log ("error", "Expected to find proper channel creation, but found not ready channel");
 	return false;
     }
@@ -1843,6 +1867,12 @@ testChannels.ResultCreated = function (replyData) {
 	     conn.onDisconnectHandlers.length);
 	return false;
     } /* end if */
+
+    /* check that the channel is ready without having sent nothing */
+    if (! channel.isReady ()) {
+	log ("error", "Expected to find channel in ready status, but found a failure");
+	return false;
+    }
 
     /* now close the channel */
     log ("info", "channel created, now requesting to close it");

@@ -7,7 +7,7 @@ if (typeof VortexEngine == "undefined") {
     /**
      * @brief VortexEngine provides some internal functions to process
      * incoming BEEP content and some public API used by other
-     * jsVortex modules. 
+     * jsVortex modules.
      */
     var VortexEngine = {
 	/**
@@ -577,7 +577,7 @@ VortexEngine.channel0Received = function (frameReceived) {
 
 	/* flag as ready the channel */
 	Vortex.log ("Channel start reply received for channel: " + params.channelNumber + ", running profile: " + params.profile);
-	params.channel.isReady = true;
+	params.channel.isOpened = true;
 
 	/* remove on disconnect */
 	this.conn.uninstallOnDisconnect (params.onDisconnectId);
@@ -886,6 +886,8 @@ VortexEngine.checkSendSEQFrame = function (channel, frame) {
     /* not updating maxAllowedSeqno */
     return;
 };
+
+
 
 /**
  * @brief Value used to represent maximum allosed seqno value.
