@@ -95,6 +95,16 @@ function VortexChannel (conn,
      * for the next send operation. */
     this.nextMsgno              = 0;
 
+    /* lastMsgno: holds the last msgno value used for MSG frame sent
+     * over this channel. This value will likely contain the same value
+     * like nextMsgno - 1, but under some circumstances it is possible
+     * to reuse message numbers. This value tracks that value. */
+    this.lastMsgno              = -1;
+
+    /* lastMsgnoReplyReceived: holds the last msgno frame replied on
+     * the channel. */
+    this.lastMsgnoReplyReceived = -1;
+
     /* nextReplyMsgno: holds the next message number we
      * have to reply to. Because javascript single thread nature
      * this value holds the sequencial reply operations that
@@ -143,7 +153,7 @@ function VortexChannel (conn,
 
     /* channel status (if channel number if 0, it is ready,
      * otherwise it is pending to be fully opened) */
-    this.isReady   = (number == 0);
+    this.isOpened   = (number == 0);
 
     /**
      * @brief Allows to control if the channel should deliver complete
@@ -328,6 +338,22 @@ VortexChannel.prototype.close = function (params) {
 };
 
 /**
+ * @brief Allows to check if a channel is in ready state, that is, no
+ * pending replies are waiting. This means that the next message sent
+ * over this channel will be the next to be replied. A channel that is
+ * not in ready state can be used to send more messages but replies to
+ * those message will be blocked by pending replies of previous
+ * messages.
+ *
+ * @return {Boolean} true if the channel is ready, otherwise false is
+ * returned.
+ */
+VortexChannel.prototype.isReady = function () {
+    /* check if the last message was replied */
+    return this.lastMsgno == this.lastMsgnoReplyReceived;
+};
+
+/**
  * @internal Method used as a base implementation for
  * VortexChannel.sendRPY and VortexChannel.sendMSG.
  *
@@ -372,7 +398,7 @@ VortexChannel.prototype.sendCommon = function (content, type) {
     var pendingSend;
     var resending = (content == null && type == null);
 
-    if (! this.isReady) {
+    if (! this.isOpened) {
 	Vortex.warn ("VortexChannel.sendCommon (" + type + "): unable to send content, connection is not ready.");
 	this.lastStatusCode = 0;
 	return false;
@@ -478,8 +504,13 @@ VortexChannel.prototype.sendCommon = function (content, type) {
 	    (isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + (content.length) + "\r\n" + content + "END\r\n";
 
 	/* increase nextMsgno only if we have sent a complete message */
-	if (isComplete)
+	if (isComplete) {
+	    /* record last msgno value used */
+	    this.lastMsgno = this.nextMsgno;
+
+	    /* update next msgNo value to be used. */
 	    this.nextMsgno++;
+	}
     } /* end if */
 
     /* update channel status */
