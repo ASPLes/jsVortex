@@ -306,12 +306,12 @@ VortexChannel.prototype.sendRPY = function (content, mimeHeaders) {
  * This function allows to close a channel using its reference. It is
  * implemented on top of \ref VortexConnection.closeChannel.
  *
- * @param params.onChannelCloseHandler {Handler} The handler that is used by
+ * @param params.onChannelCloseHandler {Handler} ? The handler that is used by
  * the method to notify the caller with the termination status. On
  * this method is notified either if the channel was closed or the
  * error found.
  *
- * @param params.onChannelCloseContext {Object} The context object under
+ * @param params.onChannelCloseContext {Object} ? The context object under
  * which the handler will be executed.
  *
  * @return {Boolean} true in the case the close operation start
@@ -524,9 +524,9 @@ VortexChannel.prototype.sendCommon = function (content, type, onFrameReceivedHan
 
 	    /* check and configure onFrameReceivedHandler for this send operation (only for MSG operations) */
 	    if (typeof onFrameReceivedHandler != "undefined") {
-		Vortex.log ("Configuring particular onFrameReceivedHandler for message number: " + this.lastMsgno);
+		Vortex.log ("Configuring particular onFrameReceivedHandler for message number: " + this.nextMsgno);
 		/* configure a particular frame received handler for this particular send operation */
-		this.msgNoFrameReceived[this.lastMsgno.toString ()] = {
+		this.msgNoFrameReceived[this.nextMsgno.toString ()] = {
 		    handler : onFrameReceivedHandler,
 		    ctx     : onFrameReceivedContext
 		};
