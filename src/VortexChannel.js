@@ -82,6 +82,14 @@ function VortexChannel (conn,
     this.onFrameReceivedContext = onFrameReceivedContext;
 
     /**
+     * @internal hash used to track particular frame received handlers
+     * configured to handle replies to particular issued messages on
+     * this channel. In the case it is defined this frame received,
+     * onFrameReceivedHandler is ignored.
+     */
+    this.msgNoFrameReceived     = {};
+
+    /**
      * @brief Channel close handler.
      * @type Handler
      */
@@ -213,6 +221,14 @@ function VortexChannel (conn,
  * @param mimeHeaders {VortexMimeHeader []} ? An list of MIME headers to
  * associate with the message.
  *
+ * @param onFrameReceivedHandler {onFrameReceivedHandler} ? Optional
+ * handler that overrides current \ref VortexChannel.onFrameReceivedHandler
+ * handler configured. This handler is used to handle frame replies
+ * (RPY, ERR, ANS/NUL) for the particular send operation produced by a
+ * call to this method.
+ *
+ * @param onFrameReceivedContext {Object} ? Context under which will be executed \ref VortexChannel.sendMSG.param.onFrameReceivedHandler.
+ *
  * @return {Boolean} The function returns true if the send operation was
  * completed or partially completed or still not send because the
  * message was queued (pending for a SEQ frame) but no error was
@@ -221,12 +237,12 @@ function VortexChannel (conn,
  * get more information for the last operation.
  *
  */
-VortexChannel.prototype.sendMSG = function (content, mimeHeaders) {
+VortexChannel.prototype.sendMSG = function (content, mimeHeaders, onFrameReceivedHandler, onFrameReceivedContext) {
     /* build mime headers provided by the user */
     var _mimeHeaders = this.getMimeHeaders (mimeHeaders);
 
     /* use common implementation */
-    return this.sendCommon (_mimeHeaders + "\r\n" + content, "MSG");
+    return this.sendCommon (_mimeHeaders + "\r\n" + content, "MSG", onFrameReceivedHandler, onFrameReceivedContext);
 };
 
 /**
@@ -393,7 +409,7 @@ VortexChannel.prototype.isReady = function () {
  * by jsVortex engine. In this case the function returns true.
  *
  */
-VortexChannel.prototype.sendCommon = function (content, type) {
+VortexChannel.prototype.sendCommon = function (content, type, onFrameReceivedHandler, onFrameReceivedContext) {
 
     var pendingSend;
     var resending = (content == null && type == null);
@@ -505,6 +521,17 @@ VortexChannel.prototype.sendCommon = function (content, type) {
 
 	/* increase nextMsgno only if we have sent a complete message */
 	if (isComplete) {
+
+	    /* check and configure onFrameReceivedHandler for this send operation (only for MSG operations) */
+	    if (typeof onFrameReceivedHandler != "undefined") {
+		Vortex.log ("Configuring particular onFrameReceivedHandler for message number: " + this.lastMsgno);
+		/* configure a particular frame received handler for this particular send operation */
+		this.msgNoFrameReceived[this.lastMsgno.toString ()] = {
+		    handler : onFrameReceivedHandler,
+		    ctx     : onFrameReceivedContext
+		};
+	    } /* end if */
+
 	    /* record last msgno value used */
 	    this.lastMsgno = this.nextMsgno;
 

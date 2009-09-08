@@ -1245,7 +1245,7 @@ VortexConnection.prototype._onRead = function (connection, data) {
 	if (! frame.more && frame.type == 'RPY') {
 	    channel.lastMsgnoReplyReceived = frame.msgno;
 	}
-	
+
 	/* update channel SEQ frame to continue receiving content */
 	VortexEngine.checkSendSEQFrame (channel, frame);
 
@@ -1292,6 +1292,25 @@ VortexConnection.prototype._onRead = function (connection, data) {
 	Vortex.log ("VortexConnection._onRead: frame content size before parsing mime headers: " + frame.content.length);
 	frame.content     = VortexEngine.parseMimeHeaders (frame.mimeHeaders, frame.content);
 	Vortex.log ("VortexConnection._onRead: frame content size after parsing mime headers: " + frame.content.length);
+
+	/* check if channel has a particular frame received for this
+	 message */
+	if ((frame.type == "RPY" || frame.type == "ERR" || frame.type == "ANS" || frame.type == "NUL") &&
+	    VortexEngine.count (channel.msgNoFrameReceived) > 0) {
+	    Vortex.log ("VortexConnection._onRead: checking for particular frame received, msgno: " + frame.msgno);
+	    var particularHandler = channel.msgNoFrameReceived [frame.msgno.toString ()];
+	    if (typeof particularHandler != "undefined") {
+		if (typeof particularHandler.ctx != "undefined")
+		    particularHandler.handler.apply (particularHandler.ctx, [frameReceived]);
+		else
+		    particularHandler.handler.apply (channel, [frameReceived]);
+		Vortex.log ("VortexConnection._onRead: frame delivered on particular handler");
+
+		/* remove handler */
+		delete channel.msgNoFrameReceived [frame.msgno.toString ()];
+		continue;
+	    }
+	}
 
 	/* notify frame */
 	if (channel.onFrameReceivedContext) {
