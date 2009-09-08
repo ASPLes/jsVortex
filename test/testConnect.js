@@ -2087,17 +2087,98 @@ testPerMessageFrameReceived.frameReceived = function (frameReceivedData) {
     log ("info", "Received reply into general frame received, status count is: " + channel.testStatusCount);
 
     if (channel.testStatusCount == 6) {
-	/* close connection */
-	var conn = frameReceivedData.conn;
-	conn.shutdown ();
 
 	if (VortexEngine.count (channel.msgNoFrameReceived) > 0) {
 	    log ("error", "Expected to not find particular handlers for test channel");
 	    return;
 	}
 
+	/* now close the channel */
+	channel.close ();
+
+	log ("info", "now testing another order..");
+
+	/* now open a new channel */
+	/* open a channel, now open a channel here to do some useful work */
+	var conn = frameReceivedData.conn;
+	conn.openChannel ({
+	    profile: REGRESSION_URI,
+	    channelNumber: 0,
+	    onChannelCreatedHandler : testPerMessageFrameReceived.ResultCreated2,
+	    onChannelCreatedContext : this
+	});
+
+    }
+    return;
+};
+
+testPerMessageFrameReceived.ResultCreated2 = function (channelCreated) {
+    var channel = channelCreated.channel;
+    if (channel == null) {
+	log ("error", "Found channel not created when it was expected proper results..");
+	return false;
+    }
+
+    log ("info", "channel created..doing send operations");
+
+    /* configure frame received for general receive operations */
+    channel.onFrameReceivedHandler = testPerMessageFrameReceived.frameReceived2;
+    channel.onFrameReceivedContext = this;
+
+    /* record a counter on the channel */
+    channel.testStatusCount = 0;
+
+    /* now do tree send operations, making the second operation to be
+    handled by a particular frame received */
+    channel.sendMSG ("This is a test", [],
+		     function (frameReceivedData) {
+			 /* reference to the channel */
+			 var channel = frameReceivedData.channel;
+
+			 channel.testStatusCount++;
+			 log ("info", "Received reply into first particular frame received, status count is: " + channel.testStatusCount);
+		     });
+    channel.sendMSG ("This is a test 2");
+    channel.sendMSG ("This is a test 3");
+
+    channel.sendMSG ("This is a test 4");
+    channel.sendMSG ("This is a test 5", [],
+		     function (frameReceivedData) {
+			 /* reference to the channel */
+			 var channel = frameReceivedData.channel;
+
+			 channel.testStatusCount++;
+			 channel.testStatusCount++;
+			 log ("info", "Received reply into second particular frame received, status count is: " + channel.testStatusCount);
+		     });
+    channel.sendMSG ("This is a test 6");
+
+    return true;
+};
+
+testPerMessageFrameReceived.frameReceived2 = function (frameReceivedData) {
+
+    var channel = frameReceivedData.channel;
+
+    channel.testStatusCount++;
+    log ("info", "Received reply into general frame received, status count is: " + channel.testStatusCount);
+
+    if (channel.testStatusCount == 7) {
+
+	log ("info", "Now checking to finish test..");
+
+	if (VortexEngine.count (channel.msgNoFrameReceived) > 0) {
+	    log ("error", "Expected to not find particular handlers for test channel");
+	    return;
+	}
+
+	/* close connection */
+	var conn = frameReceivedData.conn;
+	conn.shutdown ();
+
 	log ("info", "Received all message replies, going to next test");
 	this.nextTest ();
+	return;
     }
     return;
 };

@@ -1249,12 +1249,6 @@ VortexConnection.prototype._onRead = function (connection, data) {
 	/* update channel SEQ frame to continue receiving content */
 	VortexEngine.checkSendSEQFrame (channel, frame);
 
-	/* check if the channel has received handler */
-	if (channel.onFrameReceivedHandler == null) {
-	    Vortex.warn ("VortexConnection._onRead: received a frame for a channel without received handler. Discarding frame.");
-	    continue;
-	}
-
 	/* check channel complete flag */
 	if (channel.completeFrames && (channel.previousFrame || frame.more)) {
 	    /* join received frame and store for later deliver */
@@ -1310,6 +1304,12 @@ VortexConnection.prototype._onRead = function (connection, data) {
 		delete channel.msgNoFrameReceived [frame.msgno.toString ()];
 		continue;
 	    }
+	}
+
+	/* check if the channel has received handler */
+	if (channel.onFrameReceivedHandler == null) {
+	    Vortex.warn ("VortexConnection._onRead: received a frame for a channel without received handler. Discarding frame.");
+	    continue;
 	}
 
 	/* notify frame */
