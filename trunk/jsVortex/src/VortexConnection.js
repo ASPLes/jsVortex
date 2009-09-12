@@ -575,21 +575,30 @@ VortexConnection.prototype.closeChannel = function (params) {
  * found (BEEP channel management protocol violation) or because
  * remote BEEP peer have closed the connection.
  *
+ * The method allows to register several handlers that will be called
+ * in the case the connection is closed due to a remote error or due to a call to \ref VortexConnection.shutdown.
+ *
+ * The handler \ref onDisconnectHandler.param receives a reference to
+ * the connection closed.
+ *
  * @param onDisconnectHandler {Handler} The handler to be executed when the
  * disconnect operation is found.
  *
  * @param onDisconnectContext {Object} ? The context object to run the handler on.
  *
- * @return true if handler were installed, otherwise false is
- * returned. The method can only return false if handler provided is
- * null or undefined.
+ * @return {Number} The handler returns an unique identificator used
+ * to remove this disconnect handler, otherwise -1 is returned in the
+ * case the handler is not installed (this only happens if
+ * \ref VortexConnection.onDisconnect.onDisconnectHandler.param is not
+ * defined). The value returned (in the case it is not -1) is used by
+ * \ref VortexConnection.uninstallOnDisconnect to remove the handler.
  *
  */
 VortexConnection.prototype.onDisconnect = function (onDisconnectHandler, onDisconnectContext) {
 
     /* check handler */
     if (! VortexEngine.checkReference (onDisconnectHandler))
-	return false;
+	return -1;
 
     /* check and initialize onDisconnect handlers id */
     if (this.onDisconnect.nextId == undefined)
