@@ -11,7 +11,8 @@ import java.io.*;
 
 public class JavaSocketConnector extends JApplet {
 
-	/* Instance variables */
+	/* A reference to the current browser (tab) opening the
+	 * component */
 	JSObject browser = null;		// The browser
 	Socket socket = null;			// The current socket
 	PrintWriter out = null;			// Output
@@ -20,6 +21,8 @@ public class JavaSocketConnector extends JApplet {
 	String address = null;			// Where you will connect to
 	int port = -1;					// Port
 	boolean connectionDone = false;	// Thread synchronization
+
+	BlockingQueue commandQueue = null;
 
 	// Initialize
 	public void init(){
@@ -40,10 +43,18 @@ public class JavaSocketConnector extends JApplet {
 	// Note: This method loops over and over to handle requests becuase only
 	//       this thread gets the elevated security policy.  Java == stupid.
 	public void start(){
+		/* Notify the browser that the component was
+		 * loaded. */
 		browser.call("java_socket_bridge_ready", null);
+
+		/* create commandQueue */
+		commandQueue = new BlockingQueue ();
+
 		running = true;
 		while(running){
-			// Wait
+			/* Wait for the next operation requested */
+			commandQueue
+
 			try{
 				Thread.sleep(100);
 			}
@@ -146,7 +157,7 @@ public class JavaSocketConnector extends JApplet {
 	}
 
 	// Report an error
-	public void error(String message){
+	public void error (String message){
 		message = "Java Socket Connector ERROR: " + message;
 		log(message);
 		Object[] arguments = new Object[1];
