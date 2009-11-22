@@ -4,8 +4,13 @@
 # >> jarsigner JavaSocketConnector.jar aspl
 
 
-java_files = JavaSocketConnector.java SocketListener.java
-class_files = JavaSocketConnector.class SocketListener.class
+java_files = \
+	JavaSocketConnector.java \
+	SocketListener.java \
+	BlockingQueue.java \
+	Command.java \
+	SocketCommand.java
+class_files := $(patsubst %.java,%.class,$(wildcard *.java))
 
 all:
         # compile source code
