@@ -7,13 +7,12 @@ import java.io.*;
 import java.net.*;
 
 // Thread that listens for input
-public class SocketListener extends Thread{
+public class SocketListener extends Thread {
 
-	// Instance variables
-	JavaSocketConnector parent;	// Report to this object
-	Socket socket;				// Listen to this socket
-	BufferedReader in;			// Input
-	boolean running = false;	// Am I still running?
+	JavaSocketConnector parent;	
+	public Socket socket;		
+	public BufferedReader in;       
+	boolean running = false;	
 
 	// Constructor
 	public SocketListener (Socket s, JavaSocketConnector b) throws IOException{

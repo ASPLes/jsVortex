@@ -24,9 +24,14 @@ public class JavaSocketConnector extends JApplet {
 
 	BlockingQueue commandQueue = null;
 
-	// Initialize
-	public void init(){
-		browser = JSObject.getWindow(this);
+	/**
+	 * Public initialization. Get a reference to the browser
+	 * initializing the applet.
+	 */
+	public void init() {
+		/* reference to the browser */
+		browser = JSObject.getWindow (this);
+		return;
 	}
 
 	// Stop and destroy
@@ -39,10 +44,11 @@ public class JavaSocketConnector extends JApplet {
 		disconnect();
 	}
 
-	// Main
-	// Note: This method loops over and over to handle requests becuase only
-	//       this thread gets the elevated security policy.  Java == stupid.
-	public void start(){
+	/** 
+	 * @brief Main loop that waits for commands to be implemented
+	 * under this thread because it has permission.
+	 */
+	public void start () {
 		/* Notify the browser that the component was
 		 * loaded. */
 		browser.call("java_socket_bridge_ready", null);
@@ -53,37 +59,37 @@ public class JavaSocketConnector extends JApplet {
 		running = true;
 		while(running){
 			/* Wait for the next operation requested */
-			commandQueue
+			Command cmd = commandQueue.pop ();
 
-			try{
-				Thread.sleep(100);
-			}
-			catch(Exception ex){
-				running = false;
-				return;
-			}
-			// Connect
-			if(address != null && port != -1 && socket == null){
-				do_connect(address, port);
-			}
-		} 
+			/* call to complete command */
+			cmd.doOperation (browser);
+		}  /* end while */
+		return;
 	}
 
-	// Connect
-	public boolean connect(String url, int p){
-		address = url;
-		port = p;
-		// Wait for the connection to happen in the main thread
-		connectionDone = false;
-		while(!connectionDone){
-			try{ Thread.sleep(100); }
-			catch(Exception ex){ return false; }
-		}
-		connectionDone = false;
-		// Did it work?
-		if(socket != null) return true;
-		return false;
+	/** 
+	 * @brief Socket connect to the host and port provided. Once
+	 * the connection is created, it is notified on the provided
+	 * handler.
+	 * 
+	 * @param host The host to connect to.
+	 * @param port The port to connect to.
+	 */
+	public boolean connect (String host, int port, JSObject caller) {
+
+		/* create the socket command */
+		SocketCommand cmd = new SocketCommand ();
+		cmd.host   = host;
+		cmd.port   = port;
+		cmd.caller = caller;
+
+		/* queue the command */
+		commandQueue.push (cmd);
+		
+		return true;
 	}
+
+	/**** NO LONGER REQUIRED ****/
 	private void do_connect(String url, int p){
 		if(socket == null){
 			try{
