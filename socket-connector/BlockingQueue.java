@@ -23,7 +23,7 @@ public class BlockingQueue {
 	 *
 	 * @return An object from the queue.
 	 */
-	public Object pop() throws InterruptedException {
+	public Object pop () throws InterruptedException {
 		synchronized (queue) {
 			while (queue.isEmpty()) {
 				queue.wait();

@@ -57,9 +57,15 @@ public class JavaSocketConnector extends JApplet {
 		commandQueue = new BlockingQueue ();
 
 		running = true;
+		Command cmd = null;
 		while(running){
-			/* Wait for the next operation requested */
-			Command cmd = commandQueue.pop ();
+			try {
+				/* Wait for the next operation requested */
+				cmd = (Command) commandQueue.pop ();
+			} catch (Exception ex) {
+				/* do some log error here */
+				continue;
+			} /* end try */
 
 			/* call to complete command */
 			cmd.doOperation (browser);
@@ -83,37 +89,37 @@ public class JavaSocketConnector extends JApplet {
 		cmd.port   = port;
 		cmd.caller = caller;
 
+		/* do some logging */
+		LogHandling.info (caller, "Received request to connect to: " + host + ":" + port);
+
 		/* queue the command */
 		commandQueue.push (cmd);
 		
 		return true;
 	}
 
-	/**** NO LONGER REQUIRED ****/
-	private void do_connect(String url, int p){
-		if(socket == null){
-			try{
-				socket = new Socket(url, p);
-				out = new PrintWriter(socket.getOutputStream());
-				listener = new SocketListener(socket, this);
-				listener.start();
-				log("Java Socket Connector CONNECTED: "+getUrl());
-			}
-			catch(Exception ex){
-				error("Could not connect to "+url+" on port "+p+"\n"+ex.getMessage());
-				connectionDone = true;
-
-				socket = null;
-				address = null;
-				port = -1;
-			}
+	/** 
+	 * @brief Allows to send the provided string over the provided
+	 * out stream (associated to a particular socket).
+	 *
+	 * @param content The content to be sent.
+	 * @param out The output stream object to write on.
+	 */
+	public boolean send (String content, PrintWriter output, JSObject caller){
+		try{
+			/* try to send content */
+			output.write (content);
+			output.flush ();
+		} catch (Exception ex) {
+			LogHandling.error (caller, "Failed to send content, error found was: " + ex.getMessage());
+			return false;
 		}
-		else{
-			error("Already connected to "+getUrl());
-		}
-		connectionDone = true;
+		LogHandling.info (caller, "Sent content without problem..");
+		return true;
 	}
 
+
+	/**** NO LONGER REQUIRED ****/
 	// Disconnect
 	public boolean disconnect(){
 		if(socket != null){
@@ -133,25 +139,6 @@ public class JavaSocketConnector extends JApplet {
 			}
 		}
 		return false;
-	}
-
-	// Send a message
-	public boolean send(String message){
-		if(out != null){
-			try{
-				out.println(message);
-				out.flush();
-				log("Java Socket Bridge SENT: "+message);
-			}
-			catch(Exception ex){
-				error("Could not write to socket\n"+ex.getMessage());
-			}
-			return true;
-		}
-		else{
-			error("Not connected");
-			return false;
-		}
 	}
 
 	// Get input from the socket

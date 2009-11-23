@@ -5,53 +5,73 @@
 
 import java.io.*;
 import java.net.*;
+import netscape.javascript.*;
 
 // Thread that listens for input
 public class SocketListener extends Thread {
 
-	JavaSocketConnector parent;	
-	public Socket socket;		
+	public Socket         socket;		
 	public BufferedReader in;       
-	boolean running = false;	
+	boolean               running = false;	
+	JSObject              caller;
 
-	// Constructor
-	public SocketListener (Socket s, JavaSocketConnector b) throws IOException{
-		parent = b;
-		socket = s;
-		in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+	/** 
+	 * @brief Creates a socket listener that reads content from
+	 * the socket and notifies content read into the callers
+	 * onmessage method.
+	 */ 
+	public SocketListener (Socket _socket, JSObject _caller) throws IOException{
+		/* get references */
+		socket = _socket;
+		caller = _caller;
+
+		/* create input buffer */
+		in = new BufferedReader (new InputStreamReader (socket.getInputStream()));
 	}
 
-	// Close
-	public void close() throws IOException{
-		if(running == false) return;
-		running = false;
-		socket.close();
-		in.close();
+	/** 
+	 * @brief Terminates the execution of the socket listener
+	 * instance.
+	 */
+	public void close () {
+		try {
+			if(running == false) 
+				return;
+			running = false;
+			socket.close();
+			in.close();
+		} catch (Exception ex) {
+			LogHandling. error (caller, "Error found during socket listener close, error was: " + ex.getMessage ());
+		}
+		return;
 	}
 
-	// Main loop
-	public void run(){
+	/** 
+	 * @internal Loop that iterates reading content from the
+	 * socket and notifying such content on the socket onmessage
+	 * handler.
+	 */
+	public void run () {
 		running = true;
 		String str = null;
 		while(running){
 			try{
 				str = in.readLine();
-				if(str==null){
-					parent.disconnect();
+				if (str == null) {
 					close();
+					return;
 				}
-				else{
-					parent.hear(str);
-				}
-			}
-			catch(Exception ex){
-				if(running){
-					parent.error("An error occured while reading from the socket\n"+ex.getMessage());
-					parent.disconnect();
-					try{ close(); } catch(Exception ex2){}
-				}
+
+				/* notify content found */
+				Object args [] = {str};
+				caller.call ("onmessage", args);
+			} catch (Exception ex) {
+				LogHandling.error (caller, "Error found while reading content from socket, error was: " + ex.getMessage());
+				close ();
+				return;
 			}
 		}
-		try{ close(); } catch(Exception ex){}
+		close();
+		return;
 	}
 }

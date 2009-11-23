@@ -9,13 +9,21 @@ java_files = \
 	SocketListener.java \
 	BlockingQueue.java \
 	Command.java \
-	SocketCommand.java
+	SocketCommand.java \
+	LogHandling.java
 class_files := $(patsubst %.java,%.class,$(wildcard *.java))
+
+# configure plugin.jar location (browser plugin)
+# the following will locate the file under the provided directory
+plugin_jar = `find /usr/lib/jvm/java-6-sun* -name plugin.jar`
 
 all:
         # compile source code
-	javac -classpath /usr/lib/jvm/java-6-sun-1.6.0.12/jre/lib/plugin.jar $(java_files)
+	javac -classpath $(plugin_jar) $(java_files)
         # create jar file
 	jar cvf JavaSocketConnector.jar $(class_files)
+sign:
+	# sign the applet
+	jarsigner JavaSocketConnector.jar aspl	
 clean:
 	rm -f *.class rm -f *.jar
