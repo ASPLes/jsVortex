@@ -6,22 +6,12 @@
 </head>
 
 <script type="text/javascript" src="JavaSocketConnector.js"></script>
-<script type="text/javascript">
-   function run() {
-       socket_connect('dolphin.aspl.es', 25);
-       socket_send("GET / HTTP/1.1\n\n");
-   }
-   function on_socket_get(message){
-       document.getElementById('result').innerHTML += message;
-   }
-</script>
+<script type="text/javascript" src="test.js"></script>
 
 <body>
 <!-- load the connector applet -->
 <applet id="JavaSocketConnector" archive="JavaSocketConnector.jar" code="JavaSocketConnector.class" width="0" height="0"></applet>
 <h1>jsVortex Java Socket Connector test</h1>
-
-<p id="wait-loading">Please wait while java component is loading..</p>
 
 <!-- button to run test -->
 <button onclick="run()">Run!</button>
@@ -31,5 +21,5 @@
 
 <hr>
 <address></address>
-<!-- hhmts start -->Last modified: Sun Nov 22 14:30:11 CET 2009 <!-- hhmts end -->
+<!-- hhmts start -->Last modified: Mon Nov 23 13:45:47 CET 2009 <!-- hhmts end -->
 </body> </html>

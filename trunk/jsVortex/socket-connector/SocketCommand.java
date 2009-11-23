@@ -3,6 +3,8 @@
  ** See license.txt or http://www.aspl.es/vortex
  **/
 import netscape.javascript.*;
+import java.net.*;
+import java.io.*;
 
 public class SocketCommand implements Command {
 	/** 
@@ -27,7 +29,7 @@ public class SocketCommand implements Command {
 	/**
 	 * @brief Where the resulting socket is left.
 	 */
-	public Socket result;
+	public Socket socket;
 
 	/** 
 	 * @brief Output stream.
@@ -44,21 +46,34 @@ public class SocketCommand implements Command {
 	 *
 	 * @param browser The reference to the browser.
 	 */
-	public bool doOperation (JSObject browser) {
+	public boolean doOperation (JSObject browser) {
 		try {
+			LogHandling.info (caller, "Creating socket connection.."); 
+
 			/* do connect operation */
-			socket = new Socket(host, port);
-			out    = new PrintWriter(socket.getOutputStream(), true);
+			socket = new Socket (host, port);
+			out    = new PrintWriter (socket.getOutputStream(), true);
+
+			LogHandling.info (caller, "Starting listener.."); 
 
 			/* create the listener */
-			SocketListener listener = new SocketListener(socket, this);
+			SocketListener listener = new SocketListener (socket, caller);
 			in     = listener.in;
 			listener.start();
 
+			/* configure socket, out and in references into the caller socket */
+			caller.setMember ("_jsc_socket", socket);
+			caller.setMember ("_jsc_out", out);
+			caller.setMember ("_jsc_in", in);
+
+			/* change state to OPENED = 1 */
+			caller.setMember ("status", 1);
+
 			/* notify here connection created */
+			caller.call ("onopen", null);
 
 		} catch (Exception ex) {
-			error ("Could not connect to "+url+" on port "+p+"\n"+ex.getMessage());
+			LogHandling.error (caller, "Could not connect to " + host + " on port: " + port + "\n" + ex.getMessage()); 
 			return false;
 		}
 

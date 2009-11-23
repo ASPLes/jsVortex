@@ -1,3 +1,109 @@
+/**
+ ** Copyright (C) 2009 Advanced Software Production Line, S.L.
+ ** See license.txt or http://www.aspl.es/vortex
+ **/
+
+/**
+ * @internal The following is defined to avoid crashing js code in the
+ * case console module is not defined.
+ */
+if (typeof console == "undefined") {
+    this.console = {
+	log:   function () {},
+	error: function () {},
+	warn:  function () {}
+    };
+}
+
+/**
+ * @brief Socket constructor. The constructor returns a Socket
+ * object. The connection will be notified at the onopen method or
+ */
+function JavaSocketConnector (params) {
+    /**
+     * @brief Reference to the host the socket connects to.
+     */
+    this.host = params.host;
+    /**
+     * @brief Reference to the port the socket connects to.
+     */
+    this.port = params.port;
+
+    /**
+     * @brief Connection status. By default it is set to CONNECTING =
+     * 0. The list of status are:
+     *  - CONNECTING = 0
+     *  - OPEN       = 1
+     *  - CLOSED     = 2
+     */
+    this.status = 0;
+
+    /* do a socket connection */
+    document.getElementById('JavaSocketConnector').connect (params.host, params.port, this);
+}
+
+/**
+ * @brief Allows to send content over the provided socket object.
+ *
+ * @param content The content to be sent.
+ *
+ * @return true in the case the send operation was initiated,
+ * otherwise false is returned.
+ */
+JavaSocketConnector.prototype.send = function (content) {
+    /* check socket status */
+    if (this.status != 1) {
+	this.onlog ("error", "Unable to send content, socket status is: " + status);
+	return false;
+    }
+
+    /* now send content */
+    return document.getElementById('JavaSocketConnector').send (content, this._jsc_out, this);
+};
+
+/**
+ * @brief Default method to get connection open notifications.
+ */
+JavaSocketConnector.prototype.onopen = function () {
+    if (this.status == 1) {
+	console.log ("Socket connected to: " + this.host + ", port: " + this.port);
+	return;
+    }
+    console.error ("Failed to connect!");
+};
+
+/**
+ * @brief This is the handler that will receive all content received
+ * on the socket.
+ *
+ * @param content The content received over the socket.
+ */
+JavaSocketConnector.prototype.onmessage = function (content) {
+    console.log ("Content received: " + content);
+};
+
+/**
+ * @brief Default onlog handler used by the JavaSocketConnector applet
+ * to relay all logs created during its function.
+ */
+JavaSocketConnector.prototype.onlog = function (type, message) {
+
+    if (type == "info") {
+	console.log (message);
+	return;
+    } else if (type == "error") {
+	console.error (message);
+	return;
+    } else if (type == "warn") {
+	console.warn (message);
+	return;
+    }
+
+    console.error ("UNHANDLED TYPE: " + type + ": " + message);
+    return;
+};
+
+
 // Global variables
 var java_socket_bridge_ready_flag = false;
 
