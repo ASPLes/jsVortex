@@ -31,12 +31,12 @@ function JavaSocketConnector (params) {
 
     /**
      * @brief Connection status. By default it is set to CONNECTING =
-     * 0. The list of status are:
+     * 0. The list of readyState are:
      *  - CONNECTING = 0
      *  - OPEN       = 1
      *  - CLOSED     = 2
      */
-    this.status = 0;
+    this.readyState = 0;
 
     /* do a socket connection */
     document.getElementById('JavaSocketConnector').connect (params.host, params.port, this);
@@ -51,9 +51,9 @@ function JavaSocketConnector (params) {
  * otherwise false is returned.
  */
 JavaSocketConnector.prototype.send = function (content) {
-    /* check socket status */
-    if (this.status != 1) {
-	this.onlog ("error", "Unable to send content, socket status is: " + status);
+    /* check socket readyState */
+    if (this.readyState != 1) {
+	this.onlog ("error", "Unable to send content, socket readyState is: " + readyState);
 	return false;
     }
 
@@ -61,11 +61,22 @@ JavaSocketConnector.prototype.send = function (content) {
     return document.getElementById('JavaSocketConnector').send (content, this._jsc_out, this);
 };
 
+JavaSocketConnector.prototype.close = function () {
+    if (this.readyState == 2) {
+	this.onlog ("warn", "Connection already closed");
+	return;
+    }
+
+    /* call to close */
+    document.getElementById('JavaSocketConnector').close (this);
+    return;
+};
+
 /**
  * @brief Default method to get connection open notifications.
  */
 JavaSocketConnector.prototype.onopen = function () {
-    if (this.status == 1) {
+    if (this.readyState == 1) {
 	console.log ("Socket connected to: " + this.host + ", port: " + this.port);
 	return;
     }
@@ -103,9 +114,6 @@ JavaSocketConnector.prototype.onlog = function (type, message) {
     return;
 };
 
-
-// Global variables
-var java_socket_bridge_ready_flag = false;
 
 // Applet reports it is ready to use
 function java_socket_bridge_ready(){

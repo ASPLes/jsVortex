@@ -5,19 +5,26 @@ function run() {
     /* configure on connect */
     socket.onopen = function () {
 
-	if (this.status == 1) {
+	if (this.readyState == 1) {
 	    /* now send some content */
 	    if (socket.send ("GET / HTTP/1.1\n\n")) {
-		console.log ("Content sent...");
+		console.log ("STEP 1: Content sent...");
 	    }
 	}
     };
 
     /* configure an onmessage received */
     socket.onmessage = function (message) {
-	document.getElementById('result').innerHTML += message + "<br>";
+	document.getElementById('result').innerHTML += "STEP 2: " + message + "<br>";
+
+	/* now close the connection */
+/*	socket.close (); */
     };
 
+    /* configure onclose handler */
+    socket.onclose = function () {
+	document.getElementById('result').innerHTML += "STEP 3: Connection closed! <br>";
+    };
 }
 
 

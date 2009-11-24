@@ -61,13 +61,16 @@ public class SocketCommand implements Command {
 			in     = listener.in;
 			listener.start();
 
+			/* record the socket listener */
+			caller.setMember ("_jsc_listener", listener);
+
 			/* configure socket, out and in references into the caller socket */
 			caller.setMember ("_jsc_socket", socket);
 			caller.setMember ("_jsc_out", out);
 			caller.setMember ("_jsc_in", in);
 
 			/* change state to OPENED = 1 */
-			caller.setMember ("status", 1);
+			caller.setMember ("readyState", 1);
 
 			/* notify here connection created */
 			caller.call ("onopen", null);
