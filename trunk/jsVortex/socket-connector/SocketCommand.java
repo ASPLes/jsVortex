@@ -37,11 +37,6 @@ public class SocketCommand implements Command {
 	public PrintWriter out;
 
 	/** 
-	 * @brief Input stream.
-	 */
-	public BufferedReader in;
-
-	/** 
 	 * @brief Implements the socket connect operation.
 	 *
 	 * @param browser The reference to the browser.
@@ -58,7 +53,6 @@ public class SocketCommand implements Command {
 
 			/* create the listener */
 			SocketListener listener = new SocketListener (socket, caller);
-			in     = listener.in;
 
 			/* record the socket listener */
 			caller.setMember ("_jsc_listener", listener);
@@ -66,7 +60,7 @@ public class SocketCommand implements Command {
 			/* configure socket, out and in references into the caller socket */
 			caller.setMember ("_jsc_socket", socket);
 			caller.setMember ("_jsc_out", out);
-			caller.setMember ("_jsc_in", in);
+			caller.setMember ("_jsc_in", listener.in);
 
 			/* change state to OPENED = 1 */
 			caller.setMember ("readyState", 1);

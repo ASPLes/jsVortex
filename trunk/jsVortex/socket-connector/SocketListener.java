@@ -10,10 +10,10 @@ import netscape.javascript.*;
 // Thread that listens for input
 public class SocketListener extends Thread {
 
-	public Socket         socket;		
-	public BufferedReader in;       
-	boolean               running = false;	
-	JSObject              caller;
+	public Socket            socket;		
+	public InputStream       in;       
+	boolean                  running = false;	
+	JSObject                 caller;
 
 	/** 
 	 * @brief Creates a socket listener that reads content from
@@ -26,7 +26,7 @@ public class SocketListener extends Thread {
 		caller = _caller;
 
 		/* create input buffer */
-		in = new BufferedReader (new InputStreamReader (socket.getInputStream()));
+		in = socket.getInputStream();
 	}
 
 	/** 
@@ -55,16 +55,23 @@ public class SocketListener extends Thread {
 	public void run () {
 		running = true;
 		String str = null;
+		byte[] buffer = new byte[8192];
+		int    size;
 		while (running) {
 			try{
-				str = in.readLine();
-				if (str == null) {
+				size = in.read (buffer, 0, buffer.length);
+				if (size == 0 || size == -1) {
 					LogHandling.info (caller, "Calling to close socket listener because it was received empty content..");
 					close();
+
+					/* fire onclose event */
+					caller.call ("onclose", null);
+
 					return;
 				}
 
 				/* notify content found */
+				str = new String (buffer, 0, size);
 				Object args [] = {str};
 				caller.call ("onmessage", args);
 			} catch (Exception ex) {
