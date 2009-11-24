@@ -59,6 +59,7 @@ public class SocketListener extends Thread {
 			try{
 				str = in.readLine();
 				if (str == null) {
+					LogHandling.info (caller, "Calling to close socket listener because it was received empty content..");
 					close();
 					return;
 				}

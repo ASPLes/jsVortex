@@ -59,7 +59,6 @@ public class SocketCommand implements Command {
 			/* create the listener */
 			SocketListener listener = new SocketListener (socket, caller);
 			in     = listener.in;
-			listener.start();
 
 			/* record the socket listener */
 			caller.setMember ("_jsc_listener", listener);
@@ -74,6 +73,10 @@ public class SocketCommand implements Command {
 
 			/* notify here connection created */
 			caller.call ("onopen", null);
+
+			/* start the listener at the end to avoid
+			 * onmessage to be fired before onopen */
+			listener.start();
 
 		} catch (Exception ex) {
 			LogHandling.error (caller, "Could not connect to " + host + " on port: " + port + "\n" + ex.getMessage()); 

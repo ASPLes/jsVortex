@@ -51,7 +51,8 @@ public class JavaSocketConnector extends JApplet {
 	public void start () {
 		/* Notify the browser that the component was
 		 * loaded. */
-		browser.call("java_socket_bridge_ready", null);
+		JSObject member = (JSObject) browser.getMember ("JavaSocketConnector");
+		member.setMember ("isReady", true);
 
 		/* create commandQueue */
 		commandQueue = new BlockingQueue ();
