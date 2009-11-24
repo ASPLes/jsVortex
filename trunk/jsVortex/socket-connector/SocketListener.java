@@ -34,15 +34,16 @@ public class SocketListener extends Thread {
 	 * instance.
 	 */
 	public void close () {
+		LogHandling.info (caller, "Finishing socket listener instance..");
 		try {
 			if(running == false) 
 				return;
 			running = false;
-			socket.close();
+			/* close the socket */
+			if (! socket.isClosed ())
+				socket.close();
 			in.close();
-		} catch (Exception ex) {
-			LogHandling. error (caller, "Error found during socket listener close, error was: " + ex.getMessage ());
-		}
+		} catch (Exception ex) {}
 		return;
 	}
 
@@ -54,7 +55,7 @@ public class SocketListener extends Thread {
 	public void run () {
 		running = true;
 		String str = null;
-		while(running){
+		while (running) {
 			try{
 				str = in.readLine();
 				if (str == null) {
@@ -66,8 +67,15 @@ public class SocketListener extends Thread {
 				Object args [] = {str};
 				caller.call ("onmessage", args);
 			} catch (Exception ex) {
+				/* check that we are stopping the listener */
+				if (! running)
+					return;
 				LogHandling.error (caller, "Error found while reading content from socket, error was: " + ex.getMessage());
 				close ();
+
+				/* fire onclose event */
+				caller.call ("onclose", null);
+
 				return;
 			}
 		}

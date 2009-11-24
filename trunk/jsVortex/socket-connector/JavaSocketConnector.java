@@ -34,14 +34,14 @@ public class JavaSocketConnector extends JApplet {
 		return;
 	}
 
-	// Stop and destroy
-	public void stop(){
+	/** 
+	 * @brief Stop the applet.
+	 */
+	public void stop () {
 		running = false;
-		disconnect();
 	}
-	public void destroy(){
-		running = false;
-		disconnect();
+	public void destroy () {
+		stop ();
 	}
 
 	/** 
@@ -58,7 +58,7 @@ public class JavaSocketConnector extends JApplet {
 
 		running = true;
 		Command cmd = null;
-		while(running){
+		while (running){
 			try {
 				/* Wait for the next operation requested */
 				cmd = (Command) commandQueue.pop ();
@@ -119,58 +119,37 @@ public class JavaSocketConnector extends JApplet {
 	}
 
 
-	/**** NO LONGER REQUIRED ****/
-	// Disconnect
-	public boolean disconnect(){
-		if(socket != null){
-			try{
-				log("Java Socket Bridge DISCONNECTED: "+getUrl());
-				listener.close();
-				out.close();
-				socket = null;
-				address = null;
-				port = -1;
-				return true;
-			}
-			catch(Exception ex){
-				error("An error occured while closing the socket\n"+ex.getMessage());
-				socket = null;
-				return false;
-			}
-		}
-		return false;
+	/** 
+	 * @brief Closes the socket by closing internal socket, output
+	 * stream and input stream. The method also changes the
+	 * readyState of the socket and fires the onclose event.
+	 *
+	 * @param caller The caller and at the same time the socket.
+	 */
+	public void close (JSObject caller) {
+		PrintWriter    out      = (PrintWriter) caller.getMember ("_jsc_out");
+		caller.removeMember ("_jsc_out");
+
+		BufferedReader in       = (BufferedReader) caller.getMember ("_jsc_in");
+		caller.removeMember ("_jsc_in");
+
+		Socket         socket   = (Socket) caller.getMember ("_jsc_socket");
+		caller.removeMember ("_jsc_socket");
+
+		SocketListener listener = (SocketListener) caller.getMember ("_jsc_listener");
+		caller.removeMember ("_jsc_listener");
+
+		/* close all items */
+		listener.close ();
+		try {out.close ();} catch (Exception ex) {}
+
+		/* now change ready state */
+		caller.setMember ("readyState", 2);
+
+		/* fire onclose event */
+		caller.call ("onclose", null);
+		
+		return;
 	}
-
-	// Get input from the socket
-	public void hear(String message){
-		Object[] arguments = new Object[1];
-		arguments[0] = message;
-		browser.call("on_socket_get", arguments);
-		log("Java Socket Bridge RECEIVED: "+message);
-	}
-
-	// Report an error
-	public void error (String message){
-		message = "Java Socket Connector ERROR: " + message;
-		log(message);
-		Object[] arguments = new Object[1];
-		arguments[0] = message;
-
-		/* nullify arguments to stop */
-		address = null;
-		port    = -1;
-
-		browser.call("on_socket_error", arguments);
-	}
-
-	// Log something
-	public void log(String message){
-		System.out.println(message);
-	}
-
-	// Get the connected URL
-	private String getUrl(){
-		if(socket == null) return null;
-		return socket.getInetAddress().getHostName() +":"+socket.getPort();
-	}
+	
 } /* end JavaSocketConnector */
