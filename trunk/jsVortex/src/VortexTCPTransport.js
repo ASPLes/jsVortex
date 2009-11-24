@@ -19,24 +19,35 @@ function VortexTCPTransport () {
     var instream  = null;
     var socket    = null;
 
-    /* define default write method */
-    this.connect    = VortexFirefoxConnect;
+    if (VortexTCPTransport.useTransport == 1) {
+	/* define default write method */
+	this.connect    = VortexFirefoxConnect;
 
-    /* define default write method */
-    this.write      = VortexFirefoxWrite;
+	/* define default write method */
+	this.write      = VortexFirefoxWrite;
 
-    /* define default isOk method */
-    this.isOk       = VortexFirefoxIsOk;
+	/* define default isOk method */
+	this.isOk       = VortexFirefoxIsOk;
 
-    /* define default close method */
-    this.close      = VortexFirefoxClose;
+	/* define default close method */
+	this.close      = VortexFirefoxClose;
 
-    /* define default start TLS operation */
-    this.enableTLS  = VortexFirefoxEnableTLS;
+	/* define default start TLS operation */
+	this.enableTLS  = VortexFirefoxEnableTLS;
 
-    /* do not require permissions */
-    this.requirePerms = true;
+	/* do not require permissions */
+	this.requirePerms = true;
+    } /* end if */
 };
+
+/**
+ * @brief Configures the default transport to be used each time an
+ * instance of VortexTCPTransport is craeted.
+ * Transports available are:
+ *  - 1 : Firefox native javascript sockets
+ *  - 2 : JavaSocketConnector native sockets
+ */
+VortexTCPTransport.useTransport = 1;
 
 /**
  * @internal Firefox support for TCP connect.
