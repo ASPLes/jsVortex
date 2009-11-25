@@ -104,6 +104,10 @@ function VortexFirefoxConnect (host, port) {
 
     Vortex.log ("VortexFireFoxConnect: connection done");
 
+    /* notify connection ready at this point because firefox socket
+     support do not notify it until data comes from the server. */
+    VortexEngine.apply (this.onStartHandler, this.onStartObject, [], true);
+
     /* return socket created */
     return this.socket;
 };
@@ -294,10 +298,15 @@ function VortexFirefoxEnableTLS () {
 
     return;
 }
-
+/**
+ * @internal This is a firefox handler called when the connection
+ * receives content for the first time. It should notify connection
+ * ready but doesn't do it.
+ */
 VortexTCPTransport.prototype.onStartRequest  = function (request, context) {
     /* nothing defined. */
     Vortex.log ("VortexTCPTransport.onStartRequest: request=" + request + ", context=" + context);
+    return;
 
     try {
 	/* call to notify start of the request */
@@ -421,13 +430,13 @@ VortexTCPTransport.prototype.onError = function (object, handler) {
  *
  * @param error to be reported.
  */
-VortexTCPTransport.prototype._reportError = function (error) {
+VortexTCPTransport.prototype._reportError = function (errorMsg) {
 
     /* report console error */
-    Vortex.error (error);
+    Vortex.error (errorMsg);
 
     /* report error through the handler */
-    VortexEngine.apply (this.onErrorHandler, this.onErrorObject, [error]);
+    VortexEngine.apply (this.onErrorHandler, this.onErrorObject, [errorMsg]);
 
     return;
 };

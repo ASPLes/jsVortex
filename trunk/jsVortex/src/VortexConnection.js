@@ -995,9 +995,12 @@ VortexConnection.prototype.enableTLS._frameReceived = function (frameReceived) {
     /* check connection status here to reset its status */
     if (conn.isOk ()) {
 	Vortex.log ("VortexConnection.enableTLS._frameReceived: connection status ok after TLS, prepare for greetings exchange");
-	conn.resetConnection = true;
+	/* configure reconfigure created handlers so TLS connection
+	 reset is notified using the usual way */
 	conn.createdHandler  = VortexConnection._enableTLSConnectionCreated;
 	conn.createdContext  = this;
+	/* call to start */
+	VortexEngine.apply (conn._onStart, conn, [], true);
     }
 
     return;
@@ -1148,7 +1151,6 @@ VortexConnection.prototype._onStart = function () {
 
     /* flag greetings sent */
     this.greetingsSent = false;
-    this.greetingsSent = false;
 
     /* check errors here */
     if (this._transport.socket == -1) {
@@ -1204,17 +1206,6 @@ VortexConnection.prototype._onStop = function () {
 VortexConnection.prototype._onRead = function (connection, data) {
     /* handle data received from the transport */
     Vortex.log2 ("VortexConnection._onRead, data received: " + data);
-
-    /* check for tuning reset */
-    if (connection.resetConnection) {
-	/* call to init the connection */
-	Vortex.log ("VortexConnection._onRead: during connection reset");
-	connection._onStart ();
-	Vortex.log ("VortexConnection._onRead: connection reset finished, now follow normal processing");
-
-	/* remove the reference to avoid future resets */
-	delete connection.resetConnection;
-    }
 
     /* create the frame */
     var frameList = VortexEngine.getFrame (connection, data);
