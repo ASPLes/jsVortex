@@ -22,6 +22,7 @@
   dojo.require("dijit.form.ValidationTextBox");
   dojo.require("dijit.form.Button");
   dojo.require("dijit.form.CheckBox");
+  dojo.require("dijit.form.ComboBox");
 </script>
 
 <!-- include jsVortex files -->
@@ -41,19 +42,40 @@
 <!-- main form -->
 <div dojoType="dijit.layout.ContentPane" title="jsVortex: Regression test suite" id="control-panel">
 
-Host: <div dojoType="dijit.form.ValidationTextBox" id="host" required="true" regExp="(\d|\w|\.|\-)+"></div> 
-Port: <div dojoType="dijit.form.ValidationTextBox" id="port" required="true" regExp="(\d)+"></div>
-<div id="run-test" dojoType="dijit.form.Button">Run test!</div>
-<div id="clear-log" dojoType="dijit.form.Button">Clear log</div>
-<div id="invert-selection" dojoType="dijit.form.Button">Invert selection</div>
+<table>
+ <tr>  
+   <td>Host:</td><td><div dojoType="dijit.form.ValidationTextBox" id="host" required="true" regExp="(\d|\w|\.|\-)+"></div> </td>
+   <td>
+   <div id="run-test" dojoType="dijit.form.Button">Run test!</div>
+   <div id="clear-log" dojoType="dijit.form.Button">Clear log</div>
+   <div id="invert-selection" dojoType="dijit.form.Button">Invert selection</div>
+   </td>
+ </tr>
+ <tr>
+   <td>Port: </td><td><div dojoType="dijit.form.ValidationTextBox" id="port" required="true" regExp="(\d)+"></div></td>
+   <td>
+     <!-- check box for first level log configuration -->
+   <div id="logEnabled" dojoType="dijit.form.CheckBox"></div>
+   <label for="logEnabled">Enable first level debug</label>
 
-<!-- check box for first level log configuration -->
-<div id="logEnabled" dojoType="dijit.form.CheckBox"></div>
-<label for="logEnabled">Enable first level debug</label>
+   <span class="sep"></span>
 
-<!-- check box for second level log configuration -->
-<div id="log2Enabled" dojoType="dijit.form.CheckBox"></div>
-<label for="log2Enabled">Enable second level debug</label>
+   <!-- check box for second level log configuration -->
+   <div id="log2Enabled" dojoType="dijit.form.CheckBox"></div>
+   <label for="log2Enabled">Enable second level debug</label>
+
+   <span class="sep"></span>
+   
+   <!-- combo box for transport selection -->
+   Socket transport type: 
+   <select id="transportType" dojoType="dijit.form.ComboBox" autocomplete="false" value="Java Socket Connector" onChange="setVal1">
+     <option selected="selected">Java Socket Connector</option>
+     <option >Firefox nsISocketTransportService</option>
+   </select>
+   </td>
+ </tr>
+</table>
+
 
 
 </div> <!-- main form -->
