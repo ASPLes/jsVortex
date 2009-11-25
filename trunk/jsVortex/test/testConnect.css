@@ -79,3 +79,12 @@ h1 {
 pre { 
   font-family: arial, verdana, trebuchetms;
 }
+
+.sep { 
+  width: 1px;
+  border-left: 1px solid #acacac;
+  margin-left: 6px;
+  margin-right: 6px;
+  height: 10px;
+  
+}
