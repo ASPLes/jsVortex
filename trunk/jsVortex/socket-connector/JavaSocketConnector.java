@@ -104,12 +104,13 @@ public class JavaSocketConnector extends JApplet {
 	 * out stream (associated to a particular socket).
 	 *
 	 * @param content The content to be sent.
+	 * @param length The amount of data to be written.
 	 * @param out The output stream object to write on.
 	 */
-	public boolean send (String content, PrintWriter output, JSObject caller){
+	public boolean send (String content, int length, PrintWriter output, JSObject caller){
 		try{
 			/* try to send content */
-			output.write (content);
+			output.write (content, 0, length);
 			output.flush ();
 		} catch (Exception ex) {
 			LogHandling.error (caller, "Failed to send content, error found was: " + ex.getMessage());
@@ -130,9 +131,6 @@ public class JavaSocketConnector extends JApplet {
 	public void close (JSObject caller) {
 		PrintWriter    out      = (PrintWriter) caller.getMember ("_jsc_out");
 		caller.removeMember ("_jsc_out");
-
-		BufferedReader in       = (BufferedReader) caller.getMember ("_jsc_in");
-		caller.removeMember ("_jsc_in");
 
 		Socket         socket   = (Socket) caller.getMember ("_jsc_socket");
 		caller.removeMember ("_jsc_socket");
