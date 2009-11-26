@@ -52,11 +52,12 @@ JavaSocketConnector.isReady = false;
  * @brief Allows to send content over the provided socket object.
  *
  * @param content The content to be sent.
+ * @param length The amount of data to be sent from the content.
  *
  * @return true in the case the send operation was initiated,
  * otherwise false is returned.
  */
-JavaSocketConnector.prototype.send = function (content) {
+JavaSocketConnector.prototype.send = function (content, length) {
     /* check socket readyState */
     if (this.readyState != 1) {
 	this.onlog ("error", "Unable to send content, socket readyState is: " + readyState);
@@ -64,7 +65,7 @@ JavaSocketConnector.prototype.send = function (content) {
     }
 
     /* now send content */
-    return document.getElementById('JavaSocketConnector').send (content, this._jsc_out, this);
+    return document.getElementById('JavaSocketConnector').send (content, length, this._jsc_out, this);
 };
 
 JavaSocketConnector.prototype.close = function () {
@@ -97,6 +98,15 @@ JavaSocketConnector.prototype.onopen = function () {
  */
 JavaSocketConnector.prototype.onmessage = function (content) {
     console.log ("Content received: " + content);
+};
+
+/**
+ * @brief This is the handler that will receive on close notifications.
+ *
+ * @param content The content received over the socket.
+ */
+JavaSocketConnector.prototype.onclose = function () {
+    console.log ("Close notification");
 };
 
 /**
