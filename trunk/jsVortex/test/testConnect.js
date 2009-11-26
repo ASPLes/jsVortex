@@ -2923,10 +2923,10 @@ function prepareTest () {
     dijit.byId ("logEnabled").attr ("checked", true);
 
     /* configure window height */
-    var heightValue = (window.innerHeight - 120) + "px";
+    var heightValue = (window.innerHeight - 140) + "px";
     dojo.style(dojo.byId ("test-available-panel"), "height", heightValue);
     dojo.style(dojo.byId ("log-panel"), "height", heightValue);
-    dojo.style(dojo.byId ("global-container"), "height", (window.innerHeight - 98) + "px");
+    dojo.style(dojo.byId ("global-container"), "height", (window.innerHeight - 120) + "px");
 
     /* call to resize */
     dijit.byId ("global-container").resize ();
