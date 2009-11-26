@@ -1468,7 +1468,7 @@ testContentTransfer.Result = function (conn) {
 
     /* check channels before opening */
     if (VortexEngine.count (conn.channels) != 1) {
-	log ("error", "Expected to find only one channel opened at this point but found: " + VortexEngine.count (conn.channels));
+	log ("error", "1) Expected to find only one channel opened at this point but found: " + VortexEngine.count (conn.channels));
 	this.stopTests = true;
 	return false;
     }
@@ -1483,7 +1483,7 @@ testContentTransfer.Result = function (conn) {
     });
 
     if (VortexEngine.count (conn.channels) != 1) {
-	log ("error", "Expected to find only one channel opened at this point but found: " + VortexEngine.count (conn.channels));
+	log ("error", "2) Expected to find only one channel opened at this point but found: " + VortexEngine.count (conn.channels));
 	this.stopTests = true;
 	return false;
     }
@@ -1722,7 +1722,7 @@ function testChannelsDeny () {
 
 testChannelsDeny.Result = function (conn) {
     if (! conn.isOk ()) {
-	log ("erro", "Expected connection ok to test channel denial, but found an error:");
+	log ("error", "Expected connection ok to test channel denial, but found an error:");
 	showErrors (conn);
 	return false;
     } /* end if */
@@ -1748,7 +1748,7 @@ testChannelsDeny.ResultCreated = function (replyData) {
     }
 
     /* check here code replied */
-    log ("info", "Received reply code: " + replyData.replyCode + ", message: " + replyData.replyMsg);
+    log ("info", "Test DENY: Received reply code: " + replyData.replyCode + ", message: " + replyData.replyMsg);
 
     /* check error code */
     if (replyData.replyCode != '554') {
@@ -2771,6 +2771,10 @@ function log (status, logMsg) {
     } else {
 	timeStamp = "";
     } /* end if */
+
+    /* set a default string if it is undefined */
+    if (typeof logMsg == "undefined")
+	logMsg = "";
 
     logMsg = logMsg.replace (/</g, "&lt;");
 
