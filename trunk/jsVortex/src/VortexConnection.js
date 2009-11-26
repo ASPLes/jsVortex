@@ -379,7 +379,7 @@ VortexConnection.prototype.openChannel = function (params) {
 	    conn : this,
 	    channel : null,
 	    replyCode : "451",
-	    replyMsg : "After sneding start request, broken connection was found"
+	    replyMsg : "After sending start request, broken connection was found"
 	};
 	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData], true);
 	return false;

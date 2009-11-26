@@ -520,12 +520,16 @@ function VortexJSCWrite (data, length) {
  */
 function VortexJSCisOK () {
 
+    Vortex.log ("Checking socket state: " + this.socket);
+
     /* check socket termination */
     if (this.socket == -1)
 	return false;
 
+    Vortex.log ("Checking socket ready state: " + this.socket.readyState);
+
     /* check that the socket is in readyState == OPEN */
-    return this.socket.readyState == 1;
+    return (this.socket.readyState == 1);
 }
 
 function VortexJSCClose () {
