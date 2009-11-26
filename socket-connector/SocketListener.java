@@ -57,6 +57,10 @@ public class SocketListener extends Thread {
 		String str = null;
 		byte[] buffer = new byte[8192];
 		int    size;
+
+		/* notify here connection created */
+		caller.call ("onopen", null);
+
 		while (running) {
 			try{
 				size = in.read (buffer, 0, buffer.length);

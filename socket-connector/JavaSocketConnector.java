@@ -108,15 +108,16 @@ public class JavaSocketConnector extends JApplet {
 	 * @param out The output stream object to write on.
 	 */
 	public boolean send (String content, int length, PrintWriter output, JSObject caller){
-		try{
-			/* try to send content */
-			output.write (content, 0, length);
-			output.flush ();
-		} catch (Exception ex) {
-			LogHandling.error (caller, "Failed to send content, error found was: " + ex.getMessage());
-			return false;
-		}
-		LogHandling.info (caller, "Sent content without problem..");
+
+		/* queue a send operation */
+		SendCommand sendCmd = new SendCommand ();
+		sendCmd.content = content;
+		sendCmd.length  = length;
+		sendCmd.output  = output;
+		sendCmd.caller  = caller;
+
+		/* queue command */
+		commandQueue.push (sendCmd);
 		return true;
 	}
 

@@ -10,7 +10,8 @@ java_files = \
 	BlockingQueue.java \
 	Command.java \
 	SocketCommand.java \
-	LogHandling.java
+	LogHandling.java \
+	SendCommand.java
 class_files := $(patsubst %.java,%.class,$(wildcard *.java))
 
 # configure plugin.jar location (browser plugin)
@@ -23,7 +24,7 @@ all:
         # create jar file
 	jar cvf JavaSocketConnector.jar $(class_files)
 sign:
-	# sign the applet
+        # sign the applet
 	jarsigner JavaSocketConnector.jar aspl	
 clean:
 	rm -f *.class rm -f *.jar
