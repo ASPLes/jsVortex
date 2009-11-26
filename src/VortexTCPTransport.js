@@ -37,6 +37,26 @@ function VortexTCPTransport () {
 
 	/* do not require permissions */
 	this.requirePerms = true;
+
+    } else if (VortexTCPTransport.useTransport == 2) {
+	/* define default write method */
+	this.connect    = VortexJSCConnect;
+
+	/* define default write method */
+	this.write      = VortexFirefoxWrite;
+
+	/* define default isOk method */
+	this.isOk       = VortexFirefoxIsOk;
+
+	/* define default close method */
+	this.close      = VortexFirefoxClose;
+
+	/* define default start TLS operation */
+	this.enableTLS  = VortexFirefoxEnableTLS;
+
+	/* do not require permissions */
+	this.requirePerms = true;
+
     } /* end if */
 };
 
@@ -441,3 +461,35 @@ VortexTCPTransport.prototype._reportError = function (errorMsg) {
     return;
 };
 
+/**
+ * @internal JavaSocketConnector support for TCP connect.
+ *
+ * @param host The host to connect to.
+ * @param port The port to connect to.
+ *
+ * @return The socket created.
+ */
+function VortexJSCConnect (host, port) {
+
+    /* connect */
+    this.socket = new JavaSocketConnector ({host: host, port: port});
+
+    /* configure on open handler */
+    this.socket.onopen = _VortexJSCSocketOpen;
+
+    /* return socket created */
+    return this.socket;
+};
+
+function _VortexJSCSocketOpen () {
+    if (this.readyState == 1) {
+	Vortex.log ("Connection OK, now proceed..: " + this.host + ":" + this.port);
+    } else {
+	Vortex.error ("Failed to connect to remote host: " + this.host + ":" + this.port);
+    }
+
+    /* notify connection ready at this point because firefox socket
+     support do not notify it until data comes from the server. */
+    /* VortexEngine.apply (this.onStartHandler, this.onStartObject, [], true); */
+    return;
+}
