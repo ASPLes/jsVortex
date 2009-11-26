@@ -65,9 +65,6 @@ public class SocketCommand implements Command {
 			/* change state to OPENED = 1 */
 			caller.setMember ("readyState", 1);
 
-			/* notify here connection created */
-			caller.call ("onopen", null);
-
 			/* start the listener at the end to avoid
 			 * onmessage to be fired before onopen */
 			listener.start();

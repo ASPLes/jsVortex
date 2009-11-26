@@ -84,10 +84,10 @@ JavaSocketConnector.prototype.close = function () {
  */
 JavaSocketConnector.prototype.onopen = function () {
     if (this.readyState == 1) {
-	console.log ("Socket connected to: " + this.host + ", port: " + this.port);
+	console.log ("USING DEFAULT onopen: Socket connected to: " + this.host + ", port: " + this.port);
 	return;
     }
-    console.error ("Failed to connect!");
+    console.error ("USING DEFAULT onopen: Failed to connect!");
 };
 
 /**
@@ -97,7 +97,7 @@ JavaSocketConnector.prototype.onopen = function () {
  * @param content The content received over the socket.
  */
 JavaSocketConnector.prototype.onmessage = function (content) {
-    console.log ("Content received: " + content);
+    console.log ("USING DEFAULT onmessage: Content received: " + content);
 };
 
 /**
@@ -106,7 +106,7 @@ JavaSocketConnector.prototype.onmessage = function (content) {
  * @param content The content received over the socket.
  */
 JavaSocketConnector.prototype.onclose = function () {
-    console.log ("Close notification");
+    console.log ("USING DEFAULT onclose: Close notification");
 };
 
 /**
