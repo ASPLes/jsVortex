@@ -43,19 +43,16 @@ function VortexTCPTransport () {
 	this.connect    = VortexJSCConnect;
 
 	/* define default write method */
-	this.write      = VortexFirefoxWrite;
+	this.write      = VortexJSCWrite;
 
 	/* define default isOk method */
-	this.isOk       = VortexFirefoxIsOk;
+	this.isOk       = VortexJSCisOK;
 
 	/* define default close method */
-	this.close      = VortexFirefoxClose;
+	this.close      = VortexJSCClose;
 
 	/* define default start TLS operation */
-	this.enableTLS  = VortexFirefoxEnableTLS;
-
-	/* do not require permissions */
-	this.requirePerms = true;
+	this.enableTLS  = null;
 
     } /* end if */
 };
@@ -67,7 +64,7 @@ function VortexTCPTransport () {
  *  - 1 : Firefox native javascript sockets
  *  - 2 : JavaSocketConnector native sockets
  */
-VortexTCPTransport.useTransport = 1;
+VortexTCPTransport.useTransport = 2;
 
 /**
  * @internal Firefox support for TCP connect.
@@ -471,17 +468,22 @@ VortexTCPTransport.prototype._reportError = function (errorMsg) {
  */
 function VortexJSCConnect (host, port) {
 
+    Vortex.log ("Creating connection with " + host + ":" + port + ", using JSC interface..");
+
     /* connect */
     this.socket = new JavaSocketConnector ({host: host, port: port});
 
-    /* configure on open handler */
-    this.socket.onopen = _VortexJSCSocketOpen;
+    /* configure on open handler and the transport context  */
+    this.socket.onopen    = VortexJSCConnect.onopen;
+    this.socket.onmessage = VortexJSCConnect.onmessage;
+    this.socket.transport = this;
 
     /* return socket created */
     return this.socket;
 };
 
-function _VortexJSCSocketOpen () {
+VortexJSCConnect.onopen = function () {
+    /* under this handler "this" keyword points to the socket object */
     if (this.readyState == 1) {
 	Vortex.log ("Connection OK, now proceed..: " + this.host + ":" + this.port);
     } else {
@@ -490,6 +492,53 @@ function _VortexJSCSocketOpen () {
 
     /* notify connection ready at this point because firefox socket
      support do not notify it until data comes from the server. */
-    /* VortexEngine.apply (this.onStartHandler, this.onStartObject, [], true); */
+    VortexEngine.apply (this.transport.onStartHandler, this.transport.onStartObject, [], true);
+    return;
+};
+
+/**
+ * @internal Handler called eacy time some content is received on the socket.
+ */
+VortexJSCConnect.onmessage = function (message) {
+
+    /* call to notify data read */
+    this.transport.onReadHandler.apply (this.transport.onReadObject, [this.transport.onReadObject, message]);
+};
+
+/**
+ * @internal JavaSocketConnector write support.
+ * @param data The set of octets to write.
+ * @param length The amount of data from data to be written.
+ */
+function VortexJSCWrite (data, length) {
+    /* this points to the transport (VortexTCPTransport) */
+    return this.socket.send (data, length);
+}
+
+/**
+ * @internal JavaSocketConnector socket check.
+ */
+function VortexJSCisOK () {
+
+    /* check socket termination */
+    if (this.socket == -1)
+	return false;
+
+    /* check that the socket is in readyState == OPEN */
+    return this.socket.readyState == 1;
+}
+
+function VortexJSCClose () {
+
+    /* do not implement any operation in the case the socket is
+     already closed */
+    if (this.socket == -1)
+	return;
+
+    /* call to close socket */
+    this.socket.close ();
+
+    /* clear socket reference */
+    this.socket = -1;
     return;
 }
