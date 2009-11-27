@@ -68,6 +68,17 @@ JavaSocketConnector.prototype.send = function (content, length) {
     return document.getElementById('JavaSocketConnector').send (content, length, this._jsc_out, this);
 };
 
+JavaSocketConnector.prototype.enableTLS = function () {
+    /* check socket readyState */
+    if (this.readyState != 1) {
+	this.onlog ("error", "Unable to enable TLS, socket readyState is: " + readyState);
+	return false;
+    }
+
+    /* now send content */
+    return document.getElementById('JavaSocketConnector').enableTLS (this);
+};
+
 JavaSocketConnector.prototype.close = function () {
     if (this.readyState == 2) {
 	this.onlog ("warn", "Connection already closed");

@@ -43,8 +43,6 @@ public class SocketCommand implements Command {
 	 */
 	public boolean doOperation (JSObject browser, JavaSocketConnector dispacher) {
 		try {
-			LogHandling.info (caller, "Creating socket connection.."); 
-
 			/* do connect operation */
 			socket = new Socket (host, port);
 			out    = new PrintWriter (socket.getOutputStream(), true);

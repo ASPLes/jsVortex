@@ -10,7 +10,7 @@ public class InvokeCommand implements Command {
 	/** 
 	 * @brief List of arguments.
 	 */
-	public Object [] args;
+	public String handler;
 
 	/** 
 	 * @brief Reference to the caller javascript object where the
@@ -19,11 +19,20 @@ public class InvokeCommand implements Command {
 	public JSObject caller;
 
 	/** 
+	 * @brief Argument to be passed to the component.
+	 */
+	public Object   arg;
+
+	/** 
 	 * @brief Implements browser notification.
 	 *
 	 * @param browser The reference to the browser.
 	 */
 	public boolean doOperation (JSObject browser, JavaSocketConnector dispacher) {
+		/* get marshall handler */
+		JSObject _handler  = (JSObject) caller.getMember (handler);
+		Object [] args    = {caller, _handler, arg};
+
 		/* do call operation */
 		caller.call ("_marshallCall", args);
 		return true;
