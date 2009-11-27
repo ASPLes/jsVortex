@@ -14,16 +14,18 @@ public class SocketListener extends Thread {
 	public InputStream       in;       
 	boolean                  running = false;	
 	JSObject                 caller;
+	JavaSocketConnector      dispacher;
 
 	/** 
 	 * @brief Creates a socket listener that reads content from
 	 * the socket and notifies content read into the callers
 	 * onmessage method.
 	 */ 
-	public SocketListener (Socket _socket, JSObject _caller) throws IOException{
+	public SocketListener (Socket _socket, JSObject _caller, JavaSocketConnector _dispacher) throws IOException{
 		/* get references */
-		socket = _socket;
-		caller = _caller;
+		socket    = _socket;
+		caller    = _caller;
+		dispacher = _dispacher;
 
 		/* create input buffer */
 		in = socket.getInputStream();
@@ -59,7 +61,8 @@ public class SocketListener extends Thread {
 		int    size;
 
 		/* notify here connection created */
-		caller.call ("onopen", null);
+		try {Thread.sleep (10);} catch (Exception ex) {}
+		dispacher.notify (caller, "onopen", null);
 
 		while (running) {
 			try{
@@ -69,15 +72,15 @@ public class SocketListener extends Thread {
 					close();
 
 					/* fire onclose event */
-					caller.call ("onclose", null);
+					dispacher.notify (caller, "onclose", null);
 
 					return;
 				}
 
 				/* notify content found */
 				str = new String (buffer, 0, size);
-				Object args [] = {str};
-				caller.call ("onmessage", args);
+				dispacher.notify (caller, "onmessage", str);
+
 			} catch (Exception ex) {
 				/* check that we are stopping the listener */
 				if (! running)
@@ -86,7 +89,7 @@ public class SocketListener extends Thread {
 				close ();
 
 				/* fire onclose event */
-				caller.call ("onclose", null);
+				dispacher.notify (caller, "onclose", null);
 
 				return;
 			}

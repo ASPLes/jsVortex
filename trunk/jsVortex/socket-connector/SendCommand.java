@@ -36,7 +36,7 @@ public class SendCommand implements Command {
 	 *
 	 * @param browser The reference to the browser.
 	 */
-	public boolean doOperation (JSObject browser) {
+	public boolean doOperation (JSObject browser, JavaSocketConnector dispacher) {
 		try{
 			/* try to send content */
 			output.write (content, 0, length);
@@ -45,7 +45,7 @@ public class SendCommand implements Command {
 			LogHandling.error (caller, "Failed to send content, error found was: " + ex.getMessage());
 			return false;
 		}
-		LogHandling.info (caller, "Sent content without problem..");
+		/* LogHandling.info (caller, "Sent content without problem.."); */
 		return true;
 	}
 }

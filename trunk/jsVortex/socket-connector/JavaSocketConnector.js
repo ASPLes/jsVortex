@@ -90,6 +90,12 @@ JavaSocketConnector.prototype.onopen = function () {
     console.error ("USING DEFAULT onopen: Failed to connect!");
 };
 
+JavaSocketConnector.prototype._marshallCall = function (context, call, arg) {
+    setTimeout (function () {
+		    call.apply (context, [arg]);
+		}, 1);
+};
+
 /**
  * @brief This is the handler that will receive all content received
  * on the socket.

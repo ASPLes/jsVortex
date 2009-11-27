@@ -11,5 +11,5 @@ interface Command {
 	 * class to implement several commands in the priviledge
 	 * thread.
 	 */
-	boolean doOperation (JSObject browser); 
+	boolean doOperation (JSObject browser, JavaSocketConnector dispacher); 
 }
