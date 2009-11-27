@@ -61,7 +61,6 @@ public class SocketListener extends Thread {
 		int    size;
 
 		/* notify here connection created */
-		try {Thread.sleep (10);} catch (Exception ex) {}
 		dispacher.notify (caller, "onopen", null);
 
 		while (running) {

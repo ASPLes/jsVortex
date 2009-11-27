@@ -91,9 +91,7 @@ JavaSocketConnector.prototype.onopen = function () {
 };
 
 JavaSocketConnector.prototype._marshallCall = function (context, call, arg) {
-    setTimeout (function () {
-		    call.apply (context, [arg]);
-		}, 1);
+    call.apply (context, [arg]);
 };
 
 /**
