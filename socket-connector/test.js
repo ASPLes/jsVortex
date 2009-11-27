@@ -14,7 +14,7 @@ function run() {
 
 	if (this.readyState == 1) {
 	    /* now send some content */
-	    if (socket.send ("GET / HTTP/1.1\n\n")) {
+	    if (socket.send ("GET / HTTP/1.1\n\n", 16)) {
 		document.getElementById('result').innerHTML += "STEP 1: Content sent...<br>";
 		console.log ("STEP 1: Content sent...");
 	    }

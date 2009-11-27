@@ -69,7 +69,7 @@ public class JavaSocketConnector extends JApplet {
 			} /* end try */
 
 			/* call to complete command */
-			cmd.doOperation (browser);
+			cmd.doOperation (browser, this);
 		}  /* end while */
 		return;
 	}
@@ -147,9 +147,24 @@ public class JavaSocketConnector extends JApplet {
 		caller.setMember ("readyState", 2);
 
 		/* fire onclose event */
-		caller.call ("onclose", null);
+		notify (caller, "onclose", null);
 		
 		return;
+	}
+
+	public void notify (JSObject caller, String _handler, Object arg) {
+		/* LogHandling.info (caller, "Doing handler notification for: " + _handler); */
+
+		/* get marshall handler */
+		JSObject handler  = (JSObject) caller.getMember (_handler);
+		Object [] args    = {caller, handler, arg};
+
+		InvokeCommand invokeCmd = new InvokeCommand ();
+		invokeCmd.args    = args;
+		invokeCmd.caller  = caller;
+
+		/* push command */
+		commandQueue.push (invokeCmd);
 	}
 	
 } /* end JavaSocketConnector */

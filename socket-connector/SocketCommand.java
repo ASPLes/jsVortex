@@ -41,7 +41,7 @@ public class SocketCommand implements Command {
 	 *
 	 * @param browser The reference to the browser.
 	 */
-	public boolean doOperation (JSObject browser) {
+	public boolean doOperation (JSObject browser, JavaSocketConnector dispacher) {
 		try {
 			LogHandling.info (caller, "Creating socket connection.."); 
 
@@ -52,7 +52,7 @@ public class SocketCommand implements Command {
 			LogHandling.info (caller, "Starting listener.."); 
 
 			/* create the listener */
-			SocketListener listener = new SocketListener (socket, caller);
+			SocketListener listener = new SocketListener (socket, caller, dispacher);
 
 			/* record the socket listener */
 			caller.setMember ("_jsc_listener", listener);
