@@ -12,7 +12,8 @@ java_files = \
 	SocketCommand.java \
 	LogHandling.java \
 	SendCommand.java \
-	InvokeCommand.java
+	InvokeCommand.java \
+	Callers.java
 class_files := $(patsubst %.java,%.class,$(wildcard *.java))
 
 # configure plugin.jar location (browser plugin)

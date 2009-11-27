@@ -476,6 +476,8 @@ function VortexJSCConnect (host, port) {
     /* configure on open handler and the transport context  */
     this.socket.onopen    = VortexJSCConnect.onopen;
     this.socket.onmessage = VortexJSCConnect.onmessage;
+    this.socket.onclose   = VortexJSCConnect.onclose;
+    this.socket.onlog     = VortexJSCConnect.onlog;
     this.socket.transport = this;
 
     /* return socket created */
@@ -503,6 +505,35 @@ VortexJSCConnect.onmessage = function (message) {
 
     /* call to notify data read */
     this.transport.onReadHandler.apply (this.transport.onReadObject, [this.transport.onReadObject, message]);
+};
+
+/**
+ * @internal Handler to receive all java socket connector work.
+ */
+VortexJSCConnect.onlog = function (type, message) {
+    if (type == "info") {
+	Vortex.log (message);
+	return;
+    } else if (type == "error") {
+	Vortex.error (message);
+	return;
+    } else if (type == "warn") {
+	Vortex.warn (message);
+	return;
+    }
+
+    Vortex.error ("UNHANDLED TYPE: " + type + ": " + message);
+    return;
+
+};
+
+/**
+ * @internal Handler called eacy time some content is received on the socket.
+ */
+VortexJSCConnect.onclose = function () {
+
+    /* call to notify data read */
+    this.transport.onStopHandler.apply (this.transport.onStopObject, [this.transport.onStopObject]);
 };
 
 /**

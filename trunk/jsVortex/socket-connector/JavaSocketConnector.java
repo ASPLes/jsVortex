@@ -13,16 +13,13 @@ public class JavaSocketConnector extends JApplet {
 
 	/* A reference to the current browser (tab) opening the
 	 * component */
-	JSObject browser = null;		// The browser
-	Socket socket = null;			// The current socket
-	PrintWriter out = null;			// Output
-	SocketListener listener = null;		// Listens for input
-	boolean running = false;		// Am I still running?
-	String address = null;			// Where you will connect to
-	int port = -1;					// Port
-	boolean connectionDone = false;	// Thread synchronization
+	JSObject      browser      = null; /* browser */
+	BlockingQueue commandQueue = null; /* command queue */
 
-	BlockingQueue commandQueue = null;
+	/* list of callers that are inside the applet */
+	Callers       callers      = null;
+	boolean       running;
+	
 
 	/**
 	 * Public initialization. Get a reference to the browser
@@ -31,6 +28,10 @@ public class JavaSocketConnector extends JApplet {
 	public void init() {
 		/* reference to the browser */
 		browser = JSObject.getWindow (this);
+
+		/* initialize callers */
+		callers = new Callers ();
+
 		return;
 	}
 
@@ -59,8 +60,23 @@ public class JavaSocketConnector extends JApplet {
 
 		running = true;
 		Command cmd = null;
+
+		/* set lowest priority */
+		Thread.currentThread ().setPriority (Thread.MIN_PRIORITY);
+
 		while (running){
 			try {
+				/* notify caller inside */
+				synchronized (callers) {
+					/* check if the caller list if
+					 * empty (no javaScript thread
+					 * is inside the applet) */
+					if (callers.count > 0) 
+						callers.wait ();
+				} /* end if */
+				/* give a try to other threads */
+				Thread.yield ();
+
 				/* Wait for the next operation requested */
 				cmd = (Command) commandQueue.pop ();
 			} catch (Exception ex) {
@@ -84,17 +100,25 @@ public class JavaSocketConnector extends JApplet {
 	 */
 	public boolean connect (String host, int port, JSObject caller) {
 
+		/* notify caller inside */
+		synchronized (callers) {
+			callers.count++;
+		}
+
 		/* create the socket command */
 		SocketCommand cmd = new SocketCommand ();
 		cmd.host   = host;
 		cmd.port   = port;
 		cmd.caller = caller;
 
-		/* do some logging */
-		LogHandling.info (caller, "Received request to connect to: " + host + ":" + port);
-
 		/* queue the command */
 		commandQueue.push (cmd);
+
+		/* notify caller inside */
+		synchronized (callers) {
+			callers.count--;
+			callers.notify ();
+		}
 		
 		return true;
 	}
@@ -109,6 +133,11 @@ public class JavaSocketConnector extends JApplet {
 	 */
 	public boolean send (String content, int length, PrintWriter output, JSObject caller){
 
+		/* notify caller inside */
+		synchronized (callers) {
+			callers.count++;
+		}
+
 		/* queue a send operation */
 		SendCommand sendCmd = new SendCommand ();
 		sendCmd.content = content;
@@ -118,6 +147,13 @@ public class JavaSocketConnector extends JApplet {
 
 		/* queue command */
 		commandQueue.push (sendCmd);
+
+		/* notify caller inside */
+		synchronized (callers) {
+			callers.count--;
+			callers.notify ();
+		}
+
 		return true;
 	}
 
@@ -130,6 +166,12 @@ public class JavaSocketConnector extends JApplet {
 	 * @param caller The caller and at the same time the socket.
 	 */
 	public void close (JSObject caller) {
+
+		/* notify caller inside */
+		synchronized (callers) {
+			callers.count++;
+		}
+
 		PrintWriter    out      = (PrintWriter) caller.getMember ("_jsc_out");
 		caller.removeMember ("_jsc_out");
 
@@ -148,23 +190,37 @@ public class JavaSocketConnector extends JApplet {
 
 		/* fire onclose event */
 		notify (caller, "onclose", null);
+
+		/* notify caller inside */
+		synchronized (callers) {
+			callers.count--;
+			callers.notify ();
+		}
 		
 		return;
 	}
 
-	public void notify (JSObject caller, String _handler, Object arg) {
-		/* LogHandling.info (caller, "Doing handler notification for: " + _handler); */
+	public void notify (JSObject caller, String handler, Object arg) {
+		/* LogHandling.info (caller, "Doing handler notification for: " + _handler);  */
 
-		/* get marshall handler */
-		JSObject handler  = (JSObject) caller.getMember (_handler);
-		Object [] args    = {caller, handler, arg};
+		/* notify caller inside */
+		synchronized (callers) {
+			callers.count++;
+		}
 
 		InvokeCommand invokeCmd = new InvokeCommand ();
-		invokeCmd.args    = args;
+		invokeCmd.handler = handler;
 		invokeCmd.caller  = caller;
+		invokeCmd.arg     = arg;
 
 		/* push command */
 		commandQueue.push (invokeCmd);
+
+		/* notify caller inside */
+		synchronized (callers) {
+			callers.count--;
+			callers.notify ();
+		}
 	}
 	
 } /* end JavaSocketConnector */
