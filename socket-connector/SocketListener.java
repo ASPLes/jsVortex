@@ -60,13 +60,19 @@ public class SocketListener extends Thread {
 		byte[] buffer = new byte[8192];
 		int    size;
 
+		/* set lowest priority */
+		Thread.currentThread ().setPriority (Thread.MIN_PRIORITY);
+
 		/* notify here connection created */
 		dispacher.notify (caller, "onopen", null);
 
 		while (running) {
 			try{
+				/* read from the inputstream */
 				size = in.read (buffer, 0, buffer.length);
+
 				if (size == 0 || size == -1) {
+
 					LogHandling.info (caller, "Calling to close socket listener because it was received empty content..");
 					close();
 
@@ -81,6 +87,13 @@ public class SocketListener extends Thread {
 				dispacher.notify (caller, "onmessage", str);
 
 			} catch (Exception ex) {
+
+				/* check here to finish current listener */
+				if (((Integer) caller.getMember ("_jsc_stop_listener")) == 2) {
+					LogHandling.info (caller, "Finishing socket listener because stop signal was found..");
+					return;
+				}
+
 				/* check that we are stopping the listener */
 				if (! running)
 					return;

@@ -9,6 +9,10 @@ import netscape.javascript.*;
 import java.net.*;
 import java.io.*;
 
+/* tls support */
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+
 public class JavaSocketConnector extends JApplet {
 
 	/* A reference to the current browser (tab) opening the
@@ -147,6 +151,64 @@ public class JavaSocketConnector extends JApplet {
 
 		/* queue command */
 		commandQueue.push (sendCmd);
+
+		/* notify caller inside */
+		synchronized (callers) {
+			callers.count--;
+			callers.notify ();
+		}
+
+		return true;
+	}
+
+	public boolean enableTLS (JSObject caller) {
+		/* notify caller inside */
+		synchronized (callers) {
+			callers.count++;
+		}
+
+		try {
+			/* terminate current listener */
+			caller.setMember ("_jsc_stop_listener", 2);
+			SocketListener listener = (SocketListener) caller.getMember ("_jsc_listener");
+			listener.in.close ();
+
+			/* get default factory */
+			SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+
+			SSLSocket sslsock = (SSLSocket) factory.createSocket((Socket) caller.getMember ("_jsc_socket"),
+									     (String) caller.getMember ("host"),
+									     (Integer) caller.getMember ("port"),
+									     /* autoClose, close this socket if the other socket is closed */
+									     true);
+
+			/* update socket reference */
+			caller.setMember ("_jsc_socket", sslsock);
+			PrintWriter out = new PrintWriter (sslsock.getOutputStream(), true);
+			caller.setMember ("_jsc_out", out);
+
+			/* start handshake */
+			sslsock.startHandshake();
+
+			/* start listener */
+			listener = new SocketListener ((Socket) sslsock, caller, this);
+
+			/* set new listener */
+			caller.setMember ("_jsc_listener", listener);
+
+			/* now input stream */
+			caller.setMember ("_jsc_in", listener.in);
+
+			/* removing stop listener flag */
+			caller.setMember ("_jsc_stop_listener", null);
+
+			/* start listener */
+			listener.start ();
+			
+		} catch (Exception ex) {
+			LogHandling.error (caller, "Failed to finish TLS handshake, error found was: " + ex.getMessage ());
+			return false;
+		} /* end if */
 
 		/* notify caller inside */
 		synchronized (callers) {

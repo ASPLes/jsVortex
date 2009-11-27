@@ -52,7 +52,7 @@ function VortexTCPTransport () {
 	this.close      = VortexJSCClose;
 
 	/* define default start TLS operation */
-	this.enableTLS  = null;
+	this.enableTLS  = VortexJSCEnableTLS;
 
     } /* end if */
 };
@@ -561,6 +561,12 @@ function VortexJSCisOK () {
 
     /* check that the socket is in readyState == OPEN */
     return (this.socket.readyState == 1);
+}
+
+function VortexJSCEnableTLS () {
+    /* call to enable TLS */
+    this.socket.enableTLS ();
+    return;
 }
 
 function VortexJSCClose () {
