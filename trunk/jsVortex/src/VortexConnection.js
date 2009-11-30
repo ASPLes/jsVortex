@@ -980,7 +980,10 @@ VortexConnection.prototype.enableTLS._frameReceived = function (frameReceived) {
 		conn : conn,
 		/* tls status error */
 		status : false,
-		statusMsg : "TLS failure during handshake. "
+		statusMsg : "TLS failure during handshake. ",
+		/* specific channel creaion errors */
+		replyCode : "",
+		replyMsg : ""
 	    };
 
 	    /* notify connection error */
@@ -990,7 +993,22 @@ VortexConnection.prototype.enableTLS._frameReceived = function (frameReceived) {
 	}, this);
 
     /* start here the TLS handshake */
-    conn._transport.enableTLS ();
+    if (! conn._transport.enableTLS ()) {
+	/* failed to create TLS channel */
+	var tlsStatus = {
+	    conn : conn,
+	    /* tls status error */
+	    status : false,
+	    statusMsg : "TLS failure during handshake. Transport TLS failed.",
+	    /* specific channel creaion errors */
+	    replyCode : "",
+	    replyMsg : ""
+	};
+
+	/* notify connection error */
+	VortexEngine.apply (this.onTLSFinishHandler, this.onTLSFinishContext, [tlsStatus]);
+	return;
+    }
 
     /* check connection status here to reset its status */
     if (conn.isOk ()) {

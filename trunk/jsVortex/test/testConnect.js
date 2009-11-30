@@ -73,7 +73,7 @@ testTlsProfile.onTLSFinishHandler = function (tlsReply) {
 
     /* check TLS status */
     if (! tlsReply.status) {
-	log ("error", "Expected to find proper TLS notification, but found failure: (" + tlsReply.replyCode + ") " + tlsReply.replyMsg);
+	log ("error", "Expected to find proper TLS notification, but found failure: (rpyCode: " + tlsReply.replyCode + ") " + tlsReply.replyMsg + ", statusMsg: " + tlsReply.statusMsg);
 	conn.shutdown ();
 	return false;
     }

@@ -10,8 +10,7 @@ import java.net.*;
 import java.io.*;
 
 /* tls support */
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.*;
 
 public class JavaSocketConnector extends JApplet {
 
@@ -169,18 +168,19 @@ public class JavaSocketConnector extends JApplet {
 
 		try {
 			/* terminate current listener */
-			caller.setMember ("_jsc_stop_listener", 2);
 			SocketListener listener = (SocketListener) caller.getMember ("_jsc_listener");
-			listener.in.close ();
+			listener.stopListener ();
 
 			/* get default factory */
 			SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
 
 			SSLSocket sslsock = (SSLSocket) factory.createSocket((Socket) caller.getMember ("_jsc_socket"),
 									     (String) caller.getMember ("host"),
-									     (Integer) caller.getMember ("port"),
+									     _getPort (caller.getMember ("port")),
 									     /* autoClose, close this socket if the other socket is closed */
 									     true);
+			String [] enabledProtocols = { "TLSv1" };
+			sslsock.setEnabledProtocols (enabledProtocols);
 
 			/* update socket reference */
 			caller.setMember ("_jsc_socket", sslsock);
@@ -199,16 +199,18 @@ public class JavaSocketConnector extends JApplet {
 			/* now input stream */
 			caller.setMember ("_jsc_in", listener.in);
 
-			/* removing stop listener flag */
-			caller.setMember ("_jsc_stop_listener", null);
-
 			/* start listener */
 			listener.start ();
-			
+		} catch (SSLException ex) {
+			/* do nothing for now */
+			LogHandling.error (caller, "Server certificate error, error was: " + ex.getMessage ());
 		} catch (Exception ex) {
+
 			LogHandling.error (caller, "Failed to finish TLS handshake, error found was: " + ex.getMessage ());
 			return false;
 		} /* end if */
+
+		LogHandling.info (caller, "TLS handshare OK");
 
 		/* notify caller inside */
 		synchronized (callers) {
@@ -219,6 +221,13 @@ public class JavaSocketConnector extends JApplet {
 		return true;
 	}
 
+	int _getPort (Object value) {
+		if (value instanceof String)
+			return Integer.parseInt ((String)value);
+		if (value instanceof Integer)
+			return (Integer) value;
+		return -1;
+	}
 
 	/** 
 	 * @brief Closes the socket by closing internal socket, output

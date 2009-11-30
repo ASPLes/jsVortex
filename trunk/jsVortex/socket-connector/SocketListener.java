@@ -15,6 +15,7 @@ public class SocketListener extends Thread {
 	boolean                  running = false;	
 	JSObject                 caller;
 	JavaSocketConnector      dispacher;
+	Thread                   listenerThread;
 
 	/** 
 	 * @brief Creates a socket listener that reads content from
@@ -49,6 +50,23 @@ public class SocketListener extends Thread {
 		return;
 	}
 
+	public void stopListener () {
+		try {
+			/* set to terminate */
+			running = false;
+
+			/* stop listener thread */
+			listenerThread.interrupt ();
+
+			/* wait for the thread to stop */
+			listenerThread.join ();
+
+		} catch (Exception ex) {
+			LogHandling.error (caller, "Failed to stop listener, error found was: " + ex.getMessage ());
+		}
+		return;
+	}
+
 	/** 
 	 * @internal Loop that iterates reading content from the
 	 * socket and notifying such content on the socket onmessage
@@ -61,10 +79,14 @@ public class SocketListener extends Thread {
 		int    size;
 
 		/* set lowest priority */
-		Thread.currentThread ().setPriority (Thread.MIN_PRIORITY);
+		listenerThread = Thread.currentThread ();
+		listenerThread.setPriority (Thread.MIN_PRIORITY);
 
 		/* notify here connection created */
 		dispacher.notify (caller, "onopen", null);
+
+		/* configure default timeout: 20ms */
+		try {socket.setSoTimeout (20);} catch (Exception ex) {}
 
 		while (running) {
 			try{
@@ -85,14 +107,12 @@ public class SocketListener extends Thread {
 				/* notify content found */
 				str = new String (buffer, 0, size);
 				dispacher.notify (caller, "onmessage", str);
-
-			} catch (Exception ex) {
-
-				/* check here to finish current listener */
-				if (((Integer) caller.getMember ("_jsc_stop_listener")) == 2) {
-					LogHandling.info (caller, "Finishing socket listener because stop signal was found..");
+			} catch (SocketTimeoutException ex) {
+				if (! running) /* check to terminate listener */
 					return;
-				}
+				/* timeout, continue */
+				continue;
+			} catch (Exception ex) {
 
 				/* check that we are stopping the listener */
 				if (! running)
