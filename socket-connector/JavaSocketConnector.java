@@ -166,19 +166,25 @@ public class JavaSocketConnector extends JApplet {
 			callers.count++;
 		}
 
+		/* variables used */
+		SocketListener listener = null;
+		SSLSocket      sslsock  = null;
+
 		try {
 			/* terminate current listener */
-			SocketListener listener = (SocketListener) caller.getMember ("_jsc_listener");
+			listener = (SocketListener) caller.getMember ("_jsc_listener");
 			listener.stopListener ();
 
 			/* get default factory */
 			SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
 
-			SSLSocket sslsock = (SSLSocket) factory.createSocket((Socket) caller.getMember ("_jsc_socket"),
+			sslsock = (SSLSocket) factory.createSocket((Socket) caller.getMember ("_jsc_socket"),
 									     (String) caller.getMember ("host"),
 									     _getPort (caller.getMember ("port")),
 									     /* autoClose, close this socket if the other socket is closed */
 									     true);
+
+			/* ensure we are using TLS */
 			String [] enabledProtocols = { "TLSv1" };
 			sslsock.setEnabledProtocols (enabledProtocols);
 
@@ -190,6 +196,20 @@ public class JavaSocketConnector extends JApplet {
 			/* start handshake */
 			sslsock.startHandshake();
 
+		} catch (SSLException ex) {
+			/* do nothing for now */
+			LogHandling.error (caller, "Server certificate error, error was: " + ex.getMessage ());
+			return false;
+		} catch (Exception ex) {
+
+			LogHandling.error (caller, "Failed to finish TLS handshake, error found was: " + ex.getMessage ());
+			return false;
+		} /* end if */
+
+
+		LogHandling.info (caller, "TLS handshake seems fine, now start a new listener to read incoming data");
+
+		try {
 			/* start listener */
 			listener = new SocketListener ((Socket) sslsock, caller, this);
 
@@ -201,14 +221,10 @@ public class JavaSocketConnector extends JApplet {
 
 			/* start listener */
 			listener.start ();
-		} catch (SSLException ex) {
-			/* do nothing for now */
-			LogHandling.error (caller, "Server certificate error, error was: " + ex.getMessage ());
 		} catch (Exception ex) {
-
-			LogHandling.error (caller, "Failed to finish TLS handshake, error found was: " + ex.getMessage ());
+			LogHandling.error (caller, "TLS handshake process failure, failed to start socket listener after handshake");
 			return false;
-		} /* end if */
+		}
 
 		LogHandling.info (caller, "TLS handshare OK");
 

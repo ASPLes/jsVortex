@@ -1171,7 +1171,7 @@ VortexConnection.prototype._onStart = function () {
     this.greetingsSent = false;
 
     /* check errors here */
-    if (this._transport.socket == -1) {
+    if (this._transport == null || this._transport.socket == -1) {
 	/* report we have failed to create connection */
 	this._reportConnCreated ();
 	return;
