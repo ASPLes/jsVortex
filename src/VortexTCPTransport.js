@@ -565,8 +565,7 @@ function VortexJSCisOK () {
 
 function VortexJSCEnableTLS () {
     /* call to enable TLS */
-    this.socket.enableTLS ();
-    return;
+    return this.socket.enableTLS ();
 }
 
 function VortexJSCClose () {
