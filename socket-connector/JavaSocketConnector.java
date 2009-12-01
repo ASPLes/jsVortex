@@ -169,7 +169,7 @@ public class JavaSocketConnector extends JApplet {
 		/* variables used */
 		SocketListener listener = null;
 		SSLSocket      sslsock  = null;
-
+		
 		try {
 			/* terminate current listener */
 			listener = (SocketListener) caller.getMember ("_jsc_listener");
@@ -197,10 +197,15 @@ public class JavaSocketConnector extends JApplet {
 			sslsock.startHandshake();
 
 		} catch (SSLException ex) {
+			/* configure ready state: CLOSED */
+			caller.setMember ("readyState", 2);
+
 			/* do nothing for now */
 			LogHandling.error (caller, "Server certificate error, error was: " + ex.getMessage ());
 			return false;
 		} catch (Exception ex) {
+			/* configure ready state: CLOSED */
+			caller.setMember ("readyState", 2);
 
 			LogHandling.error (caller, "Failed to finish TLS handshake, error found was: " + ex.getMessage ());
 			return false;
@@ -222,6 +227,9 @@ public class JavaSocketConnector extends JApplet {
 			/* start listener */
 			listener.start ();
 		} catch (Exception ex) {
+			/* configure ready state: CLOSED */
+			caller.setMember ("readyState", 2);
+
 			LogHandling.error (caller, "TLS handshake process failure, failed to start socket listener after handshake");
 			return false;
 		}
