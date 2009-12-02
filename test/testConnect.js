@@ -2871,11 +2871,17 @@ function invertSelection (event) {
     return;
 }
 
+function transportSelected (event) {
+    clearLog ();
+    log ("info", "TCP Transport selected: " + event);
+}
+
 function prepareTest () {
     /* connect clicked signal */
     dojo.connect (dojo.byId("run-test"), "click", runTest);
     dojo.connect (dojo.byId ("clear-log"), "click", clearLog);
     dojo.connect (dojo.byId ("invert-selection"), "click", invertSelection);
+    dojo.connect (dijit.byId ("transportType"), "onChange", transportSelected);
 
     /* configure default connection values */
     dojo.byId ("host").value = "localhost";
