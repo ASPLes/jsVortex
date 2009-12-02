@@ -992,8 +992,8 @@ VortexConnection.prototype.enableTLS._frameReceived = function (frameReceived) {
 
 	}, this);
 
-    /* start here the TLS handshake */
-    if (! conn._transport.enableTLS ()) {
+    /* start here the TLS handshake: set handler and context */
+    if (! conn._transport.enableTLS (VortexConnection._handleTLSReply, this)) {
 	/* failed to create TLS channel */
 	var tlsStatus = {
 	    conn : conn,
@@ -1009,11 +1009,18 @@ VortexConnection.prototype.enableTLS._frameReceived = function (frameReceived) {
 	VortexEngine.apply (this.onTLSFinishHandler, this.onTLSFinishContext, [tlsStatus]);
 	return;
     }
+    return;
+};
 
-    Vortex.log ("VortexConnection.enableTLS._frameReceived: checking connection status after TLS activation");
+VortexConnection._handleTLSReply  = function (status) {
+
+    Vortex.log ("VortexConnection.enableTLS._handleTLSReply: checking connection status after TLS activation");
+
+    /* get connection reference */
+    var conn = this.conn;
 
     /* check connection status here to reset its status */
-    if (conn.isOk ()) {
+    if (status && conn.isOk ()) {
 	Vortex.log ("VortexConnection.enableTLS._frameReceived: connection status ok after TLS, prepare for greetings exchange");
 	/* configure reconfigure created handlers so TLS connection
 	 reset is notified using the usual way */
@@ -1022,8 +1029,22 @@ VortexConnection.prototype.enableTLS._frameReceived = function (frameReceived) {
 	/* call to start */
 	VortexEngine.apply (conn._onStart, conn, [], true);
 	Vortex.log ("VortexConnection.enableTLS._frameReceived: finished on start notification");
+	return;
     }
 
+    /* TLS activation failed */
+    var tlsStatus = {
+	    conn : conn,
+	    /* tls status error */
+	    status : false,
+	    statusMsg : "TLS failure during handshake. Transport TLS failed.",
+	    /* specific channel creaion errors */
+	    replyCode : "",
+	    replyMsg : ""
+	};
+
+    /* notify connection error */
+    VortexEngine.apply (this.onTLSFinishHandler, this.onTLSFinishContext, [tlsStatus]);
     return;
 };
 

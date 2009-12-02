@@ -217,7 +217,7 @@ function VortexFirefoxClose () {
     return;
 };
 
-function VortexFirefoxEnableTLS () {
+function VortexFirefoxEnableTLS (notify, ctx) {
 
     try {
 	/* acquire priviledges */
@@ -227,6 +227,8 @@ function VortexFirefoxEnableTLS () {
     } catch (e) {
 	this._reportError ("VortexFirefoxEnableTLS: Unable to acquire permissions to enable TLS interface. Error found: " + e.message +
 			   ". Did you config signed.applets.codebase_principal_support = true");
+	/* call to notify */
+	VortexEngine.apply (notify, ctx, [true], true);
 	return false;
     }
 
@@ -318,6 +320,10 @@ function VortexFirefoxEnableTLS () {
     Vortex.log ("Starting SSL operation..");
     securityInfo.StartTLS();
     Vortex.log ("SSL handshake done..");
+
+    /* call to notify */
+    VortexEngine.apply (notify, ctx, [true], true);
+
     return true;
 }
 /**
@@ -568,7 +574,16 @@ function VortexJSCisOK () {
     return (this.socket.readyState == 1);
 }
 
-function VortexJSCEnableTLS () {
+function VortexJSCEnableTLS (notify, ctx) {
+
+    /* define ontls handler */
+    this.socket.ontls = function (status) {
+	Vortex.log ("Received ontls notification, status was: " + status);
+	/* marshall reply received to handler and context received */
+	VortexEngine.apply (notify, ctx, [status]);
+	return;
+    };
+
     /* call to enable TLS */
     return this.socket.enableTLS ();
 }
