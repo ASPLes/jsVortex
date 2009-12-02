@@ -9,23 +9,31 @@ import netscape.javascript.*;
 import javax.net.ssl.*;
 
 public class JSCTrustManager implements X509TrustManager {
-	JSObject caller;
-	public JSCTrustManager (JSObject _caller) {
-		caller = _caller;
-	}
-	
+	public JSObject caller;
+
 	public X509Certificate[] getAcceptedIssuers() {
 		throw new UnsupportedOperationException();
 	}
 	
-	public void checkClientTrusted(X509Certificate[] chain, String authType)
-		throws CertificateException {
+	public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
 		throw new UnsupportedOperationException();
 	}
 	
-	public void checkServerTrusted(X509Certificate[] chain, String authType)
-		throws CertificateException {
-		LogHandling.info (caller, "Received notification to accept or not server certificate");
+	public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+		for (X509Certificate cert : chain) {
+			LogHandling.info (caller, "Received notification to accept or not server certificate");
+			LogHandling.info (caller, "Certificate: " + cert.toString ());
+			LogHandling.info (caller, "Certificate subject: " + cert.getSubjectDN());
+			LogHandling.info (caller, "Certificate issuer: " + cert.getIssuerDN());
+			LogHandling.info (caller, "Certificate principals: " + cert.getSubjectX500Principal().getName ());
+			try {
+				cert.checkValidity ();
+				LogHandling.info (caller, "Certificate status: OK");
+			} catch (Exception ex) {
+				LogHandling.info (caller, "Certificate status: WRONG (" + ex.getMessage () + ")");
+			}
+		}
+			
 		return; /* no exception */
 	}
 }
