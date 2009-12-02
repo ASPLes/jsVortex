@@ -170,19 +170,35 @@ public class JavaSocketConnector extends JApplet {
 		SocketListener listener = null;
 		SSLSocket      sslsock  = null;
 		
+		LogHandling.info (caller, "Starting TLS handshake..");
+		
 		try {
 			/* terminate current listener */
 			listener = (SocketListener) caller.getMember ("_jsc_listener");
 			listener.stopListener ();
 
 			/* get default factory */
-			SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+			SSLContext          sslContext          = SSLContext.getInstance ("TLSv1");
+			TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance (TrustManagerFactory.getDefaultAlgorithm ());
 
-			sslsock = (SSLSocket) factory.createSocket((Socket) caller.getMember ("_jsc_socket"),
-									     (String) caller.getMember ("host"),
-									     _getPort (caller.getMember ("port")),
-									     /* autoClose, close this socket if the other socket is closed */
-									     true);
+			LogHandling.info (caller, "Preparing trust manager.. ..");
+			JSCTrustManager jsctm = new JSCTrustManager (caller);
+			sslContext.init (null, new TrustManager [] {jsctm}, null);
+
+			LogHandling.info (caller, "Created trust manager.. ..");
+
+			SSLSocketFactory    factory = (SSLSocketFactory) sslContext.getSocketFactory ();
+
+
+			/* enable blocking the socket */
+			Socket socket = (Socket) caller.getMember ("_jsc_socket");
+			socket.setSoTimeout (0);
+
+			sslsock = (SSLSocket) factory.createSocket(socket,
+								   (String) caller.getMember ("host"),
+								   _getPort (caller.getMember ("port")),
+								   /* autoClose, close this socket if the other socket is closed */
+								   true);
 
 			/* ensure we are using TLS */
 			String [] enabledProtocols = { "TLSv1" };
@@ -217,6 +233,7 @@ public class JavaSocketConnector extends JApplet {
 		try {
 			/* start listener */
 			listener = new SocketListener ((Socket) sslsock, caller, this);
+			listener.disableOnOpenNotify = true;
 
 			/* set new listener */
 			caller.setMember ("_jsc_listener", listener);
@@ -317,5 +334,5 @@ public class JavaSocketConnector extends JApplet {
 			callers.notify ();
 		}
 	}
-	
+
 } /* end JavaSocketConnector */

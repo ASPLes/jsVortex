@@ -12,6 +12,8 @@ public class SocketListener extends Thread {
 
 	public Socket            socket;		
 	public InputStream       in;       
+	public boolean           disableOnOpenNotify;
+
 	boolean                  running = false;	
 	JSObject                 caller;
 	JavaSocketConnector      dispacher;
@@ -30,6 +32,9 @@ public class SocketListener extends Thread {
 
 		/* create input buffer */
 		in = socket.getInputStream();
+
+		/* set default state */
+		disableOnOpenNotify = false;
 	}
 
 	/** 
@@ -83,7 +88,8 @@ public class SocketListener extends Thread {
 		listenerThread.setPriority (Thread.MIN_PRIORITY);
 
 		/* notify here connection created */
-		dispacher.notify (caller, "onopen", null);
+		if (! disableOnOpenNotify)
+			dispacher.notify (caller, "onopen", null);
 
 		/* configure default timeout: 20ms */
 		try {socket.setSoTimeout (20);} catch (Exception ex) {}

@@ -1019,6 +1019,7 @@ VortexConnection.prototype.enableTLS._frameReceived = function (frameReceived) {
 	conn.createdContext  = this;
 	/* call to start */
 	VortexEngine.apply (conn._onStart, conn, [], true);
+	Vortex.log ("VortexConnection.enableTLS._frameReceived: finished on start notification");
     }
 
     return;
@@ -1184,6 +1185,7 @@ VortexConnection.prototype._onStart = function () {
 	this._reportConnCreated ();
 	return;
     }
+
     /* flag greetings as sent */
     this.greetingsSent = true;
     if (! this.greetingsPending) {
