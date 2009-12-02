@@ -62,7 +62,7 @@ function VortexTCPTransport () {
  * instance of VortexTCPTransport is craeted.
  * Transports available are:
  *  - 1 : Firefox native javascript sockets
- *  - 2 : JavaSocketConnector native sockets
+ *  - 2 : JavaSocketConnector native sockets (default)
  */
 VortexTCPTransport.useTransport = 2;
 
