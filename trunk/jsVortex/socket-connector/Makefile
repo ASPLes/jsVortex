@@ -13,7 +13,8 @@ java_files = \
 	LogHandling.java \
 	SendCommand.java \
 	InvokeCommand.java \
-	Callers.java
+	Callers.java \
+	JSCTrustManager.java
 class_files := $(patsubst %.java,%.class,$(wildcard *.java))
 
 # configure plugin.jar location (browser plugin)

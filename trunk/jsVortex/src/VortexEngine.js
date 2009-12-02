@@ -42,7 +42,7 @@ if (typeof VortexEngine == "undefined") {
 VortexEngine.checkReference = function (object, attr, msg) {
 
     /* check for null reference */
-    if (object == null || typeof(object) == undefined) {
+    if (object == null || typeof (object) == "undefined") {
 	if (msg) {
 	    Vortex.error ("Undefined reference found at: " + arguments.callee.caller.name + ", " + msg);
 	} else {
@@ -51,8 +51,8 @@ VortexEngine.checkReference = function (object, attr, msg) {
 	return false;
     }
 
-    if (attr != null && typeof(attr) != undefined) {
-	if (object[attr] == null || object[attr] == undefined) {
+    if (attr != null && typeof (attr) != "undefined") {
+	if (object[attr] == null || object[attr] == "undefined") {
 	    if (msg) {
 		Vortex.error ("Undefined attribute [" + attr + "] expected to be found found at: " + arguments.callee.caller.name + ", " + msg);
 	    } else {

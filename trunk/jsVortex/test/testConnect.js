@@ -101,7 +101,7 @@ testTlsProfile.channelCreated = function (replyData) {
     /* check reference */
     if (replyData.channel == null) {
 	log ("error", "Expected to find proper channel reference, but found null. Errors found are:");
-	showErrors (conn);
+	showErrors (replyData.conn);
 	return false;
     }
 
