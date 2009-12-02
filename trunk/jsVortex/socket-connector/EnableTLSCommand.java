@@ -7,6 +7,8 @@ import java.net.*;
 import java.io.*;
 
 /* tls support */
+import java.security.*;
+import java.security.cert.*;
 import javax.net.ssl.*;
 
 public class EnableTLSCommand implements Command {
@@ -38,8 +40,12 @@ public class EnableTLSCommand implements Command {
 			SSLContext          sslContext          = SSLContext.getInstance ("TLSv1");
 			TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance (TrustManagerFactory.getDefaultAlgorithm ());
 
-			LogHandling.info (caller, "Preparing trust manager.. ..");
-			JSCTrustManager jsctm = new JSCTrustManager (caller);
+			/* create our custom trust manager */
+			LogHandling.info (caller, "Preparing trust manager...." + trustManagerFactory);
+			JSCTrustManager jsctm     = new JSCTrustManager ();
+			jsctm.caller              = caller;
+
+			/* init ssl context */
 			sslContext.init (null, new TrustManager [] {jsctm}, null);
 
 			LogHandling.info (caller, "Created trust manager.. ..");
@@ -70,18 +76,19 @@ public class EnableTLSCommand implements Command {
 			sslsock.startHandshake();
 
 		} catch (SSLException ex) {
-			/* configure ready state: CLOSED */
-			caller.setMember ("readyState", 2);
-			dispacher.notify (caller, "ontls", false);
-
 			/* do nothing for now */
 			LogHandling.error (caller, "Server certificate error, error was: " + ex.getMessage ());
-			return false;
-		} catch (Exception ex) {
+
 			/* configure ready state: CLOSED */
 			caller.setMember ("readyState", 2);
 			dispacher.notify (caller, "ontls", false);
+			return false;
+		} catch (Exception ex) {
 			LogHandling.error (caller, "Failed to finish TLS handshake, error found was: " + ex.getMessage ());
+
+			/* configure ready state: CLOSED */
+			caller.setMember ("readyState", 2);
+			dispacher.notify (caller, "ontls", false);
 			return false;
 		} /* end if */
 
