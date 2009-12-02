@@ -68,7 +68,10 @@ JavaSocketConnector.prototype.send = function (content, length) {
     return document.getElementById('JavaSocketConnector').send (content, length, this._jsc_out, this);
 };
 
-JavaSocketConnector.prototype.enableTLS = function () {
+/**
+ * @brief Function used to enable TLS protection on the provided socket.
+ */
+JavaSocketConnector.prototype.enableTLS = function (certHandler) {
     /* check socket readyState */
     if (this.readyState != 1) {
 	this.onlog ("error", "Unable to enable TLS, socket readyState is: " + readyState);
@@ -122,6 +125,13 @@ JavaSocketConnector.prototype.onmessage = function (content) {
  */
 JavaSocketConnector.prototype.onclose = function () {
     console.log ("USING DEFAULT onclose: Close notification");
+};
+
+/**
+ * @brief This is the handler that will be called once the TLS handshake have finished.
+ */
+JavaSocketConnector.prototype.ontls = function (status) {
+    console.log ("USING DEFAULT ontls: TLS status was: " + status);
 };
 
 /**
