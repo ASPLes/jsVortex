@@ -2435,7 +2435,7 @@ function testConnect () {
 testConnect.Result = function (conn) {
 
     if (! conn.isOk ()) {
-	log ("error", "Failed to connect.." + conn.isReady + ", socket: " + conn._transport.socket);
+	log ("error", "Failed to connect..DEBUG: conn.isOk() = false, conn.isReady=" + conn.isReady + ", socket: " + conn._transport.socket);
 	showErrors (conn);
 	return false;
     }
@@ -2871,9 +2871,14 @@ function invertSelection (event) {
     return;
 }
 
-function transportSelected (event) {
+function transportSelected (event, data) {
     clearLog ();
     log ("info", "TCP Transport selected: " + event);
+    if (event == "Java Socket Connector")
+	VortexTCPTransport.useTransport = 2;
+    else if (event == "Firefox nsISocketTransportService")
+	VortexTCPTransport.useTransport = 1;
+    return;
 }
 
 function prepareTest () {

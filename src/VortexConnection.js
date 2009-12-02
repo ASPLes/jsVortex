@@ -1010,6 +1010,8 @@ VortexConnection.prototype.enableTLS._frameReceived = function (frameReceived) {
 	return;
     }
 
+    Vortex.log ("VortexConnection.enableTLS._frameReceived: checking connection status after TLS activation");
+
     /* check connection status here to reset its status */
     if (conn.isOk ()) {
 	Vortex.log ("VortexConnection.enableTLS._frameReceived: connection status ok after TLS, prepare for greetings exchange");
