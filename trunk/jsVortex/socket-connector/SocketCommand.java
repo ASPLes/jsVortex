@@ -68,7 +68,13 @@ public class SocketCommand implements Command {
 			listener.start();
 
 		} catch (Exception ex) {
-			LogHandling.error (caller, "Could not connect to " + host + " on port: " + port + "\n" + ex.getMessage()); 
+			LogHandling.error (caller, "Unable not connect to " + host + " on port: " + port + "\n" + ex.getMessage()); 
+
+			/* readyState = CLOSED */
+			caller.setMember ("readyState", 2);
+			/* notify onopen event */
+			dispacher.notify (caller, "onopen", null);
+
 			return false;
 		}
 

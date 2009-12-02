@@ -20,6 +20,8 @@ function VortexTCPTransport () {
     var socket    = null;
 
     if (VortexTCPTransport.useTransport == 1) {
+	Vortex.log ("Creating transport using Firefox nsISocketTransportService");
+
 	/* define default write method */
 	this.connect    = VortexFirefoxConnect;
 
@@ -39,6 +41,8 @@ function VortexTCPTransport () {
 	this.requirePerms = true;
 
     } else if (VortexTCPTransport.useTransport == 2) {
+	Vortex.log ("Creating transport using Java Socket Connector");
+
 	/* define default write method */
 	this.connect    = VortexJSCConnect;
 
@@ -223,7 +227,7 @@ function VortexFirefoxEnableTLS () {
     } catch (e) {
 	this._reportError ("VortexFirefoxEnableTLS: Unable to acquire permissions to enable TLS interface. Error found: " + e.message +
 			   ". Did you config signed.applets.codebase_principal_support = true");
-	return;
+	return false;
     }
 
     var securityInfo = this.socket.securityInfo.QueryInterface(Components.interfaces.nsISSLSocketControl);
@@ -305,15 +309,16 @@ function VortexFirefoxEnableTLS () {
 	    return true;
 	},
 	notifySSLError : function (socketInfo, error, targetSite) {
-	    Vortex.log ("SSL Error found: " + targetSite + ", error was: " + error);
+	    Vortex.error ("SSL Error found: " + targetSite + ", error was: " + error);
 	    return true;
 	}
     };
 
     /* start TLS negotiation */
+    Vortex.log ("Starting SSL operation..");
     securityInfo.StartTLS();
-
-    return;
+    Vortex.log ("SSL handshake done..");
+    return true;
 }
 /**
  * @internal This is a firefox handler called when the connection
