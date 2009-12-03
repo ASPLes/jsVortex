@@ -894,13 +894,22 @@ VortexConnection.prototype.saslAuth._frameReceived = function (frameReceived) {
  * provides the context to \ref
  * VortexConnection.enableTLS.params.onTLSFinishHandler.param.
  *
+ * @param params.trustPolicy {Number} ? Optional value that configures
+ * the certificate trust policy to be applied. The following values
+ * are supported:
+ * - 1 : Only accept valid server certificates
+ * - 2 : In the case of server certificate error, the handler to \ref params.onCertError will be called to decide if the certificate is accepted.
+ * - 3 : Always accept server certificates even if they are wrong.
+ *
+ * @param params.onCertError {Handler} ? Optional handler called on server certificate error when \ref params.trustPolicy is configured with 2.
+ *
  * When the TLS process finishes, the handler \ref VortexConnection.enableTLS.params.onTLSFinishHandler.param is
  * called with a single object having the following properties:
  *
  * - \ref VortexConnection conn : The connection that was activated to
  * run TLS according to the termination status.
  *
- * - \ref Boolean  status : Boolean value to signal if the process finished properly or not.
+ * - \ref Boolean status : Boolean value to signal if the process finished properly or not.
  *
  * - \ref String statusMsg : An string providing a textual diagnostic if an error is found.
  */
@@ -993,7 +1002,7 @@ VortexConnection.prototype.enableTLS._frameReceived = function (frameReceived) {
 	}, this);
 
     /* start here the TLS handshake: set handler and context */
-    if (! conn._transport.enableTLS (VortexConnection._handleTLSReply, this)) {
+    if (! conn._transport.enableTLS (VortexConnection._handleTLSReply, this, this.trustPolicy, this.onCertError)) {
 	/* failed to create TLS channel */
 	var tlsStatus = {
 	    conn : conn,

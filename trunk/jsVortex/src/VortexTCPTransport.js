@@ -574,7 +574,21 @@ function VortexJSCisOK () {
     return (this.socket.readyState == 1);
 }
 
-function VortexJSCEnableTLS (notify, ctx) {
+/**
+ * @internal Function that implements JSC especific TLS activation.
+ *
+ * @param notify The handler to be called to notify TLS activation.
+ *
+ * @param ctx The context under which the handler will run.
+ *
+ * @param trustPolicy ? Trust configuration
+ *
+ * @param certErrorHandler ? Handler to be called in the case
+ * trustPolicy is equal to 2, causing that handler to be called in the
+ * case of certificate error.
+ *
+ */
+function VortexJSCEnableTLS (notify, ctx, trustPolicy, certErrorHandler) {
 
     /* define ontls handler */
     this.socket.ontls = function (status) {
@@ -583,6 +597,17 @@ function VortexJSCEnableTLS (notify, ctx) {
 	VortexEngine.apply (notify, ctx, [status]);
 	return;
     };
+
+    /* check trustPolicy */
+    if (typeof trustPolicy != "undefined")
+	this.socket.certTrustPolicy = trustPolicy;
+    /* check certErrorHandler */
+    if (typeof certErrorHandler != "undefined") {
+	this.socket.oncerterror = function (subject, issuer, cert) {
+	    /* forward call and return result */
+	    return certErrorHandler.apply (ctx, [subject, issuer, cert]);
+	};
+    } /* end if */
 
     /* call to enable TLS */
     return this.socket.enableTLS ();
