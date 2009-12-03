@@ -28,6 +28,95 @@ var REGRESSION_URI_FAST_SEND = "http://iana.org/beep/transient/vortex-regression
  */
 var REGRESSION_URI_SUDDENTLY_CLOSE = "http://iana.org/beep/transient/vortex-regression/suddently-close";
 
+/******* BEGIN: testTlsProfileHandleError ******/
+function testTlsProfileHandleError () {
+    /* create a connection */
+    var conn = new VortexConnection (
+	this.host,
+	this.port,
+	new VortexTCPTransport (),
+	testTlsProfileHandleError.connectionResult, this);
+
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+}
+
+testTlsProfileHandleError.connectionResult = function (conn) {
+    /* check connection */
+    if (! checkConnection (conn))
+	return false;
+
+    log ("info", "Connection, now openinig TLS channel");
+    conn.enableTLS ({
+	/* provide initial handlers to configure TLS termination status */
+	onTLSFinishHandler : testTlsProfile.onTLSFinishHandler,
+	onTLSFinishContext : this,
+	/* ask on certificate error */
+	trustPolicy : 2,
+	/* certificate error handling */
+	onCertError : testTlsProfileHandleError.onCertError
+    });
+
+    return true;
+};
+
+testTlsProfileHandleError.onCertError = function (subject, issuer, cert) {
+    if (subject == 'EMAILADDRESS=francis@aspl.es, CN=Francis Brosnan Blázquez, OU=Software Devel, O="Advanced Software Production Line, S.L.", L=Coslada, ST=Madrid, C=ES')
+	return true;
+    return false;
+};
+
+/******* END: testTlsProfileHandleError ******/
+
+/******* BEGIN: testTlsProfileCertError ******/
+function testTlsProfileCertError () {
+    /* create a connection */
+    var conn = new VortexConnection (
+	this.host,
+	this.port,
+	new VortexTCPTransport (),
+	testTlsProfileCertError.connectionResult, this);
+
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+}
+
+testTlsProfileCertError.connectionResult = function (conn) {
+    /* check connection */
+    if (! checkConnection (conn))
+	return false;
+
+    log ("info", "Connection, now openinig TLS channel");
+    conn.enableTLS ({
+	/* provide initial handlers to configure TLS termination status */
+	onTLSFinishHandler : testTlsProfileCertError.onTLSFinishHandler,
+	onTLSFinishContext : this
+    });
+
+    return true;
+};
+
+testTlsProfileCertError.onTLSFinishHandler = function (tlsReply) {
+    /* check certificate error */
+    if (tlsReply.status) {
+	log ("error", "Expected to find TLS activation error, but found proper status");
+	return false;
+    } /* end if */
+
+    /* next test */
+    this.nextTest ();
+    return true;
+};
+/******* END: testTlsProfileCertError ******/
+
 /******* BEGIN: testTlsProfile ******/
 function testTlsProfile () {
     /* create a connection */
@@ -54,7 +143,9 @@ testTlsProfile.connectionResult = function (conn) {
     conn.enableTLS ({
 	/* provide initial handlers to configure TLS termination status */
 	onTLSFinishHandler : testTlsProfile.onTLSFinishHandler,
-	onTLSFinishContext : this
+	onTLSFinishContext : this,
+	/* always accept certificate errors */
+	trustPolicy : 3
     });
 
     return true;
@@ -2743,6 +2834,8 @@ RegressionTest.prototype.tests = [
     {name: "SASL profile PLAIN support",                testHandler: testSaslPlain},
     {name: "SASL profile PLAIN support (failure)",      testHandler: testSaslPlainFailure},
     {name: "TLS profile support",                       testHandler: testTlsProfile},
+    {name: "TLS profile support (Cert error)",          testHandler: testTlsProfileCertError},
+    {name: "TLS profile support (Handled Cert error)",  testHandler: testTlsProfileHandleError},
     {name: "BEEP opening channels already in use",      testHandler: testChannelsInUse},
     {name: "BEEP check channel find by uri/func",       testHandler: testChannelFind},
     {name: "BEEP check channel per message frame received", testHandler: testPerMessageFrameReceived}
