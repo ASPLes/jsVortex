@@ -70,8 +70,9 @@ JavaSocketConnector.prototype.send = function (content, length) {
 
 /**
  * @brief Function used to enable TLS protection on the provided socket.
+ * See also certTrustPolicy which allows configuring what to do in the case of certificate error.
  */
-JavaSocketConnector.prototype.enableTLS = function (certHandler) {
+JavaSocketConnector.prototype.enableTLS = function () {
     /* check socket readyState */
     if (this.readyState != 1) {
 	this.onlog ("error", "Unable to enable TLS, socket readyState is: " + readyState);
@@ -81,6 +82,16 @@ JavaSocketConnector.prototype.enableTLS = function (certHandler) {
     /* now send content */
     return document.getElementById('JavaSocketConnector').enableTLS (this);
 };
+
+/**
+ * @brief Certificate trust policy for TLS activation. This member
+ * allows to configure what to do in the case server certificate
+ * validation fails. Allowed values are:
+ * 1 : Only accept valid server certificates.
+ * 2 : Ask the user (caller) to accept or not a certificate when an error is found. The caller must have defined oncerterror method. See it for details.
+ * 3 : In the case of certificate error, accept it.
+ */
+JavaSocketConnector.prototype.certTrustPolicy = 1;
 
 JavaSocketConnector.prototype.close = function () {
     if (this.readyState == 2) {
@@ -102,10 +113,6 @@ JavaSocketConnector.prototype.onopen = function () {
 	return;
     }
     console.error ("USING DEFAULT onopen: Failed to connect!");
-};
-
-JavaSocketConnector.prototype._marshallCall = function (context, call, arg) {
-    call.apply (context, [arg]);
 };
 
 /**
@@ -135,6 +142,16 @@ JavaSocketConnector.prototype.ontls = function (status) {
 };
 
 /**
+ * @brief Handler called in the case TLS is activated and a server
+ * certificate error is found.
+ */
+JavaSocketConnector.prototype.oncerterror = function (subjet, issuer, cert) {
+    console.log ("USING DEFAULT oncerterror: validating subject: " + subject);
+    /* this default implementation never accept a certificate */
+    return false;
+};
+
+/**
  * @brief Default onlog handler used by the JavaSocketConnector applet
  * to relay all logs created during its function.
  */
@@ -153,6 +170,13 @@ JavaSocketConnector.prototype.onlog = function (type, message) {
 
     console.error ("UNHANDLED TYPE: " + type + ": " + message);
     return;
+};
+
+/**
+ * @internal Handler used by the java accept to marshall the call.
+ */
+JavaSocketConnector.prototype._marshallCall = function (context, call, arg) {
+    call.apply (context, [arg]);
 };
 
 
