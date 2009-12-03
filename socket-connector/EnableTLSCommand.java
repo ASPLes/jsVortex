@@ -39,11 +39,17 @@ public class EnableTLSCommand implements Command {
 			/* get default factory */
 			SSLContext          sslContext          = SSLContext.getInstance ("TLSv1");
 			TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance (TrustManagerFactory.getDefaultAlgorithm ());
+			trustManagerFactory.init ((KeyStore) null);
 
 			/* create our custom trust manager */
-			LogHandling.info (caller, "Preparing trust manager...." + trustManagerFactory);
+			LogHandling.info (caller, "Preparing trust manager....");
 			JSCTrustManager jsctm     = new JSCTrustManager ();
 			jsctm.caller              = caller;
+			jsctm.trustManagerFactory = trustManagerFactory;
+
+			/* get certificate trust policy */
+			Integer ask       = (Integer) caller.getMember ("certTrustPolicy");
+			jsctm.trustPolicy = ask.intValue ();
 
 			/* init ssl context */
 			sslContext.init (null, new TrustManager [] {jsctm}, null);
