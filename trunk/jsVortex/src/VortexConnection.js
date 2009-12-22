@@ -166,15 +166,17 @@ VortexConnection.prototype.isProfileSupported = function (profile) {
  * is requested. You can use 0 to request jsVortex to asign the next
  * available channel number.
  *
- * @param params.serverName {String} ? The serverName token. Configuring this
- * value request the remote BEEP peer to act as the value provided by
- * serverName. The first channel completely created that request this
- * value will be the serverName value for all channels in the
- * connection. From RFC3080: "The serverName attribute for the first
- * successful "start" element received by a BEEP peer is meaningful
- * for the duration of the BEEP session. If present, the BEEP peer
- * decides whether to operate as the indicated "serverName"; if not,
- * an "error" element is sent in a negative reply.
+ * @param params.serverName {String} ? The serverName
+ * token. Configuring this value request the remote BEEP peer to act
+ * as the value provided by serverName. The first channel completely
+ * created that request this value will be the serverName value for
+ * all channels in the connection. From RFC3080: "The serverName
+ * attribute for the first successful "start" element received by a
+ * BEEP peer is meaningful for the duration of the BEEP session. If
+ * present, the BEEP peer decides whether to operate as the indicated
+ * "serverName"; if not, an "error" element is sent in a negative
+ * reply. In the case the serverName is not provided, the method will
+ * use the host value provided for the current BEEP session.
  *
  * @param params.profile {String} The BEEP profile identification string.
  *
@@ -263,6 +265,12 @@ VortexConnection.prototype.openChannel = function (params) {
 	};
 	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData], true);
 	return false;
+    }
+
+    Vortex.log ("Checking serverName configuration: " + params.serverName + ", current serverName: " + this.serverName);
+    if (typeof (params.serverName) == "undefined" && typeof (this.serverName) == "undefined") {
+	Vortex.log ("openChannel: setting default serverName to: " + this.host + ", current serverName is: " + this.serverName);
+	params.serverName = this.host;
     }
 
     /* check channel number to use */
