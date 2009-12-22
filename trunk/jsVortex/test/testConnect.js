@@ -2964,7 +2964,7 @@ function invertSelection (event) {
     return;
 }
 
-function transportSelected (event, data) {
+function transportSelected (event) {
     clearLog ();
     log ("info", "TCP Transport selected: " + event);
     if (event == "Java Socket Connector")

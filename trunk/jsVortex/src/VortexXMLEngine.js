@@ -235,31 +235,42 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
     if (node.haveChilds) {
 	Vortex.log2 ("VortexXMLEngine.parseXMLNode: found pending childs for node <" + node.name + ">");
 
-	do {
-	    /* read childs */
-	    var child = VortexXMLEngine.parseXMLNode (data, node);
+	    /* check for empty nodes with child configuration
+	     <this-node-is-empty></this-node-is-empty> */
+	if (data[iterator] == '<' && data[iterator + 1] == '/') {
+	    /* restore proper configuration */
+	    node.haveChilds = false;
+	} else {
 
-	    /* stop processing if found an error */
-	    if (child == null)
-		break;
+	    do {
+		/* read childs */
+		var child = VortexXMLEngine.parseXMLNode (data, node);
 
-	    /* store child read */
-	    node.childs.push (child);
+		/* stop processing if found an error */
+		if (child == null) {
+		    Vortex.log2 ("VortexXMLEngine.parseXMLNode: no childs where found..");
+		    break;
+		}
 
-	    /* consume more whitespaces */
-	    iterator = this.position;
-	    Vortex.log2 ("(2) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position + ", data: " + data[iterator] + data[iterator + 1]);
-	    iterator      = VortexXMLEngine.consumeWhiteSpaces (data, iterator);
-	    this.position = iterator;
-	    Vortex.log2 ("(3) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position + ", data: " + data[iterator] + data[iterator + 1]);
+		/* store child read */
+		node.childs.push (child);
 
-	    if (data[iterator] == '<' && data[iterator + 1] == '/')
-		break;
+		/* consume more whitespaces */
+		iterator = this.position;
+		Vortex.log2 ("(2) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position + ", data: " + data[iterator] + data[iterator + 1]);
+		iterator      = VortexXMLEngine.consumeWhiteSpaces (data, iterator);
+		this.position = iterator;
+		Vortex.log2 ("(3) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position + ", data: " + data[iterator] + data[iterator + 1]);
 
-	} while (true);
+		if (data[iterator] == '<' && data[iterator + 1] == '/')
+		    break;
+	    } while (true);
+
+	    /* consume after node termination */
+	    iterator = VortexXMLEngine.consumeWhiteSpaces (data, this.position);
+	}
 
 	/* read node termination */
-	iterator = VortexXMLEngine.consumeWhiteSpaces (data, this.position);
 	if (data[iterator] != '<' || data[iterator + 1] != '/') {
 	    Vortex.error ("VortexXMLEngine.parseXMLNode: expected to find XML node termination </, but found: " + data[iterator] + data[iterator + 1]);
 	    return null;
