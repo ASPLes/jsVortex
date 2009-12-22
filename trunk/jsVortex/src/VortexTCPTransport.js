@@ -479,6 +479,14 @@ VortexTCPTransport.prototype._reportError = function (errorMsg) {
  */
 function VortexJSCConnect (host, port) {
 
+    /* check java applet was loaded */
+    if (! JavaSocketConnector.isReady) {
+	Vortex.error ("JavaSocketConnector applet was not loaded. Did you load from your weg page");
+	this.socket = -1;
+	this._reportError ("VortexJSCConnect: JavaSocketConnector applet was not loaded. Unable to initialize java socket connector.");
+	return -1;
+    }
+
     Vortex.log ("Creating connection with " + host + ":" + port + ", using JSC interface..");
 
     /* connect */
@@ -501,6 +509,7 @@ VortexJSCConnect.onopen = function () {
 	Vortex.log ("Connection OK, now proceed..: " + this.host + ":" + this.port);
     } else {
 	Vortex.error ("Failed to connect to remote host: " + this.host + ":" + this.port);
+	this.transport._reportError ("Failed to connect to remote host, connection refused");
     }
 
     /* notify connection ready at this point because firefox socket
