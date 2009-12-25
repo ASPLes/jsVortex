@@ -65,8 +65,11 @@ testTlsProfileHandleError.connectionResult = function (conn) {
 };
 
 testTlsProfileHandleError.onCertError = function (subject, issuer, cert) {
-    if (subject == 'EMAILADDRESS=francis@aspl.es, CN=Francis Brosnan Blázquez, OU=Software Devel, O="Advanced Software Production Line, S.L.", L=Coslada, ST=Madrid, C=ES')
+    log ("info", "Received notification to handle cert error: subject: " + subject);
+    Vortex.log ("Certificate: " + subject);
+    if (subject == 'EMAILADDRESS=vortex-tech-support@aspl.es, CN=localhost, OU=TI Support, O="Advanced Software Production Line, S.L.", L=AlcalÃ¡ de Henares, ST=Madrid, C=ES')
 	return true;
+    log ("error", "Received an unexpected subject, failed to handle certificate error.");
     return false;
 };
 
