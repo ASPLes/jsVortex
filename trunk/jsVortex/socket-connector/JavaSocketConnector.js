@@ -127,8 +127,6 @@ JavaSocketConnector.prototype.onmessage = function (content) {
 
 /**
  * @brief This is the handler that will receive on close notifications.
- *
- * @param content The content received over the socket.
  */
 JavaSocketConnector.prototype.onclose = function () {
     console.log ("USING DEFAULT onclose: Close notification");
