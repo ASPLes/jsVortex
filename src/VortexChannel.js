@@ -366,7 +366,9 @@ VortexChannel.prototype.close = function (params) {
  */
 VortexChannel.prototype.isReady = function () {
     /* check if the last message was replied */
-    return this.lastMsgno == this.lastMsgnoReplyReceived;
+    Vortex.log ("VortexChannel.isReady: checking is channel: " +
+		this.number + ", is ready: (lastMsgno=" + this.lastMsgno + " == lastMsgnoReplyReceived=" + this.lastMsgnoReplyReceived + ")");
+    return (this.lastMsgno == this.lastMsgnoReplyReceived);
 };
 
 /**
