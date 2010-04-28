@@ -67,9 +67,10 @@ testTlsProfileHandleError.connectionResult = function (conn) {
 testTlsProfileHandleError.onCertError = function (subject, issuer, cert) {
     log ("info", "Received notification to handle cert error: subject: " + subject);
     Vortex.log ("Certificate: " + subject);
-    if (subject == 'EMAILADDRESS=vortex-tech-support@aspl.es, CN=localhost, OU=TI Support, O="Advanced Software Production Line, S.L.", L=AlcalÃ¡ de Henares, ST=Madrid, C=ES')
+    var expectedSubject = 'EMAILADDRESS=vortex-tech-support@aspl.es, CN=localhost, OU=TI Support, O="Advanced Software Production Line, S.L.", L=AlcalÃ¡ de Henares, ST=Madrid, C=ES';
+    if (subject == expectedSubject)
 	return true;
-    log ("error", "Received an unexpected subject, failed to handle certificate error.");
+    log ("error", "Received an unexpected subject, failed to handle certificate error. Expected to find: " + expectedSubject + "<br>But received: " + subject);
     return false;
 };
 
@@ -2564,8 +2565,8 @@ testConnect.Result = function (conn) {
     }
 
     /* check profiles supported */
-    if (conn.profiles.length != 31) {
-	log ("error", "Expected to find 31 profiles registered but found: " + conn.profiles.length);
+    if (conn.profiles.length != 32) {
+	log ("error", "Expected to find 32 profiles registered but found: " + conn.profiles.length);
 	return false;
     }
 
