@@ -243,6 +243,9 @@ var VortexBase64 = {
 	var enc1, enc2, enc3, enc4;
 	var i = 0;
 
+	if (input == null || input == undefined)
+	    return input;
+
 	input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
 
 	while (i < input.length) {
