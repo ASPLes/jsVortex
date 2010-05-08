@@ -90,27 +90,29 @@ VortexEngine.checkReference = function (object, attr, msg) {
  * context. In the case deffer option is set to true, the function
  * always return true
  */
-VortexEngine.apply = function (handler, context, arguments, deffer) {
+VortexEngine.apply = function (handler, context, call_args, deffer) {
+    Vortex.log ("Calling function 1: ");
     /* check handler */
-    if (typeof handler == undefined || handler == null)
+    if (typeof handler == "undefined" || handler == null)
 	return false;
 
-    if ((typeof deffer != undefined) && deffer) {
+    Vortex.log ("Calling function 2: ");
+    if ((typeof deffer != "undefined") && deffer) {
 	/* set a timeout function */
 	setTimeout (
-	    function (context, arguments) {
-		/* call next test */
-		handler.apply(context, arguments);
-		return;
-	    },
+	    function () {VortexEngine.applyDeferred (handler, context, call_args); handler = null; context = null; call_args = null;},
 	    /* one millisecond in the future */
-	    1,
-	    /* pass context and arguments */
-	    context, arguments);
+	    1);
 	return true;
     }
+
+    Vortex.log ("Calling function 4: ");
     /* check context */
-    return handler.apply (context, arguments);
+    return handler.apply (context, call_args);
+};
+
+VortexEngine.applyDeferred = function (handler, context, call_args) {
+    handler.apply (context, call_args);
 };
 
 /**
