@@ -575,7 +575,7 @@ VortexChannel.prototype.getMimeHeaders = function (mimeHeaders) {
 	/* create the mime representation with the information
 	 * received inside the array mimeHeaders */
 	var result = "";
-	for (i in mimeHeaders) {
+	for (var i in mimeHeaders) {
 	    result = result + mimeHeaders[i].header + ": " + mimeHeaders[i].content + "\r\n";
 	}
 	/* return result created */

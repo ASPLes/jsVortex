@@ -25,16 +25,7 @@ public class SocketCommand implements Command {
 	/*** the following public members are initialized by the
 	 *** command doOperation() 
 	 ***/
-
-	/**
-	 * @brief Where the resulting socket is left.
-	 */
-	public Socket socket;
-
-	/** 
-	 * @brief Output stream.
-	 */
-	public PrintWriter out;
+	public SocketState state;
 
 	/** 
 	 * @brief Implements the socket connect operation.
@@ -44,34 +35,27 @@ public class SocketCommand implements Command {
 	public boolean doOperation (JSObject browser, JavaSocketConnector dispacher) {
 		try {
 			/* do connect operation */
-			socket = new Socket (host, port);
-			out    = new PrintWriter (socket.getOutputStream(), true);
+			state.socket = new Socket (host, port);
+			state.out    = new PrintWriter (state.socket.getOutputStream(), true);
 
 			LogHandling.info (caller, "Starting listener.."); 
 
 			/* create the listener */
-			SocketListener listener = new SocketListener (socket, caller, dispacher);
-
-			/* record the socket listener */
-			caller.setMember ("_jsc_listener", listener);
-
-			/* configure socket, out and in references into the caller socket */
-			caller.setMember ("_jsc_socket", socket);
-			caller.setMember ("_jsc_out", out);
-			caller.setMember ("_jsc_in", listener.in);
+			state.listener = new SocketListener (state.socket, caller, dispacher);
 
 			/* change state to OPENED = 1 */
 			caller.setMember ("readyState", 1);
 
 			/* start the listener at the end to avoid
 			 * onmessage to be fired before onopen */
-			listener.start();
+			state.listener.start();
 
 		} catch (Exception ex) {
-			LogHandling.error (caller, "Unable not connect to " + host + " on port: " + port + "\n" + ex.getMessage()); 
+			LogHandling.error (caller, "Unable to connect to " + host + " on port: " + port + "\n" + ex.getMessage()); 
 
 			/* readyState = CLOSED */
 			caller.setMember ("readyState", 2);
+
 			/* notify onopen event */
 			dispacher.notify (caller, "onopen", null);
 

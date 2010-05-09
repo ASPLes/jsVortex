@@ -98,7 +98,7 @@ public class JavaSocketConnector extends JApplet {
 	 * @param host The host to connect to.
 	 * @param port The port to connect to.
 	 */
-	public boolean connect (String host, int port, JSObject caller) {
+	public SocketState connect (String host, int port, JSObject caller) {
 
 		/* notify caller inside */
 		synchronized (callers) {
@@ -106,10 +106,12 @@ public class JavaSocketConnector extends JApplet {
 		}
 
 		/* create the socket command */
-		SocketCommand cmd = new SocketCommand ();
+		SocketState   state = new SocketState ();
+		SocketCommand cmd   = new SocketCommand ();
 		cmd.host   = host;
 		cmd.port   = port;
 		cmd.caller = caller;
+		cmd.state  = state;
 
 		/* queue the command */
 		commandQueue.push (cmd);
@@ -120,7 +122,7 @@ public class JavaSocketConnector extends JApplet {
 			callers.notify ();
 		}
 		
-		return true;
+		return state;
 	}
 
 	/** 
@@ -131,7 +133,7 @@ public class JavaSocketConnector extends JApplet {
 	 * @param length The amount of data to be written.
 	 * @param out The output stream object to write on.
 	 */
-	public boolean send (String content, int length, PrintWriter output, JSObject caller){
+	public boolean send (String content, int length, SocketState state, JSObject caller){
 
 		/* notify caller inside */
 		synchronized (callers) {
@@ -142,7 +144,7 @@ public class JavaSocketConnector extends JApplet {
 		SendCommand sendCmd = new SendCommand ();
 		sendCmd.content = content;
 		sendCmd.length  = length;
-		sendCmd.output  = output;
+		sendCmd.output  = state.out;
 		sendCmd.caller  = caller;
 
 		/* queue command */
@@ -161,7 +163,7 @@ public class JavaSocketConnector extends JApplet {
 	 * @brief Activates TLS support on the provided socket object
 	 * (caller reference).
 	 */
-	public boolean enableTLS (JSObject caller) {
+	public boolean enableTLS (SocketState state, JSObject caller) {
 		/* notify caller inside */
 		synchronized (callers) {
 			callers.count++;
@@ -170,6 +172,7 @@ public class JavaSocketConnector extends JApplet {
 		/* call to create command */
 		EnableTLSCommand cmd = new EnableTLSCommand ();
 		cmd.caller           = caller;
+		cmd.state            = state;
 
 		commandQueue.push (cmd);
 
@@ -189,25 +192,16 @@ public class JavaSocketConnector extends JApplet {
 	 *
 	 * @param caller The caller and at the same time the socket.
 	 */
-	public void close (JSObject caller) {
+	public void close (SocketState state, JSObject caller) {
 
 		/* notify caller inside */
 		synchronized (callers) {
 			callers.count++;
 		}
 
-		PrintWriter    out      = (PrintWriter) caller.getMember ("_jsc_out");
-		caller.removeMember ("_jsc_out");
-
-		Socket         socket   = (Socket) caller.getMember ("_jsc_socket");
-		caller.removeMember ("_jsc_socket");
-
-		SocketListener listener = (SocketListener) caller.getMember ("_jsc_listener");
-		caller.removeMember ("_jsc_listener");
-
 		/* close all items */
-		listener.close ();
-		try {out.close ();} catch (Exception ex) {}
+		state.listener.close ();
+		try {state.out.close ();} catch (Exception ex) {}
 
 		/* now change ready state */
 		caller.setMember ("readyState", 2);

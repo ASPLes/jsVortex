@@ -124,8 +124,13 @@ VortexEngine.applyDeferred = function (handler, context, call_args) {
  */
 VortexEngine.count = function (object) {
     var size = 0;
-    for (item in object)
+    if (typeof object == "undefined")
+	return 0;
+    if ((typeof object.length) != "undefined")
+	return object.length;
+    for (var item in object) {
 	size++;
+    }
     return size;
 };
 
@@ -710,7 +715,7 @@ VortexEngine.channel0Received = function (frameReceived) {
 VortexEngine._getErrorCode = function (node) {
 
     /* iterate over all attrirbutes finding code */
-    for (iterator in node.attrs) {
+    for (var iterator in node.attrs) {
 	if (node.attrs[iterator].name == 'code')
 	    return node.attrs[iterator].value;
     } /* end for */
@@ -765,7 +770,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
     if (node.haveChilds) {
 
 	/* for each xml <node> found inside <greeting> do: */
-	for (tag in node.childs) {
+	for (var tag in node.childs) {
 
 	    /* check <profile> node found inside <greeting> */
 	    if (node.childs[tag].name != 'profile') {
@@ -775,7 +780,7 @@ VortexEngine.channel0PrepareConnection = function (frame)
 	    } /* end if */
 
 	    /* now register the profile received in uri label */
-	    for (attr in node.childs[tag].attrs) {
+	    for (var attr in node.childs[tag].attrs) {
 
 		/* check uri attribute */
 		if (node.childs[tag].attrs[attr].name != 'uri') {

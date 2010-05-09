@@ -346,7 +346,7 @@ VortexXMLEngine.dumpXML = function (document, tabs)
 
     if (document.haveChilds) {
 	Vortex.log (string + "<" + document.name + " " + VortexXMLEngine.dumpAttrs (document) + ">");
-	for (node in document.childs) {
+	for (var node in document.childs) {
 	    VortexXMLEngine.dumpXML (document.childs[node], tabs + 2);
 	}
 	Vortex.log (string + "</" + document.name + ">");
@@ -364,7 +364,7 @@ VortexXMLEngine.dumpXML = function (document, tabs)
 VortexXMLEngine.dumpAttrs = function (node) {
 
     var string;
-    for (position in node.attrs) {
+    for (var position in node.attrs) {
 	if (string == undefined)
 	    string = node.attrs[position].name + "='" + node.attrs[position].value + "'";
 	else

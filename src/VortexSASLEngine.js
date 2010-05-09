@@ -159,7 +159,7 @@ VortexSASLEngine.prototype.addMech = function (saslDefinition) {
 VortexSASLEngine.prototype.isSupported = function (saslProfile, selectMech) {
 
     /* check profile received */
-    for (iterator in this.mechs) {
+    for (var iterator in this.mechs) {
 	if (this.mechs[iterator].name == saslProfile) {
 
 	    /* select mechanism if requested by the user */
