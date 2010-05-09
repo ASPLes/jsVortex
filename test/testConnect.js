@@ -2979,6 +2979,21 @@ function transportSelected (event) {
     return;
 }
 
+function resizeTestWindow () {
+
+    /* configure window height */
+    var windowHeight = dijit.getViewport ().h;
+    var heightValue = (windowHeight - dojo.marginBox (dojo.query (".vortex-regtest-header")[0]).h - dojo.marginBox (dojo.query ("#control-panel")[0]).h) + "px";
+    /* dojo.style(dojo.byId ("test-available-panel"), "height", heightValue);
+    dojo.style(dojo.byId ("log-panel"), "height", heightValue); */
+    dojo.style(dojo.byId ("global-container"), "height", heightValue);
+
+    /* call to resize */
+    dijit.byId ("global-container").resize ();
+
+    return;
+}
+
 function prepareTest () {
     /* connect clicked signal */
     dojo.connect (dojo.byId("run-test"), "click", runTest);
@@ -3035,14 +3050,11 @@ function prepareTest () {
     /* default configuration for first level log */
     dijit.byId ("logEnabled").attr ("checked", true);
 
-    /* configure window height */
-    var heightValue = (window.innerHeight - 140) + "px";
-    dojo.style(dojo.byId ("test-available-panel"), "height", heightValue);
-    dojo.style(dojo.byId ("log-panel"), "height", heightValue);
-    dojo.style(dojo.byId ("global-container"), "height", (window.innerHeight - 120) + "px");
-
     /* call to resize */
-    dijit.byId ("global-container").resize ();
+    resizeTestWindow ();
+
+    /* catch resize event */
+    dojo.connect (window, "resize", resizeTestWindow);
 }
 
 /* register our function in dojo */
