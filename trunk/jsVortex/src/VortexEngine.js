@@ -78,7 +78,7 @@ VortexEngine.checkReference = function (object, attr, msg) {
  * required to run the handler on. In the case of null or undefined is
  * provided, the 'this' keyword will be the global object.
  *
- * @param arguments {Array} A list of arguments to provided to the
+ * @param call_args {Array} A list of arguments to provided to the
  * handler. In the case of no arguments, do provide nothing (or null
  * or undefined).
  *

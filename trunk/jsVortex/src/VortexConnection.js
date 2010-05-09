@@ -586,7 +586,7 @@ VortexConnection.prototype.closeChannel = function (params) {
  * The method allows to register several handlers that will be called
  * in the case the connection is closed due to a remote error or due to a call to \ref VortexConnection.shutdown.
  *
- * The handler \ref onDisconnectHandler.param receives a reference to
+ * The handler \ref VortexConnection.onDisconnect.param.onDisconnectHandler receives a reference to
  * the connection closed.
  *
  * @param onDisconnectHandler {Handler} The handler to be executed when the
@@ -899,17 +899,16 @@ VortexConnection.prototype.saslAuth._frameReceived = function (frameReceived) {
  * until you get the notification on this handler.
  *
  * @param params.onTLSFinishContext {Object} ? Optional object that
- * provides the context to \ref
- * VortexConnection.enableTLS.params.onTLSFinishHandler.param.
+ * provides the context to \ref VortexConnection.enableTLS.params.onTLSFinishHandler.param.
  *
  * @param params.trustPolicy {Number} ? Optional value that configures
  * the certificate trust policy to be applied. The following values
  * are supported:
  * - 1 : Only accept valid server certificates
- * - 2 : In the case of server certificate error, the handler to \ref params.onCertError will be called to decide if the certificate is accepted.
+ * - 2 : In the case of server certificate error, the handler to \ref params.onCertError.param will be called to decide if the certificate is accepted.
  * - 3 : Always accept server certificates even if they are wrong.
  *
- * @param params.onCertError {Handler} ? Optional handler called on server certificate error when \ref params.trustPolicy is configured with 2.
+ * @param params.onCertError {Handler} ? Optional handler called on server certificate error when \ref params.trustPolicy.param is configured with 2.
  *
  * When the TLS process finishes, the handler \ref VortexConnection.enableTLS.params.onTLSFinishHandler.param is
  * called with a single object having the following properties:

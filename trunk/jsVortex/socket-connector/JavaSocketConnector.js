@@ -18,6 +18,11 @@ if (typeof console == "undefined") {
 /**
  * @brief Socket constructor. The constructor returns a Socket
  * object. The connection will be notified at the onopen method or
+ *
+ * @param params.host {String} The host to connect to (ip or hostname).
+ * @param params.port {String} The TCP port to connect to.
+ *
+ * @return Returns a reference to a JavaSocketConnector instance.
  */
 function JavaSocketConnector (params) {
     /**
