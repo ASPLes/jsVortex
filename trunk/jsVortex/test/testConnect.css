@@ -2,6 +2,7 @@ body {
   margin: 0px;
   padding: 0px;
   font-family: arial, verdana, trebuchetms;
+  overflow: hidden;
 }
 
 h1 {
@@ -20,10 +21,11 @@ h1 {
 .vortex-regtest-header {
   width: 100%;
   padding: 0px;
-  padding-top: 2px;
   margin: 0px;
   height: 46px;
   background: #062149;
+  color: white;
+  padding-top: 5px;
 }
 
 .vortex-regtest-header img {
@@ -69,7 +71,7 @@ h1 {
 
 #global-container {
   width: 100%;
-  height: 800px;
+  height: 100px;
 }
 
 #log-panel {
