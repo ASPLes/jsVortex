@@ -19,6 +19,11 @@ public class EnableTLSCommand implements Command {
 	public JSObject caller;
 
 	/** 
+	 * @brief Member pointing to socket state.
+	 */
+	public SocketState state;
+
+	/** 
 	 * @brief Implements socket TLS activation.
 	 *
 	 * @param browser The reference to the browser.
@@ -33,7 +38,7 @@ public class EnableTLSCommand implements Command {
 		
 		try {
 			/* terminate current listener */
-			listener = (SocketListener) caller.getMember ("_jsc_listener");
+			listener = state.listener;
 			listener.stopListener ();
 
 			/* get default factory */
@@ -60,7 +65,7 @@ public class EnableTLSCommand implements Command {
 
 
 			/* enable blocking the socket */
-			Socket socket = (Socket) caller.getMember ("_jsc_socket");
+			Socket socket = state.socket;
 			socket.setSoTimeout (0);
 
 			sslsock = (SSLSocket) factory.createSocket(socket,
@@ -74,9 +79,9 @@ public class EnableTLSCommand implements Command {
 			sslsock.setEnabledProtocols (enabledProtocols);
 
 			/* update socket reference */
-			caller.setMember ("_jsc_socket", sslsock);
+			state.socket = sslsock;
 			PrintWriter out = new PrintWriter (sslsock.getOutputStream(), true);
-			caller.setMember ("_jsc_out", out);
+			state.out    = out;
 
 			/* start handshake */
 			sslsock.startHandshake();
@@ -107,10 +112,7 @@ public class EnableTLSCommand implements Command {
 			listener.disableOnOpenNotify = true;
 
 			/* set new listener */
-			caller.setMember ("_jsc_listener", listener);
-
-			/* now input stream */
-			caller.setMember ("_jsc_in", listener.in);
+			state.listener = listener;
 
 			/* start listener */
 			listener.start ();

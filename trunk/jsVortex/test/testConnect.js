@@ -2530,7 +2530,7 @@ function testConnect () {
 testConnect.Result = function (conn) {
 
     if (! conn.isOk ()) {
-	log ("error", "Failed to connect..DEBUG: conn.isOk() = false, conn.isReady=" + conn.isReady + ", socket: " + conn._transport.socket);
+	log ("error", "Failed to connect.DEBUG: conn.isOk() = false, conn.isReady=" + conn.isReady + ", socket: " + conn._transport.socket);
 	showErrors (conn);
 	return false;
     }
@@ -2559,6 +2559,7 @@ testConnect.Result = function (conn) {
     }
 
     /* check channels opened */
+    log ("info", "Counting channels..");
     if (VortexEngine.count (conn.channels) != 1) {
 	log ("error", "Expected to find 1 channel opened in the connection, but found: " + VortexEngine.count (conn.channels));
 	return false;

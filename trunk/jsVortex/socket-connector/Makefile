@@ -15,7 +15,8 @@ java_files = \
 	InvokeCommand.java \
 	Callers.java \
 	JSCTrustManager.java \
-	EnableTLSCommand.java
+	EnableTLSCommand.java \
+	SocketState.java
 class_files := $(patsubst %.java,%.class,$(wildcard *.java))
 
 # configure plugin.jar location (browser plugin)

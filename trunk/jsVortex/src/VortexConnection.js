@@ -151,7 +151,7 @@ VortexConnection.prototype.isOk = function () {
  * is returned.
  */
 VortexConnection.prototype.isProfileSupported = function (profile) {
-    for (position in this.profiles)  {
+    for (var position in this.profiles)  {
 	if (this.profiles[position] == profile)
 	    return true;
     } /* end while */
@@ -651,7 +651,7 @@ VortexConnection.prototype.uninstallOnDisconnect = function (onDisconnectId) {
 
     Vortex.log ("VortexConnection.uninstallOnDisconnect: removing onDisconnectId: " + onDisconnectId);
 
-    for (iterator in this.onDisconnectHandlers) {
+    for (var iterator in this.onDisconnectHandlers) {
 	if (this.onDisconnectHandlers[iterator].id == onDisconnectId) {
 	    /* remove item */
 	    this.onDisconnectHandlers.splice (iterator, 1);
@@ -837,7 +837,7 @@ VortexConnection.prototype.saslAuth._frameReceived = function (frameReceived) {
     this.saslEngine.nextStep (node.content);
 
     /* check for status attribute */
-    for (position in node.attrs) {
+    for (var position in node.attrs) {
 
 	/* check for status attribute */
 	if (node.attrs[position].name == 'status') {
@@ -1176,7 +1176,7 @@ VortexConnection.prototype.getChannelByUri = function (profile, channelSelector,
 
     if (typeof channelSelector == "undefined") {
 	/* find by uri */
-	for (position in this.channels)  {
+	for (var position in this.channels)  {
 	    if (this.channels[position].profile == profile) {
 		return this.channels[position];
 	    } /* end while */
@@ -1186,7 +1186,7 @@ VortexConnection.prototype.getChannelByUri = function (profile, channelSelector,
     }
 
     /* find by function */
-    for (position in this.channels) {
+    for (var position in this.channels) {
 	/* call to check if the selector matches the function */
 	if (channelSelector (this.channels[position], profile, data))
 	    return this.channels[position];
@@ -1221,6 +1221,7 @@ VortexConnection.prototype._onStart = function () {
     /* send greetings reply before receiving listener greetings */
     if (! this.channels[0].sendRPY ("<greeting />\r\n")) {
 	Vortex.error ("Unable to send initial RPY with channel 0 greetings, notifying connection lost");
+	this.isReady = false;
 	/* report we have failed to send greetings */
 	this._reportConnCreated ();
 	return;
@@ -1274,7 +1275,7 @@ VortexConnection.prototype._onRead = function (connection, data) {
     }
 
     /* for each frame received */
-    for (iterator in frameList) {
+    for (var iterator in frameList) {
 	var frame = frameList[iterator];
 
 	/* get channel associated with the frame */
@@ -1410,6 +1411,7 @@ VortexConnection.prototype._send = function (content) {
 	return this._transport.write (content, content.length);
     } catch (e) {
 	this.stackError.push ("VortexConnection._send: failed to send content, error found: " + e.message);
+	Vortex.error ("VortexConnection._send: failed to send content, error found: " + e.message);
 	return false;
     }
 

@@ -39,7 +39,7 @@ function JavaSocketConnector (params) {
     this.readyState = 0;
 
     /* do a socket connection */
-    document.getElementById('JavaSocketConnector').connect (params.host, params.port, this);
+    this.state = document.getElementById('JavaSocketConnector').connect (params.host, params.port, this);
 }
 
 /**
@@ -65,7 +65,7 @@ JavaSocketConnector.prototype.send = function (content, length) {
     }
 
     /* now send content */
-    return document.getElementById('JavaSocketConnector').send (content, length, this._jsc_out, this);
+    return document.getElementById('JavaSocketConnector').send (content, length, this.state, this);
 };
 
 /**
@@ -80,7 +80,7 @@ JavaSocketConnector.prototype.enableTLS = function () {
     }
 
     /* now send content */
-    return document.getElementById('JavaSocketConnector').enableTLS (this);
+    return document.getElementById('JavaSocketConnector').enableTLS (this.state, this);
 };
 
 /**
@@ -100,7 +100,7 @@ JavaSocketConnector.prototype.close = function () {
     }
 
     /* call to close */
-    document.getElementById('JavaSocketConnector').close (this);
+    document.getElementById('JavaSocketConnector').close (this.state, this);
     return;
 };
 
