@@ -17,7 +17,7 @@ if (typeof console == "undefined") {
 
 /**
  * @brief Socket constructor. The constructor returns a Socket
- * object. The connection will be notified at the onopen method or
+ * object. The connection will be notified at the onopen method. To check TCP connection status check readyState member.
  *
  * @param params.host {String} The host to connect to (ip or hostname).
  * @param params.port {String} The TCP port to connect to.
@@ -27,10 +27,12 @@ if (typeof console == "undefined") {
 function JavaSocketConnector (params) {
     /**
      * @brief Reference to the host the socket connects to.
+     * @type {String}
      */
     this.host = params.host;
     /**
      * @brief Reference to the port the socket connects to.
+     * @type {String}
      */
     this.port = params.port;
 

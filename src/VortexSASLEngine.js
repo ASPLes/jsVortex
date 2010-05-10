@@ -8,7 +8,7 @@
  * params object.
  *
  * This object is not used directly the usual API consumer since it is
- * implictly activated by VortexConnection.saslAuth method.
+ * implictly activated by \ref VortexConnection.saslAuth method.
  *
  * @param params This object contains the initial data required to
  * produce the client blob. This object is expected to contain the
