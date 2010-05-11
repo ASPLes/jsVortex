@@ -19,6 +19,7 @@ if (typeof console == "undefined") {
  * @brief Socket constructor. The constructor returns a Socket
  * object. The connection will be notified at the onopen method. To check TCP connection status check readyState member.
  *
+ * @param params Associative array that includes all parameters expected by the method. Expected values are:
  * @param params.host {String} The host to connect to (ip or hostname).
  * @param params.port {String} The TCP port to connect to.
  *
