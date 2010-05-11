@@ -6,7 +6,6 @@
     <project-url>http://www.aspl.es/jsVortex</project-url>
     <source-files>
         <directory src='../src' />
-        <directory src='../socket-connector' />
     </source-files>
     <accepted-extensions>
         <extension value='js' />
