@@ -55,6 +55,9 @@ function VortexTCPTransport () {
 	/* define default close method */
 	this.close      = VortexJSCClose;
 
+	/* define default byte length calculator */
+	this.byteLength = VortexJSCByteLength;
+
 	/* define default start TLS operation */
 	this.enableTLS  = VortexJSCEnableTLS;
 
@@ -635,4 +638,9 @@ function VortexJSCClose () {
     /* clear socket reference */
     this.socket = -1;
     return;
-}
+};
+
+function VortexJSCByteLength (content) {
+    /* return byte length */
+    return this.socket.byteLength (content);
+};

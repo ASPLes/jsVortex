@@ -28,6 +28,93 @@ var REGRESSION_URI_FAST_SEND = "http://iana.org/beep/transient/vortex-regression
  */
 var REGRESSION_URI_SUDDENTLY_CLOSE = "http://iana.org/beep/transient/vortex-regression/suddently-close";
 
+
+/******* BEGIN: testUtf8Messages ******/
+function testUtf8Messages () {
+    /* create a connection */
+    var conn = new VortexConnection (
+	this.host,
+	this.port,
+	new VortexTCPTransport (),
+	testUtf8Messages.Result, this);
+
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+}
+
+testUtf8Messages.Result = function (conn) {
+
+    /* check connection status */
+    if (! checkConnection (conn))
+	return false;
+
+    log ("info", "Open a channel to send utf-8");
+    conn.openChannel ({
+	profile: REGRESSION_URI,
+	channelNumber: 0,
+	onChannelCreatedHandler : testUtf8Messages.channelCreated,
+	onChannelCreatedContext : this
+    });
+
+    return true;
+};
+
+testUtf8Messages.channelCreated = function (replyData) {
+
+    log ("info", "Channel creation reply received, checking data..");
+
+    /* check channel status */
+    var channel = replyData.channel;
+    if (channel == null) {
+	log ("error", "Expected to find proper channel creation with serverName associated");
+	return false;
+    }
+
+    /* configure frame received to get remote serverName configured */
+    channel.onFrameReceivedHandler = testUtf8Messages.frameReceived;
+    channel.onFrameReceivedContext = this;
+
+    log ("info", "Sending unicode content and checking reply size...");
+
+    /* send content */
+    testUtf8Messages.message = "Sending camión con avión y cigüeña..";
+    if (! channel.sendMSG (testUtf8Messages.message, null)) {
+	log ("error", "To be able to send");
+	return false;
+    }
+
+    return true;
+};
+
+testUtf8Messages.frameReceived = function (frameReceived) {
+
+    /* check connection first */
+    var conn = frameReceived.conn;
+    if (! checkConnection (conn))
+	return false;
+
+    /* check content */
+    var frame = frameReceived.frame;
+    if (frame.content != testUtf8Messages.message) {
+	log ("error", "Expected to find content: " + testUtf8Messages.message + ", but found: " + frame.content);
+	return false;
+    }
+
+    log ("info", "Utf bytes sent!");
+
+    /* now open another channel requesting a different serverName */
+    this.nextTest ();
+
+    return true;
+
+};
+
+/******* END: testUtf8Messages ******/
+
 /******* BEGIN: testTlsProfileHandleError ******/
 function testTlsProfileHandleError () {
     /* create a connection */
@@ -2843,7 +2930,8 @@ RegressionTest.prototype.tests = [
     {name: "TLS profile support (Handled Cert error)",  testHandler: testTlsProfileHandleError},
     {name: "BEEP opening channels already in use",      testHandler: testChannelsInUse},
     {name: "BEEP check channel find by uri/func",       testHandler: testChannelFind},
-    {name: "BEEP check channel per message frame received", testHandler: testPerMessageFrameReceived}
+    {name: "BEEP check channel per message frame received", testHandler: testPerMessageFrameReceived},
+    {name: "BEEP check utf-8 messages (detecting real octect length)", testHandler: testUtf8Messages}
 ];
 
 

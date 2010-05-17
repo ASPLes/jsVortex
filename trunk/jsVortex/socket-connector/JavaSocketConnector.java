@@ -142,7 +142,7 @@ public class JavaSocketConnector extends JApplet {
 
 		/* queue a send operation */
 		SendCommand sendCmd = new SendCommand ();
-		sendCmd.content = content;
+		sendCmd.content = content.getBytes ();
 		sendCmd.length  = length;
 		sendCmd.output  = state.out;
 		sendCmd.caller  = caller;
@@ -157,6 +157,17 @@ public class JavaSocketConnector extends JApplet {
 		}
 
 		return true;
+	}
+
+	/**  
+	 * @brief Public method that allows to get real byte size from
+	 * the provided content string.
+	 *
+	 * @param content The string content to check for its real byte size.
+	 */
+	public int byteLength (String content) {
+		/* return real length */
+		return content.getBytes ().length;
 	}
 
 	/** 

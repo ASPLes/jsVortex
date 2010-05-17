@@ -77,6 +77,21 @@ JavaSocketConnector.prototype.send = function (content, length) {
 };
 
 /**
+ * @brief Allows to get byte length from the provided javascript
+ * string. Because javascript string may represent an UTF-8/UTF-16
+ * string, this function provides a way to get byte length.
+ *
+ * @param content The content to be check for its byte size.
+ *
+ * @return {Number} The content byte size.
+ */
+JavaSocketConnector.prototype.byteLength = function (content) {
+
+    /* now send content */
+    return document.getElementById('JavaSocketConnector').byteLength (content);
+};
+
+/**
  * @brief Function used to enable TLS protection on the provided socket.
  * See also certTrustPolicy which allows configuring what to do in the case of certificate error.
  */
