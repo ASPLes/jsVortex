@@ -78,10 +78,13 @@ function VortexFrame (type,
      */
     this.seqno       = seqno;
     /**
-     * @brief Contains the frame size notified. This may not be the same as
-     * the size of the content received since jsVortex does automatic
-     * MIME parsing. You can get the size of your message, without MIME
-     * headers, by calling to frame.content.length.
+     *
+     * @brief Contains the frame size notified. This may not be the same
+     * as the size of the content received since jsVortex does automatic
+     * MIME parsing and because BEEP headers operates at byte level while
+     * javascript content uses UTF-16. You can get the size of your
+     * message, without MIME headers, by calling to frame.content.length.
+     *
      * @type {Number}
      */
     this.size        = size;

@@ -10,7 +10,7 @@ public class SendCommand implements Command {
 	/** 
 	 * @brief Reference to the content to be sent.
 	 */
-	public String content;
+	public byte [] content;
 	/** 
 	 * @brief Reference to the content length.
 	 */
@@ -19,7 +19,7 @@ public class SendCommand implements Command {
 	/** 
 	 * @brief Reference to the output buffer.
 	 */
-	public PrintWriter output;
+	public OutputStream output;
 
 	/** 
 	 * @brief Reference to the caller javascript object where the

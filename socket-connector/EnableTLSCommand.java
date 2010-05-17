@@ -80,8 +80,7 @@ public class EnableTLSCommand implements Command {
 
 			/* update socket reference */
 			state.socket = sslsock;
-			PrintWriter out = new PrintWriter (sslsock.getOutputStream(), true);
-			state.out    = out;
+			state.out    = sslsock.getOutputStream();
 
 			/* start handshake */
 			sslsock.startHandshake();

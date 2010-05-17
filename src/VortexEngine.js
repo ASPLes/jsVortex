@@ -364,6 +364,16 @@ VortexEngine.parseMimeHeaders = function (mimeHeaders, data) {
     return data.substring (this.position, data.length);
 };
 
+VortexEngine.saveContent = function (connection, data) {
+
+    /* check if content was not previously stored */
+    if (connection.storedContent == undefined)
+	connection.storedContent = "";
+
+    /* save content appending it to previous content */
+    connection.storedContent = connection.storedContent + data;
+    return;
+};
 
 /**
  * @internal Function used to load a frame from the received data.
@@ -452,7 +462,6 @@ VortexEngine.getFrame = function (connection, data) {
 
 	/* start reading frame content */
 	this.position += 2;
-	var contentInit = this.position;
 
 	/* check if we have a SEQ to stop processing */
 	if (strType == 'SEQ') {
@@ -465,48 +474,41 @@ VortexEngine.getFrame = function (connection, data) {
 	    continue;
 	} /* end if */
 
-	/* read frame content */
-	var content = data.substring (this.position, this.position + size);
-	Vortex.log2 ("Content found (size: " + size + ", position: " + this.position + ", length: " + data.length + "): '" + content + "'");
-
-	this.position += size;
-	Vortex.log2 ("BEEP header end: '" + data.substring (this.position, this.position + 5) + "'");
-
-	/* check content received against size expected */
-	if ((data.length - contentInit) < size) {
-/*	    console.error (
-		"VortexEngine: this.position is: " + this.position + ", content received: " + (data.length - contentInit));
-	    console.error (
-		"VortexEngine: expected frame size: " + size);
-	    console.error (
-		"VortexEngine: content received:'" + data + "'");
-*/
-
-	    /* found that not all frame content was received,
-	     * store it for later processing */
-	    if (connection.storedContent == undefined)
-		connection.storedContent = "";
-	    connection.storedContent = connection.storedContent + data;
+	/* NOTE: BEEP operates at byte level and so its header size is
+	 expresed in bytes. However String inside javascript are
+	 encoded in utf-16 which causes that strings that contains
+	 code points above ascii to look sorter that the value
+	 expresed by size. So, we try to find the END\r\n trail to get
+	 the content and then check if byte length for that content
+	 matches expected size */
+	var beepTrailerIndex = data.indexOf ("END\r\n");
+	if (beepTrailerIndex == -1) {
+	    /* no beep trailer in content, so we have no complete frame */
+	    VortexEngine.saveContent (connection, data);
 	    return null;
 	}
 
-	/* check beep trailer */
-	var beepTrailer = data.substring (this.position, this.position + 5);
-	if (beepTrailer != "END\r\n") {
-	    Vortex.error (
-		"VortexEngine: ERROR: expected to find \\r\\n BEEP frame trailer (end of frame), but not found: " + beepTrailer);
-	    connection.shutdown (
-		"VortexEngine: ERROR: expected to find \\r\\n BEEP frame trailer (end of frame), but not found: " + beepTrailer);
-	    return null;
-	} /* end if */
+	/* get BEEP frame content */
+	var content = data.slice (this.position, beepTrailerIndex);
+	/* read frame content */
+	Vortex.log2 ("Content found (byte size: " + size + ", unicode size: " + content.length + ", position: " + this.position + ", length: " + data.length + "): '" + content + "'");
 
-	this.position += 5;
-	Vortex.log2 ("BEEP frame ended at: " + this.position + ", last data index received: " + data.length );
+	/* now check that byte level size of this content matches with
+	 expected size */
+	if (size != connection._transport.byteLength (content)) {
+	    var errMessage = "VortexEngine: ERROR: expected to find byte length content " + size + ", but found: " + connection._transport.byteLength (content) + ". Unicode length is: " + content.length + ". Protocol violation. Closing connection.";
+	    Vortex.error (errMessage);
+	    connection.shutdown (errMessage);
+	    return null;
+	}
+
+	/* update to the next position (next frame) */
+	this.position += (content.length + 5);
 
 	/* call to create frame object */
 	frame = new VortexFrame (strType, channel, msgno, more, seqno, size, ansno, null, content);
 
-	Vortex.log2 ("Frame type: " + frame.type);
+	Vortex.log ("Frame type: " + frame.type);
 	frameList.push (frame);
     }
 
@@ -890,8 +892,6 @@ VortexEngine.checkSendSEQFrame = function (channel, frame) {
     /* not updating maxAllowedSeqno */
     return;
 };
-
-
 
 /**
  * @brief Value used to represent maximum allosed seqno value.

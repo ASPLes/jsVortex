@@ -508,10 +508,11 @@ VortexChannel.prototype.sendCommon = function (content, type, onFrameReceivedHan
 
     /* build the frame to sent */
     var frame;
+    var contentLength = this.conn._transport.byteLength (content);
     if (type == "RPY") {
 	/* RPY frames */
 	frame        = "RPY " + this.number + " " + this.nextReplyMsgno + " " +
-	    (isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + (content.length) + "\r\n" + content + "END\r\n";
+	    (isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + contentLength + "\r\n" + content + "END\r\n";
 
 	/* increase next replyMsgno only if we have sent a comple reply */
 	if (isComplete)
@@ -519,7 +520,7 @@ VortexChannel.prototype.sendCommon = function (content, type, onFrameReceivedHan
     } else {
 	/* MSG frames */
 	frame        = type + " " + this.number + " " + this.nextMsgno + " " +
-	    (isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + (content.length) + "\r\n" + content + "END\r\n";
+	    (isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + contentLength + "\r\n" + content + "END\r\n";
 
 	/* increase nextMsgno only if we have sent a complete message */
 	if (isComplete) {
@@ -543,14 +544,14 @@ VortexChannel.prototype.sendCommon = function (content, type, onFrameReceivedHan
     } /* end if */
 
     /* update channel status */
-    this.nextPeerSeqno += content.length;
+    this.nextPeerSeqno += contentLength;
 
     /* signal send operation ok, but use 1 to signal complete send (no
     pending content) */
     this.lastStatusCode = (isComplete ? 1 : 2);
 
     /* send the content */
-    Vortex.log ("VortexChannel.sendCommon: about to do send operation: " + frame.length + " bytes");
+    Vortex.log ("VortexChannel.sendCommon: about to do send operation: " + contentLength + " bytes");
     return this.conn._send.apply (this.conn, [frame]);
 };
 

@@ -36,7 +36,8 @@ public class SocketCommand implements Command {
 		try {
 			/* do connect operation */
 			state.socket = new Socket (host, port);
-			state.out    = new PrintWriter (state.socket.getOutputStream(), true);
+			state.out    = state.socket.getOutputStream();
+			/* new PrintWriter (state.socket.getOutputStream(), true); */
 
 			LogHandling.info (caller, "Starting listener.."); 
 

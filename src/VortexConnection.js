@@ -1407,7 +1407,7 @@ VortexConnection.prototype._send = function (content) {
 	    return false;
 	}
 	/* send content */
-	return this._transport.write (content, content.length);
+	return this._transport.write (content, this._transport.byteLength (content));
     } catch (e) {
 	this.stackError.push ("VortexConnection._send: failed to send content, error found: " + e.message);
 	Vortex.error ("VortexConnection._send: failed to send content, error found: " + e.message);
