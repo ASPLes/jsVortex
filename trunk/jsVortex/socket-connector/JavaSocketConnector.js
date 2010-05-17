@@ -38,6 +38,16 @@ function JavaSocketConnector (params) {
     this.port = params.port;
 
     /**
+     * @brief Connection encoding.
+     */
+    this.encoding = params.encoding;
+    if (typeof this.encoding == "undefined")
+	this.encoding = document.characterSet;
+    if (typeof this.encoding == "undefined")
+	this.encoding = document.charset;
+    console.log ("Setting default encoding for connection: " + this.encoding);
+
+    /**
      * @brief Connection status. By default it is set to CONNECTING =
      * 0. The list of readyState are:
      *  - CONNECTING = 0
@@ -88,7 +98,7 @@ JavaSocketConnector.prototype.send = function (content, length) {
 JavaSocketConnector.prototype.byteLength = function (content) {
 
     /* now send content */
-    return document.getElementById('JavaSocketConnector').byteLength (content);
+    return document.getElementById('JavaSocketConnector').byteLength (content, this.state);
 };
 
 /**

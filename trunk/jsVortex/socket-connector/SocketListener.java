@@ -11,6 +11,7 @@ import netscape.javascript.*;
 public class SocketListener extends Thread {
 
 	public Socket            socket;		
+	public String            encoding;
 	public InputStream       in;       
 	public boolean           disableOnOpenNotify;
 
@@ -24,11 +25,12 @@ public class SocketListener extends Thread {
 	 * the socket and notifies content read into the callers
 	 * onmessage method.
 	 */ 
-	public SocketListener (Socket _socket, JSObject _caller, JavaSocketConnector _dispacher) throws IOException{
+	public SocketListener (Socket _socket, JSObject _caller, JavaSocketConnector _dispacher, String _encoding) throws IOException{
 		/* get references */
 		socket    = _socket;
 		caller    = _caller;
 		dispacher = _dispacher;
+		encoding  = _encoding;
 
 		/* create input buffer */
 		in = socket.getInputStream();
@@ -111,7 +113,7 @@ public class SocketListener extends Thread {
 				}
 
 				/* notify content found */
-				str = new String (buffer, 0, size);
+				str = new String (buffer, 0, size, encoding);
 				dispacher.notify (caller, "onmessage", str);
 			} catch (SocketTimeoutException ex) {
 				if (! running) /* check to terminate listener */

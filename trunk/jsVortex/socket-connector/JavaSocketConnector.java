@@ -107,6 +107,9 @@ public class JavaSocketConnector extends JApplet {
 
 		/* create the socket command */
 		SocketState   state = new SocketState ();
+		/* set encoding defined by the user for this
+		 * connection */
+		state.encoding = (String )caller.getMember ("encoding");
 		SocketCommand cmd   = new SocketCommand ();
 		cmd.host   = host;
 		cmd.port   = port;
@@ -142,8 +145,13 @@ public class JavaSocketConnector extends JApplet {
 
 		/* queue a send operation */
 		SendCommand sendCmd = new SendCommand ();
-		sendCmd.content = content.getBytes ();
-		sendCmd.length  = length;
+		try {
+			sendCmd.content = content.getBytes (state.encoding);
+		} catch (Exception ex) {
+			LogHandling.error (caller, "Unsupported enconding type: " + ex.getMessage()); 
+			return false;
+		}
+		sendCmd.length  = sendCmd.content.length;
 		sendCmd.output  = state.out;
 		sendCmd.caller  = caller;
 
@@ -164,10 +172,16 @@ public class JavaSocketConnector extends JApplet {
 	 * the provided content string.
 	 *
 	 * @param content The string content to check for its real byte size.
+	 *
+	 * @param state The socket state object that defines the encoding to be used.
 	 */
-	public int byteLength (String content) {
+	public int byteLength (String content, SocketState state) {
 		/* return real length */
-		return content.getBytes ().length;
+		try {
+			return content.getBytes (state.encoding).length;
+		} catch (Exception ex) {
+			return -1;
+		}
 	}
 
 	/** 

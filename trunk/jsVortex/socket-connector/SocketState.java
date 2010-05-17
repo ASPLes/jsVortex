@@ -22,4 +22,9 @@ public class SocketState {
 	 * @brief Reference to the socket object.
 	 */
 	public Socket socket;
+
+	/** 
+	 * @brief This is the encoding to be used on this connection.
+	 */
+	public String encoding;
 }

@@ -129,8 +129,8 @@ testUtf8Messages.checkCount = function (frameReceived) {
 
     /* check content */
     var frame = frameReceived.frame;
-    if (frame.content != "41" && frame.content != "37") {
-	log ("error", "Expected to find content content count 41 (unicode) or 37 (iso), but found: " + frame.content);
+    if (frame.content != "41") {
+	log ("error", "Expected to find content content count 41 bytes (unicode) but found: " + frame.content);
 	return;
     }
 
