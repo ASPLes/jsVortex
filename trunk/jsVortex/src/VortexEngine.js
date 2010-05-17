@@ -481,7 +481,7 @@ VortexEngine.getFrame = function (connection, data) {
 	 expresed by size. So, we try to find the END\r\n trail to get
 	 the content and then check if byte length for that content
 	 matches expected size */
-	var beepTrailerIndex = data.indexOf ("END\r\n");
+	var beepTrailerIndex = data.indexOf ("END\r\n", this.position);
 	if (beepTrailerIndex == -1) {
 	    /* no beep trailer in content, so we have no complete frame */
 	    VortexEngine.saveContent (connection, data);
@@ -496,7 +496,7 @@ VortexEngine.getFrame = function (connection, data) {
 	/* now check that byte level size of this content matches with
 	 expected size */
 	if (size != connection._transport.byteLength (content)) {
-	    var errMessage = "VortexEngine: ERROR: expected to find byte length content " + size + ", but found: " + connection._transport.byteLength (content) + ". Unicode length is: " + content.length + ". Protocol violation. Closing connection.";
+	    var errMessage = "VortexEngine: ERROR: expected to find byte length content " + size + ", but found: " + connection._transport.byteLength (content) + ". Unicode length is: " + content.length + ". Protocol violation. Closing connection. this.position=" + this.position + ", beepTrailerIndex=" + beepTrailerIndex;
 	    Vortex.error (errMessage);
 	    connection.shutdown (errMessage);
 	    return null;

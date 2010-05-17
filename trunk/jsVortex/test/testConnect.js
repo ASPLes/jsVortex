@@ -106,11 +106,37 @@ testUtf8Messages.frameReceived = function (frameReceived) {
 
     log ("info", "Utf bytes sent!");
 
-    /* now open another channel requesting a different serverName */
-    this.nextTest ();
+    /* configure frame received to get remote serverName configured */
+    frameReceived.channel.onFrameReceivedHandler = testUtf8Messages.checkCount;
+    frameReceived.channel.onFrameReceivedContext = this;
+
+    /* ok, now request to to count bytes and check result */
+    if (! frameReceived.channel.sendMSG ("count bytes: " + testUtf8Messages.message, null)) {
+	log ("error", "Unable to send message to request counting bytes..");
+	return false;
+    } /* end if */
 
     return true;
 
+};
+
+testUtf8Messages.checkCount = function (frameReceived) {
+
+    /* check connection first */
+    var conn = frameReceived.conn;
+    if (! checkConnection (conn))
+	return;
+
+    /* check content */
+    var frame = frameReceived.frame;
+    if (frame.content != "41") {
+	log ("error", "Expected to find content content count 41, but found: " + frame.content);
+	return false;
+    }
+
+    /* go to next test */
+    this.nextTest ();
+    return;
 };
 
 /******* END: testUtf8Messages ******/
