@@ -129,9 +129,9 @@ testUtf8Messages.checkCount = function (frameReceived) {
 
     /* check content */
     var frame = frameReceived.frame;
-    if (frame.content != "41") {
-	log ("error", "Expected to find content content count 41, but found: " + frame.content);
-	return false;
+    if (frame.content != "41" && frame.content != "37") {
+	log ("error", "Expected to find content content count 41 (unicode) or 37 (iso), but found: " + frame.content);
+	return;
     }
 
     /* go to next test */
@@ -3116,7 +3116,7 @@ function prepareTest () {
     dojo.connect (dijit.byId ("transportType"), "onChange", transportSelected);
 
     /* configure default connection values */
-    dojo.byId ("host").value = "localhost";
+    dojo.byId ("host").value = location.hostname;
 
     /* configure default connection port value */
     dojo.byId ("port").value = "44010";
