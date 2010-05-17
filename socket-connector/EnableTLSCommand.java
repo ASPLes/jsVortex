@@ -107,7 +107,7 @@ public class EnableTLSCommand implements Command {
 
 		try {
 			/* start listener */
-			listener = new SocketListener ((Socket) sslsock, caller, dispacher);
+			listener = new SocketListener ((Socket) sslsock, caller, dispacher, state.encoding);
 			listener.disableOnOpenNotify = true;
 
 			/* set new listener */

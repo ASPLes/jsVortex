@@ -42,7 +42,7 @@ public class SocketCommand implements Command {
 			LogHandling.info (caller, "Starting listener.."); 
 
 			/* create the listener */
-			state.listener = new SocketListener (state.socket, caller, dispacher);
+			state.listener = new SocketListener (state.socket, caller, dispacher, state.encoding);
 
 			/* change state to OPENED = 1 */
 			caller.setMember ("readyState", 1);
