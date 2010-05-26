@@ -56,8 +56,20 @@ function JavaSocketConnector (params) {
      */
     this.readyState = 0;
 
+    /* cache all methods to avoid depending on applets[''] to return
+     the right reference: fixes some misterious FF bugs */
+    if (typeof JavaSocketConnector._cached == "undefined") {
+	JavaSocketConnector._cached = {
+	    connect : document.applets['JavaSocketConnector'].connect,
+	    send : document.applets['JavaSocketConnector'].send,
+	    byteLength : document.applets['JavaSocketConnector'].byteLength,
+	    enableTLS : document.applets['JavaSocketConnector'].enableTLS,
+	    close : document.applets['JavaSocketConnector'].close
+	};
+    }
+
     /* do a socket connection */
-    this.state = document.getElementById('JavaSocketConnector').connect (params.host, params.port, this);
+    this.state = document.applets.JavaSocketConnector.connect (params.host, params.port, this);
 }
 
 /**
@@ -83,7 +95,7 @@ JavaSocketConnector.prototype.send = function (content, length) {
     }
 
     /* now send content */
-    return document.getElementById('JavaSocketConnector').send (content, length, this.state, this);
+    return document.applets.JavaSocketConnector.send (content, length, this.state, this);
 };
 
 /**
@@ -98,7 +110,7 @@ JavaSocketConnector.prototype.send = function (content, length) {
 JavaSocketConnector.prototype.byteLength = function (content) {
 
     /* now send content */
-    return document.getElementById('JavaSocketConnector').byteLength (content, this.state);
+    return document.applets.JavaSocketConnector.byteLength (content, this.state, this);
 };
 
 /**
@@ -113,7 +125,7 @@ JavaSocketConnector.prototype.enableTLS = function () {
     }
 
     /* now send content */
-    return document.getElementById('JavaSocketConnector').enableTLS (this.state, this);
+    return document.applets.JavaSocketConnector.enableTLS (this.state, this);
 };
 
 /**
@@ -133,7 +145,7 @@ JavaSocketConnector.prototype.close = function () {
     }
 
     /* call to close */
-    document.getElementById('JavaSocketConnector').close (this.state, this);
+    document.applets.JavaSocketConnector.close (this.state, this);
     return;
 };
 
