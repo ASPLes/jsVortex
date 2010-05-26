@@ -175,13 +175,21 @@ public class JavaSocketConnector extends JApplet {
 	 *
 	 * @param state The socket state object that defines the encoding to be used.
 	 */
-	public int byteLength (String content, SocketState state) {
+	public int byteLength (String content, SocketState state, JSObject caller) {
+
+		/* return empty content */
+		if (content == null || content.length () == 0)
+			return 0;
+
 		/* return real length */
+		int length;
 		try {
-			return content.getBytes (state.encoding).length;
+			length = content.getBytes (state.encoding).length;
 		} catch (Exception ex) {
+			LogHandling.error (caller, "JavaSocketConnector.byteLength: Failed to get length, error was: " + ex.getMessage()); 
 			return -1;
 		}
+		return length;
 	}
 
 	/** 
@@ -264,6 +272,7 @@ public class JavaSocketConnector extends JApplet {
 			callers.count--;
 			callers.notify ();
 		}
+		return;
 	}
 
 } /* end JavaSocketConnector */

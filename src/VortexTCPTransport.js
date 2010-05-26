@@ -641,6 +641,6 @@ function VortexJSCClose () {
 };
 
 function VortexJSCByteLength (content) {
-    /* return byte length */
+
     return this.socket.byteLength (content);
 };
