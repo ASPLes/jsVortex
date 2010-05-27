@@ -1,3 +1,9 @@
+jsvortex (0.3.7-2) unstable; urgency=low
+
+  * New upstream update.
+
+ -- Francis Brosnan <francis@aspl.es>  Thu, 27 May 2010 09:26:04 +0200
+
 jsvortex (0.3.7-1) unstable; urgency=low
 
   * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
