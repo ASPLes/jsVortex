@@ -512,7 +512,7 @@ VortexJSCConnect.onopen = function () {
 	Vortex.log ("Connection OK, now proceed..: " + this.host + ":" + this.port);
     } else {
 	Vortex.error ("Failed to connect to remote host: " + this.host + ":" + this.port);
-	this.transport._reportError ("Failed to connect to remote host, connection refused");
+	this.transport._reportError ("Failed to connect to remote host, error was: " + this.connectError);
     }
 
     /* notify connection ready at this point because firefox socket

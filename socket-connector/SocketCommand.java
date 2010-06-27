@@ -50,19 +50,33 @@ public class SocketCommand implements Command {
 			/* start the listener at the end to avoid
 			 * onmessage to be fired before onopen */
 			state.listener.start();
+		} catch (UnknownHostException ex) {
+			return reportError ("Unable to resolve host name: \"" + host + "\". Check your DNS configuration or ensure hostname is right.", dispacher);
+
+		} catch (IOException ex) {
+			return reportError ("Unable to connect to remote host: \"" + host + ":" + port + "\". Found I/O error: " + ex.getMessage (), dispacher);
+
+		} catch (SecurityException ex) {
+			return reportError ("Unable to connect to remote host: \"" + host + ":" + port + "\". Found security manager is denying the connection: " + ex.getMessage (), dispacher);
 
 		} catch (Exception ex) {
-			LogHandling.error (caller, "Unable to connect to " + host + " on port: " + port + "\n" + ex.getMessage()); 
-
-			/* readyState = CLOSED */
-			caller.setMember ("readyState", 2);
-
-			/* notify onopen event */
-			dispacher.notify (caller, "onopen", null);
-
-			return false;
+			return reportError ("Unable to connect to \"" + host + "\" on port: " + port + "\n" + ex.getMessage(), dispacher); 
 		}
 
 		return true;
+	}
+
+	private boolean reportError (String reason, JavaSocketConnector dispacher) {
+
+		LogHandling.error (caller, reason); 
+
+		/* readyState = CLOSED */
+		caller.setMember ("readyState", 2);
+		caller.setMember ("connectError", reason);
+
+		/* notify onopen event */
+		dispacher.notify (caller, "onopen", null);
+		
+		return false;
 	}
 }
