@@ -9,7 +9,7 @@ import netscape.javascript.*;
 import java.net.*;
 import java.io.*;
 
-public class JavaSocketConnector extends JApplet {
+public class JavaSocketConnector extends JApplet implements Runnable {
 
 	/* A reference to the current browser (tab) opening the
 	 * component */
@@ -50,6 +50,12 @@ public class JavaSocketConnector extends JApplet {
 	 * under this thread because it has permission.
 	 */
 	public void start () {
+		Thread th = new Thread (this);
+		th.start();
+	}
+
+	public void run () {
+
 		/* Notify the browser that the component was
 		 * loaded. */
 		JSObject member = (JSObject) browser.getMember ("JavaSocketConnector");
