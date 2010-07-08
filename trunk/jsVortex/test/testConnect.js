@@ -2679,8 +2679,8 @@ testConnect.Result = function (conn) {
     }
 
     /* check profiles supported */
-    if (conn.profiles.length != 32) {
-	log ("error", "Expected to find 32 profiles registered but found: " + conn.profiles.length);
+    if (conn.profiles.length != 33) {
+	log ("error", "Expected to find 33 profiles registered but found: " + conn.profiles.length);
 	return false;
     }
 

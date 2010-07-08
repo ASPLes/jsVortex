@@ -58,14 +58,14 @@ function JavaSocketConnector (params) {
 
     /* cache all methods to avoid depending on applets[''] to return
      the right reference: fixes some misterious FF bugs */
-    if (typeof JavaSocketConnector._cached == "undefined") {
-	JavaSocketConnector._cached = {
+    if (typeof JavaSocketConnector._cached == "undefined" && navigator.appName == "Netscape") {
+	  JavaSocketConnector._cached = {
 	    connect : document.applets['JavaSocketConnector'].connect,
 	    send : document.applets['JavaSocketConnector'].send,
 	    byteLength : document.applets['JavaSocketConnector'].byteLength,
 	    enableTLS : document.applets['JavaSocketConnector'].enableTLS,
 	    close : document.applets['JavaSocketConnector'].close
-	};
+	  };
     }
 
     /* do a socket connection */
