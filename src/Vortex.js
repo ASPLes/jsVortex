@@ -13,18 +13,6 @@ if (typeof console == "undefined") {
 	error: function () {},
 	warn: function () {}
     };
-} else {
-
-    /* check if we have defined .dir () method to provide a custom one
-     (because IE do not provide it) */
-    if (typeof console.dir == "undefined") {
-	console.dir = function (object_to_show) {
-	    for (var iterator in object_to_show) {
-		var value = object_to_show[iterator];
-		console.log (iterator + ":" + value);
-	    }
-	};
-    }
 }
 
 if (typeof Vortex == "undefined") {
