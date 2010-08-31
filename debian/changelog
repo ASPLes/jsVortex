@@ -1,3 +1,15 @@
+jsvortex (0.3.9-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Francis Brosnan <francis@aspl.es>  Tue, 31 Aug 2010 14:38:35 +0200
+
+jsvortex (0.3.9-0) unstable; urgency=low
+
+  * New upstream update. SVN revision 4440.
+
+ -- Francis Brosnan <francis@aspl.es>  Fri, 09 Jul 2010 18:35:52 +0200
+
 jsvortex (0.3.7-2) unstable; urgency=low
 
   * New upstream update.
@@ -6,7 +18,7 @@ jsvortex (0.3.7-2) unstable; urgency=low
 
 jsvortex (0.3.7-1) unstable; urgency=low
 
-  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+  * Initial release
 
- -- root <francis@aspl.es>  Fri, 21 May 2010 10:57:35 +0200
+ -- Francis Brosnan <francis@aspl.es>  Fri, 21 May 2010 10:57:35 +0200
 

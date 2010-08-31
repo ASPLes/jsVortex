@@ -982,8 +982,14 @@ VortexConnection.prototype.enableTLS._frameReceived = function (frameReceived) {
 
     /* check reply received */
     if (frame.content != '<proceed />') {
-	/* error found, manage here */
-	return;
+	var tlsStatus = {
+            conn : conn,
+            status : false,
+            statusMsg : "TLS failure, initial channel handshake failed. Error reported: " + frame.content
+        };
+        /* notify connection error */
+        VortexEngine.apply (this.onTLSFinishHandler, this.onTLSFinishContext, [tlsStatus]);
+        return;
     }
 
     /* install on disconnect handler to get a notification of failure */
