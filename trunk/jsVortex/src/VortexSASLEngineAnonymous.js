@@ -20,8 +20,10 @@ var VortexSASL_ANONYMOUS = {
      */
     checkInput: function (saslEngine) {
 	/* check authentication and password */
-	if (! VortexEngine.checkReference (saslEngine, "anonymousToken"))
+	if (! VortexEngine.checkReference (saslEngine, "anonymousToken")) {
+	    saslEngine.statusMsg = "Unable to start ANONYMOUS mechanism, anonymousToken attribute is missing";
 	    return false;
+	}
 	return true;
     },
     /**
