@@ -20,10 +20,14 @@ var VortexSASL_PLAIN = {
      */
     checkInput: function (saslEngine) {
 	/* check authentication and password */
-	if (! VortexEngine.checkReference (saslEngine, "authenticationId"))
+	if (! VortexEngine.checkReference (saslEngine, "authenticationId")) {
+	    saslEngine.statusMsg = "Unable to start PLAIN mechanism, authenticationId attribute is missing";
 	    return false;
-	if (! VortexEngine.checkReference (saslEngine, "password"))
+	}
+	if (! VortexEngine.checkReference (saslEngine, "password")) {
+	    saslEngine.statusMsg = "Unable to start PLAIN mechanism, password attribute is missing";
 	    return false;
+	}
 
 	/* derive authorizationId from authenticationId in the case it is
 	 not defined */
