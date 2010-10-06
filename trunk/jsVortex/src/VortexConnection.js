@@ -29,6 +29,10 @@
  * used to notify the connection created or errors found during
  * the operation.
  *
+ * @param timeout {Number} ? Optional connect timeout. If timeout is
+ * expired during connection connectionCreatedHandler will be called
+ * with error. Timeout value is configured in milliseconds (1 second = 1000 milliseconds)
+ *
  * @return {VortexConnection} Returns a reference to a newly created
  * connection. Note the reference returned may still not be
  * connected. Use \ref VortexConnection.isOk method to check
@@ -105,7 +109,28 @@ function VortexConnection (host,
     if (this._transport.socket == -1) {
 	/* report we have failed to create connection */
 	this._reportConnCreated ();
+	return;
     } /* end if */
+
+    /* configure timeout if defined */
+    if (typeof timeout != "undefined") {
+	Vortex.log ("Setting connect timeout: " + timeout);
+	var conn = this;
+	conn._configuredTimeout = setTimeout (function () {
+	    Vortex.error ("Connect timeout reached..");
+	    /* shutdown connection */
+	    conn.isReady    = false;
+	    conn._transport = null;
+	    conn._onError ("Connect timeout reached. Failed to connect.");
+
+	    /* notify connection created handler */
+	    conn._reportConnCreated ();
+
+	    return;
+
+	    }, timeout);
+    } /* end if */
+    return;
 };
 
 /**
@@ -1457,6 +1482,15 @@ VortexConnection.prototype._onError = function (error) {
  * not created).
  */
 VortexConnection.prototype._reportConnCreated = function () {
+
+    /* clear timeout configured */
+    if (typeof this._configuredTimeout != "undefined") {
+	/* stop timeout */
+	clearTimeout (this._configuredTimeout);
+	
+	/* clear reference */
+	delete this._configuredTimeout;
+    } /* end if */
 
     Vortex.log ("reporting reportConnCreated, status: " + this.isOk ());
     /* check if the connection handler notification is defined */
