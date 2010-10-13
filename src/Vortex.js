@@ -88,7 +88,13 @@ if (typeof Vortex == "undefined") {
 	/**
 	 * @brief By default second level log disabled.
 	 */
-	log2Enabled : false
+	log2Enabled : false,
+	/**
+	 * @internal flag used to signal vortex that should load its
+	 * components file by file or assuming all jsVortex is inside
+	 * a single file. Do not touch this variable.
+	 */
+	singleFile : false
     };
 }
 
@@ -99,6 +105,10 @@ if (typeof Vortex == "undefined") {
  * all jsVortex sources are located.
  */
 Vortex.load = function (basepath) {
+
+    /* check if we have already loaded all jsVortex due to shrinksafe version used */
+    if (Vortex.singleFile)
+	return;
 
     /** start **/
     if (typeof basepath == "undefined") {
