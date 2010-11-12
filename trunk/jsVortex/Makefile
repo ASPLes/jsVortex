@@ -5,6 +5,5 @@ clean:
 
 install:
 	install -d $(DESTDIR)/usr/share/jsVortex
-	install -m 644 src/*.js $(DESTDIR)/usr/share/jsVortex
-	install -m 644 socket-connector/JavaSocketConnector.jar $(DESTDIR)/usr/share/jsVortex
-	install -m 644 socket-connector/JavaSocketConnector.js $(DESTDIR)/usr/share/jsVortex
+	./make-zip.sh $(DESTDIR)/usr/share/jsVortex
+	
