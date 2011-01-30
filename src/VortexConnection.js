@@ -919,6 +919,8 @@ VortexConnection.prototype.saslAuth._frameReceived = function (frameReceived) {
 /**
  * @brief Allows to start TLS protection for the current BEEP session.
  *
+ * @param params Set of parameter that expect the function to activate TLS function.
+ *
  * @param params.onTLSFinishHandler {Handler} ? The handler where the
  * TLS termination status is notified. You must not use the connection
  * until you get the notification on this handler.
@@ -1487,7 +1489,7 @@ VortexConnection.prototype._reportConnCreated = function () {
     if (typeof this._configuredTimeout != "undefined") {
 	/* stop timeout */
 	clearTimeout (this._configuredTimeout);
-	
+
 	/* clear reference */
 	delete this._configuredTimeout;
     } /* end if */
