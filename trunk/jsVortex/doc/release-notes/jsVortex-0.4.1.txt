@@ -1,0 +1,341 @@
+                     >>>> jsVortex 0.4.1 <<<<
+                    Uprising at Trantor release       
+
+>>>> Release note
+----------------------------------------------------------------------
+
+  Advanced Software Production Line is proud to announce jsVortex
+  0.4.1 "Uprising at trantor" release: an Open Source Javascript BEEP
+  implementation.
+
+  jsVortex is a Javascript BEEP implementation that is specially
+  designed to run in the context of a web browser, turning it into an
+  effective BEEP peer without too much effort.
+
+  Check out the following links to get ready with jsVortex:
+
+    - http://www.aspl.es/jsVortex
+      [jsVortex homepage]
+
+    - http://www.aspl.es/jsVortex/docs
+      [jsVortex API documentation]
+
+    - http://www.aspl.es/vortex
+      [Vortex Library homepage, used to validate jsVortex]
+ 
+    - http://www.sf.net/projects/vortexlibrary
+      [Source download]
+
+    - http://www.beepcore.org
+      [BEEP Core community web site]
+    
+
+>>>> This release in short
+----------------------------------------------------------------------
+
+  First release with complete support for Firefox, Internet Explorer
+  and Google Chrome using the new java socket connector.
+
+  Many API updates and general improvements making jsVortex more
+  usable for production environment.
+
+  Updated packaging to release the product into a single .js
+  compressed file for fast download.
+
+
+>>>> Changes from last release
+----------------------------------------------------------------------
+
+* [fix] Documented VortexConnection.channels attribute.
+
+* [new] Updated VortexConnection module to include a method to get
+  channels by uri or using a function that acts as selector. Updated
+  regression test to check its function. API added:
+
+   - VortexConnection.getChannelByUri
+
+* [new] Updated VortexChannel API to include a method to check if the
+  channel is ready (no pending replies to be received). Updated
+  regression test to check function. API added:
+
+    - VortexChannel.isReady 
+
+* [new] Added support to configure a per message frame received
+  handler on a particular channel. This allows to provide a particular
+  function to handle a particular reply to outstanding message
+  (channel.sendMSG).  Added regression test to check function
+  introduced. Nice!
+
+* [fix] Fixed bug while handling per message frame received if it is
+  configured for the first message. Updated reg test to reproduce the
+  problem and check the first introduced.
+
+* [fix] Fixed bug causing to not call per message frame received if a
+  global channel frame received is not configured.
+
+* [fix] Fixing VortexConnection.onDisconnect documentation. Making
+  method to return -1 on failure (rather than false).
+
+* [fix] Committing initial code to implement a socket connector using
+  Java.
+
+* [new] Several updates to the java socket connector. Now it is
+  possible to receive per socket log notifications, message content
+  and open notifications using WebSocket API design.  API added:
+
+   - onopen (event notification)
+   - onlog  (event notification)
+   - onmessage (event notification)
+   - send (operation).
+
+* [fix] Fixed Makefile to find the appropriate plugin.jar file on the
+  current system. Updated documentation notes to allow people to
+  download, compile and sign the .jar created.
+
+* [fix] Changed JavaSocketConnector status attribute by readyState.
+
+* [new] Added close method and onclose notification.
+
+* [new] Added global variable JavaSocketConnector.isReady which is
+  updated by the java applet to notify that it was loaded.
+
+* [fix] Making socket listener to be started at the end of the socket
+  creation to avoid firing onmessage before onopen.
+
+* [fix] Fixed read handling avoding readline use. Now the socket
+  listener read the content available without checking for end of
+  line.
+
+* [fix] Updating VortexTCPTransport class to support more transport
+  methods..
+
+* [fix] Updated reg test to check new number of profiles expected.
+
+* [fix] Applied some cleanups to make BEEP engine to send client
+  greetings instead of waiting for server greetings.
+
+* [fix] Added some modifications to make TLS to initiate client
+  greetings exchange after TLS handshake.
+
+* [fix] Updated regression test to allow the user to select which
+  transport type to use for the regression test. Added initially Java
+  Socket Connector and nsISocketTransportService.
+
+* [fix] Added initial code to support JavaSocketConnector inside
+  regression tests.
+
+* [fix] Fixed regression test panel size.
+
+* [fix] Updated JavaSocketConnector send method to also require
+  content length to be sent.
+
+* [fix] Added default onclose method inside JavaSocketConnector class
+  to avoid onclose exceptions.
+
+* [fix] More updates to the regression test to use
+  JavaSocketConnector.  Now first 5 tests are completed without
+  problems. Nice!!
+
+* [fix] Updated VortexTCPTransport to include initial support to use
+  JavaSocketConnector class.
+
+* [fix] Making JavaSocketConnector.send operation to not implement it
+  directly but queue the request as a command to be implemented by the
+  applet main thread (SendCommand) avoding blocking the caller until
+  the send operation is done.
+
+* [fix] More reg test updates to make jsVortex to also support
+  JavaSocketConnector.
+
+* [fix] Added invokecommand class to implement java to javascript
+  notification.
+
+* [fix] Implemented VortexTCPTransport close notification using java
+  socket connector onclose notification.
+
+* [fix] Added micro wait until socket listener is started to avoid
+  user javascript that configures onclose, onmessage and onopen
+  handler not be executed.
+
+* [fix] Added several updates to properly run all regression test
+  until first TLS test. NiCe!!
+
+* [fix] Updated index.html and testConnect.html applet load to include
+  MAYSCRIPT tag.
+
+* [fix] Updated Java to Javascript marshalling to not use setTimeout
+  but call.apply directly.
+
+* [fix] General update inside JavaSocketConnector class to check how
+  many callers are inside the applet to priorize its thread rather
+  than the applet thread to implement as close as possible Javascript
+  execution model. Added code to configure lower priority for the
+  applet thread.
+
+* [fix] Implemented missing onlog and onclose inside reg test.  Now we
+  are able to fully run (without problems) all tests without including
+  TLS.
+
+* [fix] Added initial support for TLS handshake inside Java Socket
+  Connector applet.
+
+* [fix] More updates to complete TLS support using
+  JavaSocketConnector.  Still more work required.
+
+* [fix] More updates to TLS support for JavaSocketConnector.  Updated
+  VortexConnection.js to check transport reference after TLS failure.
+
+* [fix] Making JavaSocketConnector ssl exception to flag the
+  connection as closed.
+
+* [fix] Finished initial fully working implementation of
+  JavaSocketConnector which nows passes all jsVortex regtests
+  including TLS support. NiCe!!
+
+* [fix] Added initial code to detect TCP transport selection from the
+  regtest user interface.
+
+* [fix] Finished support to properly select transport to use at reg
+  test user interface.
+
+* [fix] Fixed bug at JavaSocketConnector causing "not connected" event
+  to be not notified. Added code to fire onopen flagging readyState to
+  2.
+
+* [fix] Fixed firefox enableTLS support to return a boolean status.
+
+* [fix] Making JavaSocketConnector and firefox nsisocket to notify tls
+  activation on handlers received. Making JavaSocketConnector to
+  implement TLS activation in a non blocking manner. Updated
+  VortexTCPTransport and VortexConnection classes to conform with the
+  change introduced. Checked regression tests.
+
+* [fix] Added initial support to JavaSocketConnector to allow handling
+  certificate errors (useful for test purposes..).
+
+* [fix] Added initial code to implement certificate error handling to
+  Java Socket Connector.
+
+* [new] Added support for TLS certificate error handling to
+  VortexConnection, VortexTCPTransport and Java Socket Connector.  It
+  is still missing Firefox connector. Now it is possible to signal how
+  certificate errors will be handled. NICE!
+
+* [fix] Making VortexTCPTransport to better report connection refused
+  while using java socket connector.
+
+* [fix] Fixed bug inside XML engine which causing to not load
+  greetings without profiles notified but using full xml node format
+  <node></node>...Check regression test.
+
+* [fix] Making VortexConnection.openChannel to setup the serverName
+  connection if it was defined or the caller didn't provide a
+  serverName value. Check regression tests.
+
+* [fix] Updated reg test check for cert error handling.
+
+* [fix] Fixed minor documentation error at JavaSocketConnector.js
+
+* [fix] Added some debug information to channel.isReady () method.
+
+* [fix] Making VortexBase64.decode to check if input is null or
+  undefined to avoid throwing an exception.
+
+* [fix] Fixed regression test to upgrade profiles expected values
+  (32).
+
+* [fix] Updated VortexEngine.apply method to support IE8.
+
+* [fix] Removed debug console log not required.
+
+* [fix] Several updates to JavaSocketConnector to move all socket
+  state into a java object that is returned to JavaScript rather
+  storing this state into javascript members (which do not work in
+  IE8).
+
+* [fix] Fixed missing var declaration in foreach declarations.  Works
+  on firefox but not in IE8. Now IE8 runs all jsVortex regression
+  tests. Nice!!
+
+* [fix] Fixed regression test resize issue. Fixed wrong styling in
+  IE8.
+
+* [fix] Checked that current version also supports google chrome.
+
+* [fix] Adding more documenation. Still more work required.
+
+* [fix] Several modifications to support unicode content inside BEEP
+  frames. Added regression test to check support. Still more work
+  required.
+
+* [fix] Fixed support for BEEP frames with utf8 content inside.
+
+* [fix] making regression test to detect hostname and to configure it
+  into the host box.
+  
+* [fix] Several updates to allow configuring character encoding for
+  the connection. Also updated java socket connector. Checked FF, IE,
+  GC.
+
+* [fix] Committing signed version for the java socket connector.
+
+* [fix] General update on JavaSocketConnector.js class to cache all
+  java applet method to avoid loosing references.  Fixed
+  misterious/estrange bug in FF. Checked GC and IE to work after
+  change.
+
+* [fix] Improved error connection handling while using
+  JavaSocketConnector, especially while reporting host unknown.
+
+* [fix] Making java socket connector to use runnable interface to
+  implement its function.
+
+* [fix] Updated jsvortex regtest to conform latest profile number used
+  by vortex 1.1 listener regtest.
+
+* [fix] Fixed JavaSocketConnector.js constructor to only caching
+  javasocketconnector applets when running with firefox.
+
+* [fix] Adding console.dir custom implementation when it is detectec
+  console. var is defined but .dir is not.
+
+* [fix] Removing console.dir custom implementation is not detected by
+  IE.
+
+* [fix] Added missing error handling and TLS activation. Code was not
+  reporting user level when channel failure was found.
+
+* [fix] Updated PLAIN and ANONYMOUS mechanism to notify textual error
+  when engine init fails.
+
+* [new] Updated VortexConnection class to support connect timeouts.
+
+* [fix] Initial modifications to use dojo shrinksafe to produce a
+  jsVortex release that is loadable from a single small file.
+
+* [fix] Updated make-zip.sh to use shrink safe to produce a jsVortex
+  bundle into a single file. Also used shrink safe to reduce
+  JavaSocketConnector.js
+
+>>>> About Us
+----------------------------------------------------------------------
+
+  ASPL (Advanced Software Production Line) is a Spanish company that
+  provides services and support to introduce open source products,
+  especially GNU/Linux, into organization's processes.
+
+  Since 2000, ASPL has been providing software development and support
+  services to install GNU/Linux enterprise servers that provides mail,
+  file and firewall services.
+
+  Contact us, English or Spanish, to get commercial support and/or
+  BEEP based development services.
+
+  You can reach us:
+
+       http://www.aspl.es - info@aspl.es
+
+--
+Francis Brosnan Blázquez           - francis@aspl.es
+Advanced Software Production Line  - http://www.aspl.es
+21th mar 2011, Madrid (Spain)

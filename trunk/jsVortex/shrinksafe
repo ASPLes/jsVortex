@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# See README found inside dojo-release-VERSION-src/util/shrinksafe/ directory
+work_dir=/home/acinom/src/dojo/dojo-release-1.4.2-src/util/shrinksafe
+
+java -jar ${work_dir}/shrinksafe.jar $1

@@ -7,7 +7,7 @@
  * Creates a new SASL engine using the initial data provided in the
  * params object.
  *
- * This object is not used directly the usual API consumer since it is
+ * This object is not used directly by the usual API consumer since it is
  * implictly activated by \ref VortexConnection.saslAuth method.
  *
  * @param params This object contains the initial data required to

@@ -1,3 +1,46 @@
-Hi, this is jsVortex, an open source javascript BEEP
-implementation. See http://www.aspl.es/jsVortex for API documentation,
-examples, etc.
+  --== jsVortex : Javascript BEEP implementation ==--
+
+--== Intro ==--
+
+See http://www.aspl.es/jsVortex for more documentation, API and
+examples.
+
+--== This package contains... ==--
+
+Inside the zip bundle you'll find the following files:
+
+  - Vortex.js : which includes the BEEP javascript implementation (all
+    sources compressed into a single file for fast loading). See SVN
+    source code for full code access.
+
+  - JavaSocketConnector.js : a javascript wrapper to aid Vortex.js to
+    access JavaSocketConnector.jar
+
+  - JavaSocketConnector.jar : a minimal java code required to access
+    in a portable form to the socket API so BEEP can function.
+
+--== How to use it ==--
+
+1) Inside your web application, place the following declarations to
+load the javascript part:
+
+  <!-- include jsVortex files -->
+  <script src="/path/to/files/Vortex.js" type="text/javascript"></script>
+
+  <!-- include JavaSocketConnector files -->
+  <script src="/path/to/files/JavaSocketConnector.js"></script>
+
+2) Then add the following to load the java applet inside the <body>
+declaration (for example, at the begining):
+
+  <!-- load the connector applet -->
+  <applet id="JavaSocketConnector" archive="/path/to/files/JavaSocketConnector.jar" code="JavaSocketConnector.class" width="0" height="0" MAYSCRIPT></applet>
+
+3) Then ensure you have support for java in your brower. See
+http://www.java.com.
+
+--== Supported platforms ==--
+
+Current, these are the browsers supported: Firefox 2, Firefox 3,
+Internet Explorer 7, Internet Explorer 8, Google Chrome.
+
