@@ -932,7 +932,7 @@ VortexConnection.prototype.saslAuth._frameReceived = function (frameReceived) {
  * the certificate trust policy to be applied. The following values
  * are supported:
  * - 1 : Only accept valid server certificates
- * - 2 : In the case of server certificate error, the handler to \ref params.onCertError.param will be called to decide if the certificate is accepted.
+ * - 2 : In the case of server certificate error, the handler to \ref enableTLS.params.onCertError.param will be called to decide if the certificate is accepted.
  * - 3 : Always accept server certificates even if they are wrong.
  *
  * @param params.onCertError {Handler} ? Optional handler called on server certificate error when \ref params.trustPolicy.param is configured with 2.
