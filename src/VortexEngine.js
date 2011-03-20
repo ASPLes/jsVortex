@@ -78,7 +78,7 @@ VortexEngine.checkReference = function (object, attr, msg) {
  * required to run the handler on. In the case of null or undefined is
  * provided, the 'this' keyword will be the global object.
  *
- * @param call_args {Array} A list of arguments to provided to the
+ * @param call_args {Array} A list of arguments to be provided to the
  * handler. In the case of no arguments, do provide nothing (or null
  * or undefined).
  *
@@ -401,11 +401,12 @@ VortexEngine.getFrame = function (connection, data) {
 
     while (this.position < data.length) {
 
-	Vortex.log ("Reading next frame from connection, position: " + this.position + ", data length: " + data.length);
+	Vortex.log ("VortexEngine.getFrame: Reading next frame from connection, position: " + this.position + ", data length: " + data.length +
+		    (data.length < 100 ? ", content: " + data : ""));
 
 	/* get frame type */
 	var strType = data.substring (this.position, this.position + 3);
-	Vortex.log2 ("Received frame type: " + strType + ", length: " + strType.length);
+	Vortex.log ("VortexEngine.getFrame: Received frame type: " + strType + ", length: " + strType.length);
 	this.position += 4;
 
 	/* check here allowed frame headers */
@@ -422,7 +423,7 @@ VortexEngine.getFrame = function (connection, data) {
 
 	/* get the frame channel number */
 	var channel  = this.getNumber (data);
-	Vortex.log2 ("channel: " + channel);
+	Vortex.log ("VortexEngine.getFrame: channel: " + channel);
 
 	if (strType != 'SEQ') {
 	    /* get the frame msgno */
@@ -495,8 +496,13 @@ VortexEngine.getFrame = function (connection, data) {
 
 	/* now check that byte level size of this content matches with
 	 expected size */
-	if (size != connection._transport.byteLength (content)) {
-	    var errMessage = "VortexEngine: ERROR: expected to find byte length content " + size + ", but found: " + connection._transport.byteLength (content) + ". Unicode length is: " + content.length + ". Protocol violation. Closing connection. this.position=" + this.position + ", beepTrailerIndex=" + beepTrailerIndex + ", content is: " + content;
+	if (connection._transport == null || size != connection._transport.byteLength (content)) {
+	    var errMessage;
+	    if (connection._transport != null) {
+		errMessage = "VortexEngine: ERROR: expected to find byte length content " + size + ", but found: " + connection._transport.byteLength (content) + ". Unicode length is: " + content.length + ". Protocol violation. Closing connection. this.position=" + this.position + ", beepTrailerIndex=" + beepTrailerIndex + ", content is: " + content;
+	    } else {
+		errMessage = "VortexEngine: ERROR: found null connection._transport during receive operation: byte length content " + size + ". Unicode length is: " + content.length + ". Protocol violation. Closing connection. this.position=" + this.position + ", beepTrailerIndex=" + beepTrailerIndex + ", content is: " + content;
+	    }
 	    Vortex.error (errMessage);
 	    connection.shutdown (errMessage);
 	    return null;
@@ -533,13 +539,15 @@ VortexEngine.getFrame = function (connection, data) {
  */
 VortexEngine.channel0Received = function (frameReceived) {
 
+    Vortex.log ("VortexEngine.channel0Received: received frame..");
+
     /* acquire local frame var */
     var frame = frameReceived.frame;
 
     /* check if the connection is still waiting for greetings */
     if (this.conn.greetingsPending) {
 	/* call to process incoming content to prepare the connection */
-	Vortex.log ("VortexEngine.channel0Received: connection is not ready, process greetings and prepare connection");
+	Vortex.log ("VortexEngine.channel0Received: connection is not ready, process greetings and prepare connection, pass frame: ");
 	VortexEngine.channel0PrepareConnection.apply (this, [frame]);
 
 	/* flag that we have received and processed greetings */

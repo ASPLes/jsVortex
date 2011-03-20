@@ -632,6 +632,8 @@ function VortexJSCClose () {
     if (this.socket == -1)
 	return;
 
+    Vortex.log ("VortexTCPTransport.VortexJSCClose: calling to close connection..");
+
     /* call to close socket */
     this.socket.close ();
 

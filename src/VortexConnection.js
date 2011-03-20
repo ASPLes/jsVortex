@@ -292,7 +292,7 @@ VortexConnection.prototype.openChannel = function (params) {
 	return false;
     }
 
-    Vortex.log ("Checking serverName configuration: " + params.serverName + ", current serverName: " + this.serverName);
+    Vortex.log ("VortexConnection.openChannel: Checking serverName configuration: " + params.serverName + ", current serverName: " + this.serverName);
     if (typeof (params.serverName) == "undefined" && typeof (this.serverName) == "undefined") {
 	Vortex.log ("openChannel: setting default serverName to: " + this.host + ", current serverName is: " + this.serverName);
 	params.serverName = this.host;
@@ -323,7 +323,7 @@ VortexConnection.prototype.openChannel = function (params) {
 	} /* end if */
     } /* end if */
 
-    Vortex.log ("requesting to start channel=" + params.channelNumber + ", with profile: " + params.profile);
+    Vortex.log ("VortexConnection.openChannel: requesting to start channel=" + params.channelNumber + ", with profile: " + params.profile);
 
     /* check to create channel start reply handlers to notify callers */
     if (this.startHandlers == undefined) {
@@ -380,6 +380,8 @@ VortexConnection.prototype.openChannel = function (params) {
 
     /* acquire channel 0 to send request */
     if (! this.channels[0].sendMSG (_message)) {
+	Vortex.error ("VortexConnection.openChannel: failed to send start message, sendMSG () failed");
+
 	/* uninstall disconnect handler to avoid twice notifications */
 	this.uninstallOnDisconnect (onDisconnectId);
 
@@ -397,10 +399,11 @@ VortexConnection.prototype.openChannel = function (params) {
 	return false;
     } /* end if */
 
-    Vortex.log ("start request sent, now wait for reply to continue");
+    Vortex.log ("VortexConnection.openChannel: start request sent, now wait for reply to continue");
 
     /* check connection at this point */
     if (! this.isOk ()) {
+	Vortex.error ("VortexConnection.openChannel: connection status after sending message is closed..");
 	/* uninstall disconnect handler to avoid twice notifications */
 	this.uninstallOnDisconnect (onDisconnectId);
 
@@ -417,6 +420,8 @@ VortexConnection.prototype.openChannel = function (params) {
 	VortexEngine.apply (params.onChannelCreatedHandler, params.onChannelCreatedContext, [replyData], true);
 	return false;
     }
+
+    Vortex.log ("VortexConnection.openChannel: channel start sent, now wait reply..");
 
     return true;
 };
@@ -1142,8 +1147,10 @@ VortexConnection.prototype.shutdown = function (error) {
     this._transport = null;
 
     /* push message if defined */
-    if (typeof error != undefined)
+    if (typeof error != undefined) {
+	Vortex.error (error);
 	this._onError (error);
+    }
 
     /* now check and notify disconnect */
     if (this.onDisconnectHandlers != undefined) {
@@ -1315,7 +1322,7 @@ VortexConnection.prototype._onRead = function (connection, data) {
 
 	/* check if channel is available on the connection */
 	if (channel == null) {
-	    this.shutdown ("VortexConnection._onRead: found frame for a channel no available. Protocol violation.");
+	    this.shutdown ("VortexConnection._onRead: found frame for a channel not available. Protocol violation.");
 	    return false;
 	}
 

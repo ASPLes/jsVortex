@@ -44,7 +44,7 @@ public class SocketListener extends Thread {
 	 * instance.
 	 */
 	public void close () {
-		LogHandling.info (caller, "Finishing socket listener instance..");
+		LogHandling.info (caller, "SocketListener.close: finishing socket listener instance..");
 		try {
 			if(running == false) 
 				return;
@@ -69,7 +69,7 @@ public class SocketListener extends Thread {
 			listenerThread.join ();
 
 		} catch (Exception ex) {
-			LogHandling.error (caller, "Failed to stop listener, error found was: " + ex.getMessage ());
+			LogHandling.error (caller, "SocketListener.stopListener: Failed to stop listener, error found was: " + ex.getMessage ());
 		}
 		return;
 	}
@@ -103,7 +103,7 @@ public class SocketListener extends Thread {
 
 				if (size == 0 || size == -1) {
 
-					LogHandling.info (caller, "Calling to close socket listener because it was received empty content..");
+					LogHandling.info (caller, "SocketListener.run: Calling to close socket listener because it was received empty content..");
 					close();
 
 					/* fire onclose event */
@@ -125,7 +125,7 @@ public class SocketListener extends Thread {
 				/* check that we are stopping the listener */
 				if (! running)
 					return;
-				LogHandling.error (caller, "Error found while reading content from socket, error was: " + ex.getMessage());
+				LogHandling.error (caller, "SocketListener.run: Error found while reading content from socket, error was: " + ex.getMessage());
 				close ();
 
 				/* fire onclose event */
