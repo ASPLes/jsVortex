@@ -272,6 +272,7 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  *
  *   <li><b>Session authentication and protection</b><br />
  *    - \ref jsvortex_manual_sasl_auth
+ *    - \ref jsvortex_manual_tls
  *   </li>
  * </ol>
  *
@@ -494,6 +495,49 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  * }
  * \endcode
  *
+ * \section jsvortex_manual_tls Using TLS to secure a BEEP session
+ *
+ * Once you have connected to remote BEEP server (see \ref jsvortex_manual_creating_a_connection),
+ * you can secure the session using TLS. Here is how:
+ *
+ * \code
+ *  // with a working session (conn), enable TLS
+ *  conn.enableTLS ({
+ *	// provide initial handlers to configure TLS termination status
+ *	onTLSFinishHandler : onTLSFinishHandler,
+ *	onTLSFinishContext : someData,
+ *	// always accept certificate errors
+ *	trustPolicy : 3
+ * });
+ *
+ * \endcode
+ *
+ * Now, inside onTLSFinishHandler handler, some code to handle TLS termination status:
+ *
+ * \code
+ * function onTLSFinishHandler (tlsReply) {
+ *
+ *    // check connection status
+ *    var conn = tlsReply.conn;
+ *    if (! conn.isOk ()) {
+ *	// some error reporting ..
+ *	return false;
+ *    }
+ *
+ *    // check TLS status
+ *    if (! tlsReply.status) {
+ *	// some tls error reporting..
+ *	conn.shutdown ();
+ *	return false;
+ *    }
+ *
+ *    // ...Found TLS initial status OK, now you can create channels and exchange data as usual
+ *    return;
+ * }
+ * \endcode
+ *
+ * 
+ *
  */
 
 /**
@@ -518,16 +562,15 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  *  This is expected.
  * </li>
  *
- * <li>Now, you have to prepare all dojo stuff (http://www.dojotoolkit.org).
- *  Fortunately we have already prepared a custom dojo built with all pieces required.
- *  Download the content from: http://www.aspl.es/jsVortex/test/testConnect.dojo.zip and
- *  unpack it into the <b>test/</b> directory (the same directory where testConnect.html file is located).
+ *
+ * <li>Now, you have to prepare all dojo stuff (http://www.dojotoolkit.org). The following
+ * steps shows you how to download dojo into test/ directory where testConnect.html is
+ * located:
  *
  * \code
  * >> cd test/
- * >> wget http://www.aspl.es/jsVortex/test/testConnect.dojo.zip
- * >> unzip testConnect.dojo.zip
- * >> mv testConnect dojoroot
+ * >> wget http://download.dojotoolkit.org/release-1.4.3/dojo-release-1.4.3.tar.gz
+ * >> mv dojo-release-1.4.3 dojoroot
  * \endcode
  *
  * </li>
@@ -535,8 +578,6 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  * <li>Now, we have to place all jsVortex sources in a sibling directory to <b>test/</b>,
  * called <b>src/</b>. That is, testConnect.html is expecting to find Vortex.js at the
  * following URL: http://jsvortex-regtest/jsVortex/src/Vortex.js</li>
- *
- * <li>Now, make sure you have read http://www.aspl.es/jsVortex/firefox.html to properly run test.</li>
  *
  * <li>Now, you'll have to download latest Vortex Library 1.1 and install it on the
  * system that will act as server. Follow instructions indicated at http://www.aspl.es/vortex.
