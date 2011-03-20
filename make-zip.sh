@@ -31,6 +31,10 @@ shrinksafe src/VortexSASLEnginePlain.js >> ${DEST}/Vortex.js
 shrinksafe src/VortexSASLEngineAnonymous.js >> ${DEST}/Vortex.js
 shrinksafe src/VortexMimeHeader.js >> ${DEST}/Vortex.js
 
+# copy compressed files
+cp ${DEST}/JavaSocketConnector.js socket-connector/JavaSocketConnector.compressed.js
+cp ${DEST}/Vortex.js src/Vortex.compressed.js
+
 zip -q jsVortex-${jsvortex_version}.zip ${DEST}/*.{js,txt,jar} ${DEST}/README
 
 # copy files if defined
