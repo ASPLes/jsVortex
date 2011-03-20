@@ -11,7 +11,8 @@ if (typeof console == "undefined") {
     this.console = {
 	log: function () {},
 	error: function () {},
-	warn: function () {}
+	warn: function () {},
+	dir: function () {}
     };
 }
 
