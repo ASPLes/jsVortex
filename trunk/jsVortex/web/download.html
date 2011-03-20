@@ -52,6 +52,9 @@
 
 	  <p class="link"><a href="http://www.sf.net/projects/vortexlibrary">http://www.sf.net/projects/vortexlibrary</a></p>
 
+	  <br>
+	  <h1>Using jsVortex</h1>
+
 	  <p>Uncompress sources and add the following header to your page to
 	    load the Vortex.js (you have to do appropriate changes to the path to Vortex.js): </p>
 
@@ -59,25 +62,42 @@
   <span class="comment">&lt;!-- include jsVortex files: place this code inside &lt;head> --></span>
   <span class="comment">&lt;!-- section, before &lt;body> section begins                 --></span>
   &lt;script src="/path/to/Vortex.js" type="text/javascript">&lt;/script>
+
+  <span class="comment">&lt;!-- include JavaSocketConnector files --></span>
+  &lt;script src="/path/to/JavaSocketConnector.js">&lt;/script>
 </pre>
 
-          <p>Currently it is required to configure your Firefox browser to use
-	    jsVortex. <a href="firefox.html">See this document.</a></p>
+          <p>And then add the following inside the &lt;body> node to load
+          JavaSocketConnector component:</p>
+	  
+<pre class="code">
+  <span class="comment">&lt;!-- Include this, inside &lt;body> section --></span>
+  &lt;<span class="node">applet</span> id=<span class="attrvalue">"JavaSocketConnector"</span>
+  	   archive=<span class="attrvalue">"/path/to/JavaSocketConnector.jar"</span>
+	   code=<span class="attrvalue">"JavaSocketConnector.class"</span> 
+          height=<span class="attrvalue">"0px"</span> 
+          width=<span class="attrvalue">"0px"</span> 
+          MAYSCRIPT></applet>
+</pre>
 
+	  <p>Then ensure you have support for java in your brower. See <a href="http://www.java.com">http://www.java.com</a>. Java is required to provide the socket API required to implement the BEEP protocol.</p>
+
+	  
 	  <br />
 	  <h1>jsVortex regression test</h1>
 
           <p>jsVortex development is checked against a regression test to ensure
 	    each release, at least, do not break existing checked
-	    functionality. You can check latest regression test at: </p>
+	    functionality. See <a href="http://www.aspl.es/jsVortex/docs">documentation</a> about how to setup a local regression test environment.
 
-          <p class="link"><a href="http://www.aspl.es/jsVortex/test/testConnect.html">http://www.aspl.es/jsVortex/test/testConnect.html</a></p>
+	  <p>This regression test is updated on each stable release.</p>
 
 
 	  <br>
 	  <h1>jsVortex release tracking</h1>
 
 	  <ul>
+	    <li>0.4.1 Uprising at Trantor released: <a href="">2011/03/21</a></li>
 	    <li>0.2.1 There is no spoon released: <a href="http://lists.aspl.es/pipermail/vortex/2009-June/000858.html">2009/06/26</a></li>
 	  </ul>
 	  

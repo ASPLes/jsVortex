@@ -51,6 +51,9 @@ web_images="images/page-rule.png \
 	images/head-begin.png \
 	images/head-middle.png \
 	images/page-content-rule.png \
+	images/internet-explorer-logo-32x32.png \
+	images/google-chrome-logo-32x32.png \
+	images/firefox-logo-32x32.png \
 	images/content-middle.png"
 
 get_selection "Upload web images? (Y/n)";
