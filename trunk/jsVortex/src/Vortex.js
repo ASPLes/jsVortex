@@ -186,9 +186,10 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  *
  * jsVortex is javascript implementation of the BEEP protocol
  * specially designed to work in the context of a web
- * browser. Currently it is only supported Firefox, using a direct TCP
- * mapping (\ref VortexTCPTransport) but it is expected to support other browsers and transport
- * mappings, especially Websocket.
+ * browser. Currently it supported Firefox, Internet Explorer and
+ * Google Chrome, using the JavaSocketConnector bundled, but it is
+ * expected to support other browsers and transport mappings,
+ * especially Websocket.
  *
  * Currently jsVortex provides and implements the following features:
  *
@@ -198,6 +199,7 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  *
  * - Support TLS profile.
  * - Support SASL profiles: PLAIN and ANONYMOUS
+ * - Full MIME support.
  *
  * jsVortex is being developed using a regression test suite (using
  * http://www.dojotoolkit.org) to check and ensure all functions implemented are stable across
