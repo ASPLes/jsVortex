@@ -298,3 +298,14 @@ ol.enumeration li {
   margin-left: 10px;
   margin-right: 10px;
 }
+
+.icon-centered-list {
+  padding-top: 10px; 
+  text-align: center;
+}
+
+.date { 
+  font-weight: bold;
+  font-size: 15px;
+  color: #204a87;
+}

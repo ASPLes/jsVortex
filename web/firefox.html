@@ -47,6 +47,11 @@
 
 	  <h1>Firefox browser configuration</h1>
 
+	  <p><i>NOTE: the following remains available for historical
+	  purposes, however, it is highly recommended to use other
+	  available mappings (like JavaSocketConnector), which are
+	  more generic and requires less (or none) user configuration</i>.
+
 	  <p>Firefox jsVortex support uses mozilla sockets API provided by several interfaces
 	    that are restricted for security reasons. Thus, you have to enable
 	    firefox to ask the user to accept those components to be used. This is
@@ -55,13 +60,13 @@
 	  <ol class="enumeration">
 	    <li>Type in your firefox brower the following url: <b>about:config</b> and accept the warning to enter inside firefox user configuration.<br>
 	      <div class="center" >
-		<img src="firefox-about-config.png" alt="firefox-about-config">
+		<img src="images/firefox-about-config.png" alt="firefox-about-config">
 	      </div>
 	    </li>
 	    <li>Now search for "signed" keyword and double click on <b>"signed.applets.codebase_principal_support"</b> to leave it as true.<br>
 	      
 	      <div class="center" >
-		<img src="firefox-signed-applets.png" alt="firefox-signed-applets">
+		<img src="images/firefox-signed-applets.png" alt="firefox-signed-applets">
 	      </div>
 	    </li>
 	    
@@ -69,7 +74,7 @@
 	      will be asked to allow accessing to priviledge API. This dialog must
 	      be accepted, setting "rembember this decision for this site".</li>
 	    <div class="large-image" >
-	      <img src="firefox-ask-user-permission-en.png" alt="firefox-ask-user-permission-en">
+	      <img src="images/firefox-ask-user-permission-en.png" alt="firefox-ask-user-permission-en">
 	    </div>
 	  </ol>
 	  
@@ -92,7 +97,7 @@
 	    <li>Having the brower stopped, search for the lines that have granted
 	      permissions to the particular site. They should look like:
 	      
-<pre class="code">
+<pre class="code" style="font-size: 9px;">
 user_pref("capability.principal.codebase.p1.granted", "UniversalXPConnect");
 user_pref("capability.principal.codebase.p1.id", "http://jsvortex-regtest");
 user_pref("capability.principal.codebase.p1.subjectName", "");
@@ -102,7 +107,7 @@ user_pref("capability.principal.codebase.p1.subjectName", "");
 	    <li>Now update them by replacing <b>".codebase."</b> with
 	      <b>".codebaseTrusted."</b>, leaving them as follow:
 	      
-<pre class="code">
+<pre class="code" style="font-size: 9px;">
 user_pref("capability.principal.codebaseTrusted.p1.granted", "UniversalXPConnect");
 user_pref("capability.principal.codebaseTrusted.p1.id", "http://jsvortex-regtest");
 user_pref("capability.principal.codebaseTrusted.p1.subjectName", "");
