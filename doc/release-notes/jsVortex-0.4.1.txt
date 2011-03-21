@@ -102,7 +102,7 @@
 * [fix] Making socket listener to be started at the end of the socket
   creation to avoid firing onmessage before onopen.
 
-* [fix] Fixed read handling avoding readline use. Now the socket
+* [fix] Fixed read handling avoiding readline use. Now the socket
   listener read the content available without checking for end of
   line.
 
@@ -141,7 +141,7 @@
 
 * [fix] Making JavaSocketConnector.send operation to not implement it
   directly but queue the request as a command to be implemented by the
-  applet main thread (SendCommand) avoding blocking the caller until
+  applet main thread (SendCommand) avoiding blocking the caller until
   the send operation is done.
 
 * [fix] More reg test updates to make jsVortex to also support
@@ -167,7 +167,7 @@
   but call.apply directly.
 
 * [fix] General update inside JavaSocketConnector class to check how
-  many callers are inside the applet to priorize its thread rather
+  many callers are inside the applet to prioritize its thread rather
   than the applet thread to implement as close as possible Javascript
   execution model. Added code to configure lower priority for the
   applet thread.
