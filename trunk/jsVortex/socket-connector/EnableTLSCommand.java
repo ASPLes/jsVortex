@@ -34,7 +34,7 @@ public class EnableTLSCommand implements Command {
 		SocketListener listener = null;
 		SSLSocket      sslsock  = null;
 		
-		LogHandling.info (caller, "Starting TLS handshake..");
+		LogHandling.info (caller, "JavaSocketConnector.EnableTLSCommand.doOperation: Starting TLS handshake..");
 		
 		try {
 			/* terminate current listener */
@@ -47,19 +47,19 @@ public class EnableTLSCommand implements Command {
 			trustManagerFactory.init ((KeyStore) null);
 
 			/* create our custom trust manager */
-			LogHandling.info (caller, "Preparing trust manager....");
+			LogHandling.info (caller, "JavaSocketConnector.EnableTLSCommand.doOperation: Preparing trust manager....");
 			JSCTrustManager jsctm     = new JSCTrustManager ();
 			jsctm.caller              = caller;
 			jsctm.trustManagerFactory = trustManagerFactory;
 
 			/* get certificate trust policy */
-			Integer ask       = (Integer) caller.getMember ("certTrustPolicy");
-			jsctm.trustPolicy = ask.intValue ();
+			LogHandling.info (caller, "JavaSocketConnector.EnableTLSCommand.doOperation: getting certTrustPolicy configuration....");
+			jsctm.trustPolicy = _getInteger (caller.getMember ("certTrustPolicy"));
 
 			/* init ssl context */
 			sslContext.init (null, new TrustManager [] {jsctm}, null);
 
-			LogHandling.info (caller, "Created trust manager.. ..");
+			LogHandling.info (caller, "JavaSocketConnector.EnableTLSCommand.doOperation: Created trust manager.. ..");
 
 			SSLSocketFactory    factory = (SSLSocketFactory) sslContext.getSocketFactory ();
 
@@ -70,7 +70,7 @@ public class EnableTLSCommand implements Command {
 
 			sslsock = (SSLSocket) factory.createSocket(socket,
 								   (String) caller.getMember ("host"),
-								   _getPort (caller.getMember ("port")),
+								   _getInteger (caller.getMember ("port")),
 								   /* autoClose, close this socket if the other socket is closed */
 								   true);
 
@@ -94,7 +94,7 @@ public class EnableTLSCommand implements Command {
 			dispacher.notify (caller, "ontls", false);
 			return false;
 		} catch (Exception ex) {
-			LogHandling.error (caller, "Failed to finish TLS handshake, error found was: " + ex.getMessage ());
+			LogHandling.error (caller, "JavaSocketConnector.EnableTLSCommand.doOperation: Failed to finish TLS handshake, error found was: " + ex.getMessage ());
 
 			/* configure ready state: CLOSED */
 			caller.setMember ("readyState", 2);
@@ -130,11 +130,13 @@ public class EnableTLSCommand implements Command {
 		return true;
 	}
 
-	int _getPort (Object value) {
+	int _getInteger (Object value) {
 		if (value instanceof String)
 			return Integer.parseInt ((String)value);
 		if (value instanceof Integer)
 			return (Integer) value;
+		if (value instanceof Double)
+			return ((Double) value).intValue ();
 		return -1;
 	}
 
