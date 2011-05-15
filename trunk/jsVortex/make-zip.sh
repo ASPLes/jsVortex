@@ -24,7 +24,6 @@ shrinksafe src/VortexConnection.js >> ${DEST}/Vortex.js
 shrinksafe src/VortexEngine.js >> ${DEST}/Vortex.js
 shrinksafe src/VortexChannel.js >> ${DEST}/Vortex.js
 shrinksafe src/VortexTCPTransport.js >> ${DEST}/Vortex.js
-shrinksafe src/VortexConnection.js >> ${DEST}/Vortex.js
 shrinksafe src/VortexXMLEngine.js >> ${DEST}/Vortex.js
 shrinksafe src/VortexSASLEngine.js >> ${DEST}/Vortex.js
 shrinksafe src/VortexFrame.js >> ${DEST}/Vortex.js
