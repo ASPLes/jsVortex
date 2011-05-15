@@ -10,9 +10,10 @@ jsvortex_version=`cat VERSION`
 # create temporal link to simulate release directory
 DEST=jsVortex-${jsvortex_version}
 mkdir ${DEST}
-cp doc/COPYING.txt ${DEST}/COPYING.txt
-cp README ${DEST}/README
-cp socket-connector/JavaSocketConnector.jar ${DEST}/
+echo "Creating content into ${DEST}"
+cp -v doc/COPYING.txt ${DEST}/COPYING.txt
+cp -v README ${DEST}/README
+cp -v socket-connector/JavaSocketConnector.jar ${DEST}/
 shrinksafe socket-connector/JavaSocketConnector.js > ${DEST}/JavaSocketConnector.js
 
 # prepare shrink-safe: do initial file changing loading style
@@ -35,8 +36,10 @@ zip -q jsVortex-${jsvortex_version}.zip ${DEST}/*.{js,txt,jar} ${DEST}/README
 
 # copy files if defined
 if [ -n "${COPY_DIR}" ]; then
-   echo "Copying to ${COPY_DIR}"
-   cp ${DEST}/*.{js,jar} ${COPY_DIR}
+   echo "Copying to ${COPY_DIR}, listing source"
+   ls -la ${DEST}
+   echo "Copying.."
+   cp -v ${DEST}/* ${COPY_DIR}
 fi
 
 rm -rf ${DEST}
