@@ -173,31 +173,6 @@ public class JavaSocketConnector extends JApplet implements Runnable {
 		return true;
 	}
 
-	/**  
-	 * @brief Public method that allows to get real byte size from
-	 * the provided content string.
-	 *
-	 * @param content The string content to check for its real byte size.
-	 *
-	 * @param state The socket state object that defines the encoding to be used.
-	 */
-	public int byteLength (String content, SocketState state, JSObject caller) {
-
-		/* return empty content */
-		if (content == null || content.length () == 0)
-			return 0;
-
-		/* return real length */
-		int length;
-		try {
-			length = content.getBytes (state.encoding).length;
-		} catch (Exception ex) {
-			LogHandling.error (caller, "JavaSocketConnector.byteLength: Failed to get length, error was: " + ex.getMessage()); 
-			return -1;
-		}
-		return length;
-	}
-
 	/** 
 	 * @brief Activates TLS support on the provided socket object
 	 * (caller reference).
