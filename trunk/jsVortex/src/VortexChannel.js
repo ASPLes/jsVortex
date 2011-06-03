@@ -508,7 +508,7 @@ VortexChannel.prototype.sendCommon = function (content, type, onFrameReceivedHan
 
     /* build the frame to sent */
     var frame;
-    var contentLength = this.conn._transport.byteLength (content);
+    var contentLength = VortexEngine.byteLength (content);
     if (type == "RPY") {
 	/* RPY frames */
 	frame        = "RPY " + this.number + " " + this.nextReplyMsgno + " " +

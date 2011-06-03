@@ -496,7 +496,7 @@ VortexEngine.getFrame = function (connection, data) {
 
 	/* now check that byte level size of this content matches with
 	 expected size */
-	if (connection._transport == null || size != connection._transport.byteLength (content)) {
+	if (connection._transport == null || size != VortexEngine.byteLength (content)) {
 	    var errMessage;
 	    if (connection._transport != null) {
 		errMessage = "VortexEngine: ERROR: expected to find byte length content " + size + ", but found: " + connection._transport.byteLength (content) + ". Unicode length is: " + content.length + ". Protocol violation. Closing connection. this.position=" + this.position + ", beepTrailerIndex=" + beepTrailerIndex + ", content is: " + content;
@@ -906,3 +906,13 @@ VortexEngine.checkSendSEQFrame = function (channel, frame) {
  */
 VortexEngine.MaxSeqNo =	4294967295;
 
+/**
+ * @brief Allows to get the byte length of the provided content.
+ *
+ * @return Returns the byte length of the provided content.
+ *
+ */
+VortexEngine.byteLength = function (content) {
+
+    return unescape(encodeURIComponent(content)).length;
+};
