@@ -216,35 +216,44 @@ VortexEngine.getNumber = function (data) {
 
     /* skip white spaces (first) */
     while (iterator < data.length) {
-	if (data[iterator] == " ") {
+	if (data.charAt(iterator) == " ") {
 	    iterator++;
 	}
 	break;
     }
 
     /* now catch numbers */
+    /* Vortex.log2 ("VortexEngine.getNumber: starting iterator=" + iterator + ", length: " + data.length); */
     while (iterator < data.length) {
-	if (data[iterator] == "0" ||
-	    data[iterator] == "1" ||
-	    data[iterator] == "2" ||
-	    data[iterator] == "3" ||
-	    data[iterator] == "4" ||
-	    data[iterator] == "5" ||
-	    data[iterator] == "6" ||
-	    data[iterator] == "7" ||
-	    data[iterator] == "8" ||
-	    data[iterator] == "9") {
+
+	/* Vortex.log2 ("VortexEngine.getNumber: checking digit='" + data.charAt(iterator) + "' iterator=" + iterator + ", length: " + data.length); */
+
+	var charItem = data.charAt(iterator);
+	if (charItem == "0" ||
+	    charItem == "1" ||
+	    charItem == "2" ||
+	    charItem == "3" ||
+	    charItem == "4" ||
+	    charItem == "5" ||
+	    charItem == "6" ||
+	    charItem == "7" ||
+	    charItem == "8" ||
+	    charItem == "9") {
+	    
+	    /* Vortex.log2 ("VortexEngine.getNumber: found digit=" + charItem + " iterator=" + iterator + ", length: " + data.length); */
 
 	    /* found valid digit value */
 	    iterator++;
 	    continue;
 	} /* end if */
 
+	/* Vortex.log2 ("VortexEngine.getNumber: stopping iteration at iterator=" + iterator + ", length: " + data.length); */
+
 	break;
     }
 
     /* report a log */
-    Vortex.log ("Getting value from " + this.position + ", to " + iterator);
+    /* Vortex.log ("Getting value from " + this.position + ", to " + iterator); */
 
     /* update number of items read */
     this.itemsRead = iterator - this.position;
@@ -282,17 +291,17 @@ VortexEngine.parseMimeHeaders = function (mimeHeaders, data) {
 
     /* check for the basic case where no MIME headers are found */
     if (((this.position + 1) < data.length) &&
-	data[this.position] == '\r' && data[this.position + 1] == '\n') {
+	data.charAt(this.position) == '\r' && data.charAt(this.position + 1) == '\n') {
 	Vortex.log2 ("VortexEngine.parseMimeHeaders: empty MIME headers found");
 	return data.substring (this.position + 2, data.length);
     }
 
     while (((this.position + 1) < data.length) &&
-	data[this.position] != '\r' && data[this.position + 1] != '\n') {
+	data.charAt(this.position) != '\r' && data.charAt(this.position + 1) != '\n') {
 
 	/* get index for : */
 	iterator  = 0;
-	while (((this.position + iterator) < data.length) && data[this.position + iterator] != ':') {
+	while (((this.position + iterator) < data.length) && data.charAt(this.position + iterator) != ':') {
 	    /* next iterator */
 	    iterator++;
 	} /* end while */
@@ -314,7 +323,7 @@ VortexEngine.parseMimeHeaders = function (mimeHeaders, data) {
 	iterator = 0;
 	while ((this.position + iterator) < data.length) {
 	    /* if found something that is not a w3c whitespace, then stop */
-	    if (data[this.position + iterator] != " ")
+	    if (data.charAt(this.position + iterator) != " ")
 		break;
 	    /* otherwise, look at the next position */
 	    iterator++;
@@ -328,10 +337,10 @@ VortexEngine.parseMimeHeaders = function (mimeHeaders, data) {
 	while (((this.position + iterator + 2) < data.length)) {
 	    /* found single \r\n mime header stop, but also check that the next
 	     * character is not an space ' ' or a tabular \t */
-	    if (data[this.position + iterator] == '\r' &&
-		data[this.position + iterator + 1] == '\n' &&
-		data[this.position + iterator + 2] != ' ' &&
-		data[this.position + iterator + 2] != '\t') {
+	    if (data.charAt(this.position + iterator) == '\r' &&
+		data.charAt(this.position + iterator + 1) == '\n' &&
+		data.charAt(this.position + iterator + 2) != ' ' &&
+		data.charAt(this.position + iterator + 2) != '\t') {
 		break;
 	    } /* end if */
 
@@ -423,26 +432,26 @@ VortexEngine.getFrame = function (connection, data) {
 
 	/* get the frame channel number */
 	var channel  = this.getNumber (data);
-	Vortex.log ("VortexEngine.getFrame: channel: " + channel);
+	Vortex.log ("VortexEngine.getFrame: channel: " + channel + ", next position: " + this.position);
 
 	if (strType != 'SEQ') {
 	    /* get the frame msgno */
 	    var msgno = this.getNumber (data);
-	    Vortex.log2 ("msgno: " + msgno);
+	    Vortex.log2 ("msgno: " + msgno + ", next position: " + this.position);
 
 	    /* get more character */
-	    var more  =	data[this.position + 1] == '*';
+	    var more  =	data.charAt(this.position + 1) == '*';
 	    this.position += 2;
-	    Vortex.log2 ("more: " + more);
+	    Vortex.log2 ("more: " + more + ", next position: " + this.position);
 	} /* end if */
 
 	/* get seqno|ackno value */
 	var seqno = this.getNumber (data);
-	Vortex.log2 ("seqno: " + seqno);
+	Vortex.log2 ("seqno: " + seqno + ", next position: " + this.position);
 
 	/* get size|window value */
 	var size = this.getNumber (data);
-	Vortex.log2 ("size: " + size);
+	Vortex.log2 ("size: " + size + ", next position: " + this.position);
 
 	if (strType != 'SEQ') {
 	    /* check if we have to read ansno value */
@@ -453,11 +462,11 @@ VortexEngine.getFrame = function (connection, data) {
 	} /* end if */
 
 	/* now check BEEP header end */
-	if (data[this.position] != '\r' || data[this.position + 1] != '\n') {
+	if (data.charAt(this.position) != '\r' || data.charAt(this.position + 1) != '\n') {
 	    connection._onError ("VortexEngine: ERROR (1): position: " + this.position);
 	    connection.shutdown (
 		"VortexEngine: ERROR: expected to find \\r\\n BEEP header trailer, but not found: " +
-		    Number (data[this.position]) + ", " + Number (data[this.position + 1]));
+		    Number (data.charAt(this.position)) + ", " + Number (data.charAt(this.position + 1)));
 	    return null;
 	}
 
