@@ -65,15 +65,15 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 
     /* check for <!CDATA[ sections */
     if ((iterator + 9) < data.length &&
-	data[iterator] == '<' &&
-	data[iterator + 1] == '!' &&
-	data[iterator + 2] == '[' &&
-	data[iterator + 3] == 'C' &&
-	data[iterator + 4] == 'D' &&
-	data[iterator + 5] == 'A' &&
-	data[iterator + 6] == 'T' &&
-	data[iterator + 7] == 'A' &&
-	data[iterator + 8] == '[') {
+	data.charAt(iterator) == '<' &&
+	data.charAt(iterator + 1) == '!' &&
+	data.charAt(iterator + 2) == '[' &&
+	data.charAt(iterator + 3) == 'C' &&
+	data.charAt(iterator + 4) == 'D' &&
+	data.charAt(iterator + 5) == 'A' &&
+	data.charAt(iterator + 6) == 'T' &&
+	data.charAt(iterator + 7) == 'A' &&
+	data.charAt(iterator + 8) == '[') {
 
 	Vortex.log ("VortexXMLEngine.parseXMLNode: Found <![CDATA[ ]> declaration, reading content");
 
@@ -82,7 +82,7 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 	this.position = iterator;
 
 	while ((iterator + 2) < data.length) {
-	    if (data[iterator] == ']' && data[iterator + 1] == ']' && data[iterator + 2] == '>')
+	    if (data.charAt(iterator) == ']' && data.charAt(iterator + 1) == ']' && data.charAt(iterator + 2) == '>')
 		break;
 	    iterator++;
 	} /* end while */
@@ -99,7 +99,7 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
     }
 
     /* find node name start tag */
-    if (data[iterator] != '<') {
+    if (data.charAt(iterator) != '<') {
 
 	/* check we have parent */
 	if (parentNode == null) {
@@ -109,7 +109,7 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 
 	/* find node termination */
 	while (iterator < data.length) {
-	    if (data[iterator] == '<')
+	    if (data.charAt(iterator) == '<')
 		break;
 	    iterator++;
 	} /* end while */
@@ -126,7 +126,7 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 
     /* now find tag end or an space */
     while (iterator < data.length) {
-	if (data[iterator] == ' ' || data[iterator] == '>')
+	if (data.charAt(iterator) == ' ' || data.charAt(iterator) == '>')
 	    break;
 	iterator++;
     } /* end while */
@@ -153,14 +153,14 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 
 	/* now consume spaces */
 	while (iterator < data.length) {
-	    if (data[iterator] == " ") {
+	    if (data.charAt(iterator) == " ") {
 		iterator++;
 	    }
 	    break;
 	}
 
 	/* check node termination without childs */
-	if (data[iterator] == '/' && data[iterator + 1] == '>') {
+	if (data.charAt(iterator) == '/' && data.charAt(iterator + 1) == '>') {
 	    /* node finished */
 	    node.haveChilds = false;
 	    iterator += 2;
@@ -168,7 +168,7 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 	}
 
 	/* check node termination */
-	if (data[iterator] == '>') {
+	if (data.charAt(iterator) == '>') {
 	    /* node finished */
 	    node.haveChilds = true;
 	    iterator++;
@@ -179,7 +179,7 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 	this.position = iterator;
 
 	while (iterator < data.length) {
-	    if (data[iterator] == '=')
+	    if (data.charAt(iterator) == '=')
 		break;
 	    iterator++;
 	} /* end while */
@@ -189,7 +189,7 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 
 	/* check proper attribute value def */
 	iterator++;
-	if (data[iterator] != "'" && data[iterator] != "\"") {
+	if (data.charAt(iterator) != "'" && data.charAt(iterator) != "\"") {
 	    Vortex.error ("VortexXMLEngine.parseXMLNode: expected to find XML node attribute content definition start (either \" or ') but found NONE of them.");
 	    return null;
 	}
@@ -197,7 +197,7 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 
 	/* now look for attribute value finish */
 	this.position = iterator;
-	while (iterator < data.length && data[iterator] != "'" && data[iterator] != "\"")
+	while (iterator < data.length && data.charAt(iterator) != "'" && data.charAt(iterator) != "\"")
 	    iterator++;
 
 	/* check termination condition */
@@ -237,7 +237,7 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 
 	    /* check for empty nodes with child configuration
 	     <this-node-is-empty></this-node-is-empty> */
-	if (data[iterator] == '<' && data[iterator + 1] == '/') {
+	if (data.charAt(iterator) == '<' && data.charAt(iterator + 1) == '/') {
 	    /* restore proper configuration */
 	    node.haveChilds = false;
 	} else {
@@ -257,12 +257,12 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 
 		/* consume more whitespaces */
 		iterator = this.position;
-		Vortex.log2 ("(2) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position + ", data: " + data[iterator] + data[iterator + 1]);
+		Vortex.log2 ("(2) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position + ", data: " + data.charAt(iterator) + data.charAt(iterator + 1));
 		iterator      = VortexXMLEngine.consumeWhiteSpaces (data, iterator);
 		this.position = iterator;
-		Vortex.log2 ("(3) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position + ", data: " + data[iterator] + data[iterator + 1]);
+		Vortex.log2 ("(3) Finished node header parsing: iterator=" + iterator + ", this.position=" + this.position + ", data: " + data.charAt(iterator) + data.charAt(iterator + 1));
 
-		if (data[iterator] == '<' && data[iterator + 1] == '/')
+		if (data.charAt(iterator) == '<' && data.charAt(iterator + 1) == '/')
 		    break;
 	    } while (true);
 
@@ -271,14 +271,14 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 	}
 
 	/* read node termination */
-	if (data[iterator] != '<' || data[iterator + 1] != '/') {
-	    Vortex.error ("VortexXMLEngine.parseXMLNode: expected to find XML node termination </, but found: " + data[iterator] + data[iterator + 1]);
+	if (data.charAt(iterator) != '<' || data.charAt(iterator + 1) != '/') {
+	    Vortex.error ("VortexXMLEngine.parseXMLNode: expected to find XML node termination </, but found: " + data.charAt(iterator) + data.charAt(iterator + 1));
 	    return null;
 	} /* end if */
 
 	/* find node termination */
 	iterator += 2;
-	while (data[iterator] != '>' && iterator <= data.length)
+	while (data.charAt(iterator) != '>' && iterator <= data.length)
 	    iterator++;
 
 	/* check termination */
@@ -322,7 +322,7 @@ VortexXMLEngine.consumeWhiteSpaces = function (data, iterator)
 {
     while (iterator < data.length) {
 	/* if found something that is not a w3c whitespace, then stop */
-	if (data[iterator] != " " && data[iterator] != '\r' && data[iterator] != '\n')
+	if (data.charAt(iterator) != " " && data.charAt(iterator) != '\r' && data.charAt(iterator) != '\n')
 	    break;
 	/* otherwise, look at the next position */
 	iterator++;
@@ -366,9 +366,9 @@ VortexXMLEngine.dumpAttrs = function (node) {
     var string;
     for (var position in node.attrs) {
 	if (string == undefined)
-	    string = node.attrs[position].name + "='" + node.attrs[position].value + "'";
+	    string = node.attrs.charAt(position).name + "='" + node.attrs.charAt(position).value + "'";
 	else
-	    string = string + " " + node.attrs[position].name + "='" + node.attrs[position].value + "'";
+	    string = string + " " + node.attrs.charAt(position).name + "='" + node.attrs.charAt(position).value + "'";
     }
 
     /* return string created */
