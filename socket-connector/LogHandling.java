@@ -13,10 +13,15 @@ public class LogHandling {
 	 * @param caller The caller JavaScript object. 
 	 * @param message The message being notified.
 	 */
-	public static void info (JSObject caller, String message) {
-		Object [] args = {"info", message};
+	public static void info (SocketState state, String message) {
 		/* do a call operation */
-		caller.call ("onlog", args);
+
+		/* caller.call ("onlog", args); */
+		String cmd = "JavaSocketConnector.call (" + state.conn_id + ", 'onlog', 'info', \"" + state.b64Encode (message) + "\");";
+		/* System.out.println ("INFO: evaluating: " + cmd);
+		   System.out.println ("INFO: connection id: " + state.conn_id);
+		   System.out.println ("INFO: " + message); */
+		state.browser.eval (cmd);
 		return;
 	}
 
@@ -27,10 +32,11 @@ public class LogHandling {
 	 * @param caller The caller JavaScript object. 
 	 * @param message The message being notified.
 	 */
-	public static void error (JSObject caller, String message) {
-		Object [] args = {"error", message};
+	public static void error (SocketState state, String message) {
 		/* do a call operation */
-		caller.call ("onlog", args);
+		/* caller.call ("onlog", args); */
+		state.browser.eval ("JavaSocketConnector.call (" + state.conn_id + ", 'onlog', 'error', \"" + state.b64Encode (message) + "\");");
+		/* System.out.println ("ERROR: " + message); */
 		return;
 	}
 
@@ -41,10 +47,11 @@ public class LogHandling {
 	 * @param caller The caller JavaScript object. 
 	 * @param message The message being notified.
 	 */
-	public static void warn (JSObject caller, String message) {
-		Object [] args = {"warn", message};
+	public static void warn (SocketState state, String message) {
 		/* do a call operation */
-		caller.call ("onlog", args);
+		/* caller.call ("onlog", args); */
+		state.browser.eval ("JavaSocketConnector.call (" + state.conn_id + ", 'onlog', 'warn', \"" + state.b64Encode (message) + "\");");
+		/* System.out.println ("WARN: " + message); */
 		return;
 	}
 }

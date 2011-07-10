@@ -239,7 +239,7 @@ VortexEngine.getNumber = function (data) {
 	    charItem == "7" ||
 	    charItem == "8" ||
 	    charItem == "9") {
-	    
+
 	    /* Vortex.log2 ("VortexEngine.getNumber: found digit=" + charItem + " iterator=" + iterator + ", length: " + data.length); */
 
 	    /* found valid digit value */
@@ -508,7 +508,7 @@ VortexEngine.getFrame = function (connection, data) {
 	if (connection._transport == null || size != VortexEngine.byteLength (content)) {
 	    var errMessage;
 	    if (connection._transport != null) {
-		errMessage = "VortexEngine: ERROR: expected to find byte length content " + size + ", but found: " + connection._transport.byteLength (content) + ". Unicode length is: " + content.length + ". Protocol violation. Closing connection. this.position=" + this.position + ", beepTrailerIndex=" + beepTrailerIndex + ", content is: " + content;
+		errMessage = "VortexEngine: ERROR: expected to find byte length content " + size + ", but found: " + VortexEngine.byteLength (content) + ". Unicode length is: " + content.length + ". Protocol violation. Closing connection. this.position=" + this.position + ", beepTrailerIndex=" + beepTrailerIndex + ", content is: " + content;
 	    } else {
 		errMessage = "VortexEngine: ERROR: found null connection._transport during receive operation: byte length content " + size + ". Unicode length is: " + content.length + ". Protocol violation. Closing connection. this.position=" + this.position + ", beepTrailerIndex=" + beepTrailerIndex + ", content is: " + content;
 	    }
@@ -922,6 +922,5 @@ VortexEngine.MaxSeqNo =	4294967295;
  *
  */
 VortexEngine.byteLength = function (content) {
-
     return unescape(encodeURIComponent(content)).length;
 };

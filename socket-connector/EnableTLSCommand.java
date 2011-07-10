@@ -13,12 +13,6 @@ import javax.net.ssl.*;
 
 public class EnableTLSCommand implements Command {
 	/** 
-	 * @brief Reference to the caller javascript object where the
-	 * onopen method is defined.
-	 */
-	public JSObject caller;
-
-	/** 
 	 * @brief Member pointing to socket state.
 	 */
 	public SocketState state;
@@ -34,7 +28,7 @@ public class EnableTLSCommand implements Command {
 		SocketListener listener = null;
 		SSLSocket      sslsock  = null;
 		
-		LogHandling.info (caller, "JavaSocketConnector.EnableTLSCommand.doOperation: Starting TLS handshake..");
+		LogHandling.info (state, "JavaSocketConnector.EnableTLSCommand.doOperation: Starting TLS handshake..");
 		
 		try {
 			/* terminate current listener */
@@ -47,19 +41,19 @@ public class EnableTLSCommand implements Command {
 			trustManagerFactory.init ((KeyStore) null);
 
 			/* create our custom trust manager */
-			LogHandling.info (caller, "JavaSocketConnector.EnableTLSCommand.doOperation: Preparing trust manager....");
+			LogHandling.info (state, "JavaSocketConnector.EnableTLSCommand.doOperation: Preparing trust manager....");
 			JSCTrustManager jsctm     = new JSCTrustManager ();
-			jsctm.caller              = caller;
+			jsctm.state               = state;
 			jsctm.trustManagerFactory = trustManagerFactory;
 
 			/* get certificate trust policy */
-			LogHandling.info (caller, "JavaSocketConnector.EnableTLSCommand.doOperation: getting certTrustPolicy configuration....");
-			jsctm.trustPolicy = _getInteger (caller.getMember ("certTrustPolicy"));
+			LogHandling.info (state, "JavaSocketConnector.EnableTLSCommand.doOperation: getting certTrustPolicy configuration....");
+			jsctm.trustPolicy = _getInteger (state.getMember ("certTrustPolicy"));
 
 			/* init ssl context */
 			sslContext.init (null, new TrustManager [] {jsctm}, null);
 
-			LogHandling.info (caller, "JavaSocketConnector.EnableTLSCommand.doOperation: Created trust manager.. ..");
+			LogHandling.info (state, "JavaSocketConnector.EnableTLSCommand.doOperation: Created trust manager.. ..");
 
 			SSLSocketFactory    factory = (SSLSocketFactory) sslContext.getSocketFactory ();
 
@@ -69,8 +63,8 @@ public class EnableTLSCommand implements Command {
 			socket.setSoTimeout (0);
 
 			sslsock = (SSLSocket) factory.createSocket(socket,
-								   (String) caller.getMember ("host"),
-								   _getInteger (caller.getMember ("port")),
+								   (String) state.getMember ("host"),
+								   _getInteger (state.getMember ("port")),
 								   /* autoClose, close this socket if the other socket is closed */
 								   true);
 
@@ -87,27 +81,27 @@ public class EnableTLSCommand implements Command {
 
 		} catch (SSLException ex) {
 			/* do nothing for now */
-			LogHandling.error (caller, "Server certificate error, error was: " + ex.getMessage ());
+			LogHandling.error (state, "Server certificate error, error was: " + ex.getMessage ());
 
 			/* configure ready state: CLOSED */
-			caller.setMember ("readyState", 2);
-			dispacher.notify (caller, "ontls", false);
+			state.setMember ("readyState", 2);
+			dispacher.notify (state, "ontls", false);
 			return false;
 		} catch (Exception ex) {
-			LogHandling.error (caller, "JavaSocketConnector.EnableTLSCommand.doOperation: Failed to finish TLS handshake, error found was: " + ex.getMessage ());
+			LogHandling.error (state, "JavaSocketConnector.EnableTLSCommand.doOperation: Failed to finish TLS handshake, error found was: " + ex.getMessage ());
 
 			/* configure ready state: CLOSED */
-			caller.setMember ("readyState", 2);
-			dispacher.notify (caller, "ontls", false);
+			state.setMember ("readyState", 2);
+			dispacher.notify (state, "ontls", false);
 			return false;
 		} /* end if */
 
 
-		LogHandling.info (caller, "TLS handshake seems fine, now start a new listener to read incoming data");
+		LogHandling.info (state, "TLS handshake seems fine, now start a new listener to read incoming data");
 
 		try {
 			/* start listener */
-			listener = new SocketListener ((Socket) sslsock, caller, dispacher, state.encoding);
+			listener = new SocketListener ((Socket) sslsock, state, dispacher, state.encoding);
 			listener.disableOnOpenNotify = true;
 
 			/* set new listener */
@@ -117,16 +111,16 @@ public class EnableTLSCommand implements Command {
 			listener.start ();
 		} catch (Exception ex) {
 			/* configure ready state: CLOSED */
-			caller.setMember ("readyState", 2);
-			dispacher.notify (caller, "ontls", false);
-			LogHandling.error (caller, "TLS handshake process failure, failed to start socket listener after handshake");
+			state.setMember ("readyState", 2);
+			dispacher.notify (state, "ontls", false);
+			LogHandling.error (state, "TLS handshake process failure, failed to start socket listener after handshake");
 			return false;
 		}
 
-		LogHandling.info (caller, "TLS handshare OK, notify user");
+		LogHandling.info (state, "TLS handshare OK, notify user");
 		
 		/* notify tls status ok*/
-		dispacher.notify (caller, "ontls", true);
+		dispacher.notify (state, "ontls", true);
 		return true;
 	}
 

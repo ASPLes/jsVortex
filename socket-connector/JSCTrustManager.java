@@ -9,8 +9,10 @@ import netscape.javascript.*;
 import javax.net.ssl.*;
 
 public class JSCTrustManager implements X509TrustManager {
-	public JSObject            caller;
+	public SocketState state;
+
 	public TrustManagerFactory trustManagerFactory;
+
 	/** 
 	 * @brief Allows to configure trust policy in the case
 	 * certifica is wrong. Valid values for this trustPolicy are:
@@ -37,7 +39,7 @@ public class JSCTrustManager implements X509TrustManager {
 	
 	public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
 		for (X509Certificate cert : chain) {
-			LogHandling.info (caller, "Received notification to accept or not server certificate");
+			LogHandling.info (state, "Received notification to accept or not server certificate");
 			try {
 				/* get X509 manager */
 				X509TrustManager manager = (X509TrustManager) trustManagerFactory.getTrustManagers()[0];
@@ -45,17 +47,20 @@ public class JSCTrustManager implements X509TrustManager {
 				/* do chain certificate validation */
 				manager.checkServerTrusted (chain, authType);
 
-				LogHandling.info (caller, "Certificate status: OK");
+				LogHandling.info (state, "Certificate status: OK");
 			} catch (Exception ex) {
-				LogHandling.error (caller, "Certificate status: WRONG (" + ex.getMessage () + "), Trust Policy: " + trustPolicy);
+				LogHandling.error (state, "Certificate status: WRONG (" + ex.getMessage () + "), Trust Policy: " + trustPolicy);
 				switch (trustPolicy) {
 				case 1:
 					/* rethrow certificate error */
 					throw new CertificateException ("Server certificate validation failed and trust policy only accepts valid certificates", ex);
 				case 2:
 					/* ask user to accept or not certificate. */
-					Object [] args = {cert.getSubjectDN (), cert.getIssuerDN (), cert.toString ()};
-					Boolean result  = (Boolean) caller.call ("oncerterror", args);
+					/* Object [] args = {cert.getSubjectDN (), cert.getIssuerDN (), cert.toString ()}; */
+
+					Boolean result = (Boolean) state.browser.eval ("JavaSocketConnector.call (" + state.conn_id + ", 'oncerterror', \"" + state.b64Encode (cert.getSubjectDN ().toString ()) + "\", \"" + state.b64Encode (cert.getIssuerDN ().toString ()) + "\", \"" + state.b64Encode (cert.toString ().toString ()) + "\");");
+					/* Boolean result  = (Boolean) caller.call ("oncerterror", args); */
+
 					if (! result.booleanValue ())
 						throw new CertificateException ("Server certificate validation failed and user has denied accepting it", ex);
 					break;

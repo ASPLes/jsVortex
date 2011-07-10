@@ -45,7 +45,6 @@ function JavaSocketConnector (params) {
 	this.encoding = document.characterSet;
     if (typeof this.encoding == "undefined")
 	this.encoding = document.charset;
-    console.log ("Setting default encoding for connection: " + this.encoding);
 
     /**
      * @brief Connection status. By default it is set to CONNECTING =
@@ -62,15 +61,35 @@ function JavaSocketConnector (params) {
 	  JavaSocketConnector._cached = {
 	    connect : document.applets['JavaSocketConnector'].connect,
 	    send : document.applets['JavaSocketConnector'].send,
-	    byteLength : document.applets['JavaSocketConnector'].byteLength,
 	    enableTLS : document.applets['JavaSocketConnector'].enableTLS,
 	    close : document.applets['JavaSocketConnector'].close
 	  };
     }
 
+    /* set connection id */
+    this.id = JavaSocketConnector.nextId;
+    JavaSocketConnector.nextId++;
+
+    /* store a reference to the connection so it can be located by the
+     * applet: this ugly hack is to support Safari browser poor java *
+     * applet integration where a javascript object can't be passed */
+    JavaSocketConnector.connections[this.id] = this;
+
     /* do a socket connection */
-    this.state = document.applets.JavaSocketConnector.connect (params.host, params.port, this);
+    this.state = document.applets.JavaSocketConnector.connect (params.host, params.port, this.encoding, String(this.id));
 }
+
+/**
+ * @internal Reference used to identify all connections assigning one
+ * unique identifier to each connection.
+ */
+JavaSocketConnector.nextId = 1;
+
+/**
+ * @internal Reference to all connections created by the applet so
+ * they can be accessed via its identifier.
+ */
+JavaSocketConnector.connections = {};
 
 /**
  * @brief Global variable used to signal that the applet was loaded
@@ -95,22 +114,7 @@ JavaSocketConnector.prototype.send = function (content, length) {
     }
 
     /* now send content */
-    return document.applets.JavaSocketConnector.send (content, length, this.state, this);
-};
-
-/**
- * @brief Allows to get byte length from the provided javascript
- * string. Because javascript string may represent an UTF-8/UTF-16
- * string, this function provides a way to get byte length.
- *
- * @param content The content to be check for its byte size.
- *
- * @return {Number} The content byte size.
- */
-JavaSocketConnector.prototype.byteLength = function (content) {
-
-    /* now send content */
-    return document.applets.JavaSocketConnector.byteLength (content, this.state, this);
+    return document.applets.JavaSocketConnector.send (content, length, this.state);
 };
 
 /**
@@ -125,7 +129,7 @@ JavaSocketConnector.prototype.enableTLS = function () {
     }
 
     /* now send content */
-    return document.applets.JavaSocketConnector.enableTLS (this.state, this);
+    return document.applets.JavaSocketConnector.enableTLS (this.state);
 };
 
 /**
@@ -145,7 +149,11 @@ JavaSocketConnector.prototype.close = function () {
     }
 
     /* call to close */
-    document.applets.JavaSocketConnector.close (this.state, this);
+    document.applets.JavaSocketConnector.close (this.state);
+
+    /* remove reference */
+    delete JavaSocketConnector.connections[this.id];
+
     return;
 };
 
@@ -222,4 +230,49 @@ JavaSocketConnector.prototype._marshallCall = function (context, call, arg) {
     call.apply (context, [arg]);
 };
 
+/**
+ * @internal Function used by java applet to modify connection members.
+ */
+JavaSocketConnector.setMember = function (conn_id, member, value) {
 
+    /* set the value */
+    JavaSocketConnector.connections[conn_id][member] = value;
+
+    return;
+};
+
+/**
+ * @internal Function used by java applet to get connection members.
+ */
+JavaSocketConnector.getMember = function (conn_id, member, value) {
+    /* set the value */
+    return JavaSocketConnector.connections[conn_id][member];
+};
+
+/**
+ * @internal Function used to marshall calls by eval calls from java
+ * applet into javascript (mainly due to Mac/OSX safari restrictions).
+ *
+ */
+JavaSocketConnector.call = function (conn_id, method, value, value2, value3) {
+
+    /* code base64 content for string received */
+    if (method == "onmessage") {
+	value =	VortexBase64.decode (value);
+    } else if (method == "onlog") {
+	value2 = VortexBase64.decode (value2);
+    } else if (method == "oncerterror") {
+	value = VortexBase64.decode (value);
+	value2 = VortexBase64.decode (value2);
+	value3 = VortexBase64.decode (value3);
+    }
+
+    var conn = JavaSocketConnector.connections[conn_id];
+    if (! conn) {
+	Vortex.error ("JavaSocketConnection.call: unable to notify method " + method + ", over connection id: " + conn_id + ", conn reference was not found");
+	return null;
+    }
+
+    /* call javascript method on the right connection */
+    return conn[method] (value, value2, value3);
+};
