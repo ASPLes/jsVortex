@@ -19,7 +19,6 @@ public class JavaSocketConnector extends JApplet implements Runnable {
 	/* list of callers that are inside the applet */
 	Callers       callers      = null;
 	boolean       running;
-	
 
 	/**
 	 * Public initialization. Get a reference to the browser
@@ -103,8 +102,10 @@ public class JavaSocketConnector extends JApplet implements Runnable {
 	 * 
 	 * @param host The host to connect to.
 	 * @param port The port to connect to.
+	 * @param encoding The connection encoding..
+	 * @param conn_id The connection id identifer of the caller object.
 	 */
-	public SocketState connect (String host, int port, JSObject caller) {
+	public SocketState connect (String host, int port, String encoding, String conn_id) {
 
 		/* notify caller inside */
 		synchronized (callers) {
@@ -113,14 +114,14 @@ public class JavaSocketConnector extends JApplet implements Runnable {
 
 		/* create the socket command */
 		SocketState   state = new SocketState ();
-		/* set encoding defined by the user for this
-		 * connection */
-		state.encoding = (String )caller.getMember ("encoding");
 		SocketCommand cmd   = new SocketCommand ();
-		cmd.host   = host;
-		cmd.port   = port;
-		cmd.caller = caller;
-		cmd.state  = state;
+		cmd.host        = host;
+		cmd.port        = port;
+		state.conn_id   = conn_id;
+		state.encoding  = encoding;
+		state.browser   = browser;
+		/* System.out.println ("Received connection id: " + conn_id); */
+		cmd.state     = state;
 
 		/* queue the command */
 		commandQueue.push (cmd);
@@ -142,7 +143,7 @@ public class JavaSocketConnector extends JApplet implements Runnable {
 	 * @param length The amount of data to be written.
 	 * @param out The output stream object to write on.
 	 */
-	public boolean send (String content, int length, SocketState state, JSObject caller){
+	public boolean send (String content, int length, SocketState state){
 
 		/* notify caller inside */
 		synchronized (callers) {
@@ -154,12 +155,12 @@ public class JavaSocketConnector extends JApplet implements Runnable {
 		try {
 			sendCmd.content = content.getBytes (state.encoding);
 		} catch (Exception ex) {
-			LogHandling.error (caller, "Unsupported enconding type: " + ex.getMessage()); 
+			LogHandling.error (state, "Unsupported enconding type: " + ex.getMessage()); 
 			return false;
 		}
 		sendCmd.length  = sendCmd.content.length;
 		sendCmd.output  = state.out;
-		sendCmd.caller  = caller;
+		sendCmd.state   = state;
 
 		/* queue command */
 		commandQueue.push (sendCmd);
@@ -177,7 +178,7 @@ public class JavaSocketConnector extends JApplet implements Runnable {
 	 * @brief Activates TLS support on the provided socket object
 	 * (caller reference).
 	 */
-	public boolean enableTLS (SocketState state, JSObject caller) {
+	public boolean enableTLS (SocketState state) {
 		/* notify caller inside */
 		synchronized (callers) {
 			callers.count++;
@@ -185,7 +186,6 @@ public class JavaSocketConnector extends JApplet implements Runnable {
 
 		/* call to create command */
 		EnableTLSCommand cmd = new EnableTLSCommand ();
-		cmd.caller           = caller;
 		cmd.state            = state;
 
 		commandQueue.push (cmd);
@@ -206,7 +206,7 @@ public class JavaSocketConnector extends JApplet implements Runnable {
 	 *
 	 * @param caller The caller and at the same time the socket.
 	 */
-	public void close (SocketState state, JSObject caller) {
+	public void close (SocketState state) {
 
 		/* notify caller inside */
 		synchronized (callers) {
@@ -218,10 +218,10 @@ public class JavaSocketConnector extends JApplet implements Runnable {
 		try {state.out.close ();} catch (Exception ex) {}
 
 		/* now change ready state */
-		caller.setMember ("readyState", 2);
+		state.setMember ("readyState", 2); 
 
 		/* fire onclose event */
-		notify (caller, "onclose", null);
+		notify (state, "onclose", null);
 
 		/* notify caller inside */
 		synchronized (callers) {
@@ -232,27 +232,24 @@ public class JavaSocketConnector extends JApplet implements Runnable {
 		return;
 	}
 
-	public void notify (JSObject caller, String handler, Object arg) {
-		/* LogHandling.info (caller, "Doing handler notification for: " + _handler);  */
+	public void notify (SocketState state, String handler, Object arg) {
+		/* LogHandling.info (state, "Doing handler notification for: " + handler);   */
 
-		/* notify caller inside */
-		synchronized (callers) {
-			callers.count++;
+		/* call to notify */
+		String cmd;
+		if (arg == null) {
+			cmd = "JavaSocketConnector.call (" + state.conn_id + ", '" + handler + "');";
+		} else if (arg instanceof String) {
+			/* encode string into base64 to support new lines */
+			arg = state.b64Encode (arg.toString ());
+			cmd = "JavaSocketConnector.call (" + state.conn_id + ", '" + handler + "', \"" + arg.toString () + "\");";
+		} else {
+			cmd = "JavaSocketConnector.call (" + state.conn_id + ", '" + handler + "', " + arg.toString () + ");";
 		}
 
-		InvokeCommand invokeCmd = new InvokeCommand ();
-		invokeCmd.handler = handler;
-		invokeCmd.caller  = caller;
-		invokeCmd.arg     = arg;
+		/* LogHandling.info (state, "Calling to run: " + cmd);    */
+		state.browser.eval (cmd);
 
-		/* push command */
-		commandQueue.push (invokeCmd);
-
-		/* notify caller inside */
-		synchronized (callers) {
-			callers.count--;
-			callers.notify ();
-		}
 		return;
 	}
 

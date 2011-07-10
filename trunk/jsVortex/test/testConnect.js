@@ -178,9 +178,11 @@ testTlsProfileHandleError.connectionResult = function (conn) {
 };
 
 testTlsProfileHandleError.onCertError = function (subject, issuer, cert) {
+
     log ("info", "Received notification to handle cert error: subject: " + subject);
-    Vortex.log ("Certificate: " + subject);
-    var expectedSubject = 'EMAILADDRESS=vortex-tech-support@aspl.es, CN=localhost, OU=TI Support, O="Advanced Software Production Line, S.L.", L=AlcalÃ¡ de Henares, ST=Madrid, C=ES';
+    Vortex.log ("   Certificate: " + subject);
+    var expectedSubject = 'EMAILADDRESS=vortex-tech-support@aspl.es, CN=localhost, OU=TI Support, O="Advanced Software Production Line, S.L.", L=Alcala de Henares, ST=Madrid, C=ES';
+    Vortex.log ("Expected value: " + expectedSubject);
     if (subject == expectedSubject)
 	return true;
     log ("error", "Received an unexpected subject, failed to handle certificate error. Expected to find: " + expectedSubject + "<br>But received: " + subject);
@@ -2953,7 +2955,7 @@ RegressionTest.prototype.tests = [
     {name: "SASL profile PLAIN support (failure)",      testHandler: testSaslPlainFailure},
     {name: "TLS profile support",                       testHandler: testTlsProfile},
     {name: "TLS profile support (Cert error)",          testHandler: testTlsProfileCertError},
-    {name: "TLS profile support (Handled Cert error)",  testHandler: testTlsProfileHandleError},
+    {name: "TLS profile support (Handle Cert error)",   testHandler: testTlsProfileHandleError},
     {name: "BEEP opening channels already in use",      testHandler: testChannelsInUse},
     {name: "BEEP check channel find by uri/func",       testHandler: testChannelFind},
     {name: "BEEP check channel per message frame received", testHandler: testPerMessageFrameReceived},

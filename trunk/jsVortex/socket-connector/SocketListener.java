@@ -16,7 +16,7 @@ public class SocketListener extends Thread {
 	public boolean           disableOnOpenNotify;
 
 	boolean                  running = false;	
-	JSObject                 caller;
+	SocketState              state;
 	JavaSocketConnector      dispacher;
 	Thread                   listenerThread;
 
@@ -25,10 +25,10 @@ public class SocketListener extends Thread {
 	 * the socket and notifies content read into the callers
 	 * onmessage method.
 	 */ 
-	public SocketListener (Socket _socket, JSObject _caller, JavaSocketConnector _dispacher, String _encoding) throws IOException{
+	public SocketListener (Socket _socket, SocketState _state, JavaSocketConnector _dispacher, String _encoding) throws IOException{
 		/* get references */
 		socket    = _socket;
-		caller    = _caller;
+		state     = _state;
 		dispacher = _dispacher;
 		encoding  = _encoding;
 
@@ -44,7 +44,7 @@ public class SocketListener extends Thread {
 	 * instance.
 	 */
 	public void close () {
-		LogHandling.info (caller, "SocketListener.close: finishing socket listener instance..");
+		LogHandling.info (state, "SocketListener.close: finishing socket listener instance..");
 		try {
 			if(running == false) 
 				return;
@@ -69,7 +69,7 @@ public class SocketListener extends Thread {
 			listenerThread.join ();
 
 		} catch (Exception ex) {
-			LogHandling.error (caller, "SocketListener.stopListener: Failed to stop listener, error found was: " + ex.getMessage ());
+			LogHandling.error (state, "SocketListener.stopListener: Failed to stop listener, error found was: " + ex.getMessage ());
 		}
 		return;
 	}
@@ -91,7 +91,7 @@ public class SocketListener extends Thread {
 
 		/* notify here connection created */
 		if (! disableOnOpenNotify)
-			dispacher.notify (caller, "onopen", null);
+			dispacher.notify (state, "onopen", null);
 
 		/* configure default timeout: 20ms */
 		try {socket.setSoTimeout (20);} catch (Exception ex) {}
@@ -103,18 +103,18 @@ public class SocketListener extends Thread {
 
 				if (size == 0 || size == -1) {
 
-					LogHandling.info (caller, "SocketListener.run: Calling to close socket listener because it was received empty content..");
+					LogHandling.info (state, "SocketListener.run: Calling to close socket listener because it was received empty content..");
 					close();
 
 					/* fire onclose event */
-					dispacher.notify (caller, "onclose", null);
+					dispacher.notify (state, "onclose", null);
 
 					return;
 				}
 
 				/* notify content found */
 				str = new String (buffer, 0, size, encoding);
-				dispacher.notify (caller, "onmessage", str);
+				dispacher.notify (state, "onmessage", str);
 			} catch (SocketTimeoutException ex) {
 				if (! running) /* check to terminate listener */
 					return;
@@ -125,11 +125,11 @@ public class SocketListener extends Thread {
 				/* check that we are stopping the listener */
 				if (! running)
 					return;
-				LogHandling.error (caller, "SocketListener.run: Error found while reading content from socket, error was: " + ex.getMessage());
+				LogHandling.error (state, "SocketListener.run: Error found while reading content from socket, error was: " + ex.getMessage());
 				close ();
 
 				/* fire onclose event */
-				dispacher.notify (caller, "onclose", null);
+				dispacher.notify (state, "onclose", null);
 
 				return;
 			}

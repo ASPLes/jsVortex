@@ -16,12 +16,6 @@ public class SocketCommand implements Command {
 	 */
 	public int port;
 
-	/** 
-	 * @brief Reference to the caller javascript object where the
-	 * onopen method is defined.
-	 */
-	public JSObject caller;
-
 	/*** the following public members are initialized by the
 	 *** command doOperation() 
 	 ***/
@@ -39,13 +33,11 @@ public class SocketCommand implements Command {
 			state.out    = state.socket.getOutputStream();
 			/* new PrintWriter (state.socket.getOutputStream(), true); */
 
-			LogHandling.info (caller, "Starting listener.."); 
-
 			/* create the listener */
-			state.listener = new SocketListener (state.socket, caller, dispacher, state.encoding);
+			state.listener = new SocketListener (state.socket, state, dispacher, state.encoding);
 
 			/* change state to OPENED = 1 */
-			caller.setMember ("readyState", 1);
+			state.setMember ("readyState", 1); 
 
 			/* start the listener at the end to avoid
 			 * onmessage to be fired before onopen */
@@ -68,14 +60,14 @@ public class SocketCommand implements Command {
 
 	private boolean reportError (String reason, JavaSocketConnector dispacher) {
 
-		LogHandling.error (caller, reason); 
+		LogHandling.error (state, reason); 
 
 		/* readyState = CLOSED */
-		caller.setMember ("readyState", 2);
-		caller.setMember ("connectError", reason);
+		state.setMember ("readyState", 2); 
+		state.setMember ("connectError", reason); 
 
 		/* notify onopen event */
-		dispacher.notify (caller, "onopen", null);
+		dispacher.notify (state, "onopen", null);
 		
 		return false;
 	}

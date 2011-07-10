@@ -22,10 +22,9 @@ public class SendCommand implements Command {
 	public OutputStream output;
 
 	/** 
-	 * @brief Reference to the caller javascript object where the
-	 * onopen method is defined.
+	 * @brief Reference socket where the send operation is taking place.
 	 */
-	public JSObject caller;
+	SocketState state;
 
 	/*** the following public members are initialized by the
 	 *** command doOperation() 
@@ -42,7 +41,7 @@ public class SendCommand implements Command {
 			output.write (content, 0, length);
 			output.flush ();
 		} catch (Exception ex) {
-			LogHandling.error (caller, "Failed to send content, error found was: " + ex.getMessage());
+			LogHandling.error (state, "Failed to send content, error found was: " + ex.getMessage());
 			return false;
 		}
 		/* LogHandling.info (caller, "Sent content without problem.."); */
