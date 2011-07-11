@@ -1,3 +1,15 @@
+jsvortex (0.5.1-1) unstable; urgency=low
+
+  * New upstream release..
+
+ -- Francis Brosnan Blázquez <francis@aspl.es>  Mon, 11 Jul 2011 12:14:43 +0200
+
+jsvortex (0.4.2-squeeze1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Francis Brosnan <francis@aspl.es>  Fri, 03 Jun 2011 16:40:06 +0200
+
 jsvortex (0.4.2-squeeze0) unstable; urgency=low
 
   * New upstream release
