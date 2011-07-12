@@ -1,0 +1,69 @@
+                     >>>> jsVortex 0.5.1 <<<<
+                             'Circles' 
+
+>>>> Release note
+----------------------------------------------------------------------
+
+  Advanced Software Production Line is proud to announce jsVortex
+  0.5.1 "Circles" release: an Open Source Javascript BEEP
+  implementation.
+
+  jsVortex is a Javascript BEEP implementation that is specially
+  designed to run in the context of a web browser, turning it into an
+  effective BEEP peer without too much effort.
+
+  Check out the following links to get ready with jsVortex:
+
+    - http://www.aspl.es/jsVortex
+      [jsVortex homepage]
+
+    - http://www.aspl.es/jsVortex/docs
+      [jsVortex API documentation]
+
+    - http://www.aspl.es/vortex
+      [Vortex Library homepage, used to validate jsVortex]
+ 
+    - http://www.sf.net/projects/vortexlibrary
+      [Source download]
+
+    - http://www.beepcore.org
+      [BEEP Core community web site]
+    
+
+>>>> This release in short
+----------------------------------------------------------------------
+
+  This release adds support for IE 7, Safari 5 and Opera 11. Now
+  jsVortex support major browsers (GC, FF, IE, Sa, Op).
+
+>>>> Changes from last release
+----------------------------------------------------------------------
+
+* [fix] Several updates to support IE7.
+
+* [fix] General JavaSocketConnector rewrite to use javascript.eval +
+  connection hash to support Safari (which does not support passing
+  JSObject from/to java/javascript). Also checked rewrite keeps
+  supporting FF, IE and GC. Nice! Hello Mac!
+  
+* [fix] Debian updates..
+
+
+>>>> About Us
+----------------------------------------------------------------------
+
+  ASPL (Advanced Software Production Line) is a Spanish company that
+  provides services and support to introduce open source products,
+  especially GNU/Linux, into organization's processes.
+
+  Contact us, English or Spanish, to get commercial support and/or
+  BEEP based development services.
+
+  You can reach us:
+
+       http://www.aspl.es - info@aspl.es
+--
+Francis Brosnan Blázquez           - francis@aspl.es
+Advanced Software Production Line  - http://www.aspl.es
+12th jul 2011, Madrid (Spain)
+
