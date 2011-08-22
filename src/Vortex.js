@@ -210,11 +210,12 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  * - \ref jsvortex_license
  * - \ref jsvortex_manual
  * - \ref classes_and_modules
+ * - \ref jsvortex_common_errors
  *
  * \section community_support Community support
  *
  * Community assisted support is provided through Vortex Library mailing list located at: http://lists.aspl.es/cgi-bin/mailman/listinfo/vortex.
- *
+ * 
  * \section professional_support Professional ensured support
  *
  * <a href="http://www.aspl.es">ASPL</a> provides professional support
@@ -538,6 +539,33 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  *
  * 
  *
+ */
+
+/** 
+ * \page jsvortex_common_errors Common errors and solutions
+ * 
+ * \section jsvortex_common_errors_calling_npobject On connect, we are getting an error like "error calling method on npobject"
+ * 
+ * This error may happen in all browsers because it is associated with the java engine itself.
+ * 
+ * This is because your browsers is caching an old version of the
+ * JavaSocketApplet or the javascript code is not synchronized with
+ * the applet. 
+ * 
+ * To solve it, do the following:
+ * 
+ * 1) Close all your browsers instances to ensure your browsers releases the applet loaded.
+ * 
+ * 2) Then launch the java control panel:
+ *    - On Windows, get inside control panel and launch java control panel
+ *    - On Linux, run the command:  "ControlPanel"
+ *    - On Mac, click Macintosh HD > Applications > Utilities > Java > Java Plugin Settings
+ * 
+ * 3) Then select in the general tab, under the section "Internet
+ * temporal archives", click on "Configure" and then click to "remove
+ * files".  
+ * 
+ * 4) Start your browsers and check again to connect with jsVortex.
  */
 
 /**
