@@ -566,6 +566,21 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  * files".  
  * 
  * 4) Start your browsers and check again to connect with jsVortex.
+ * 
+ * \section jsvortex_common_errors_no_applet_in_mac On MAC OS/X, the applet is not loaded 
+ * 
+ * Java applets is controlled in MAC via system update. You can
+ * install/upgrade your java installation on MAC standalone. Update
+ * your MAC to get latests updates until you get at least the
+ * following version when you run the following command on MAC OS/X
+ * terminal:
+ * 
+ * \code
+ * >> java -version
+ * java version "1.6.0_26"
+ * \endcode
+ * 
+ * Once done, recheck your jsVortex enabled application.
  */
 
 /**
