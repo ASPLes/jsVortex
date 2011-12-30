@@ -141,6 +141,118 @@ testUtf8Messages.checkCount = function (frameReceived) {
 
 /******* END: testUtf8Messages ******/
 
+/******* BEGIN: testUtf8Messages2 ******/
+function testUtf8Messages2 () {
+    /* create a connection */
+    var conn = new VortexConnection (
+	this.host,
+	this.port,
+	new VortexTCPTransport (),
+	testUtf8Messages2.Result, this);
+
+    /* check object returned */
+    if (! VortexEngine.checkReference (conn, "host")) {
+	log ("error", "Expected to find a connection object after connection operation");
+	this.stopTests = true;
+    }
+    return true;
+}
+
+testUtf8Messages2.Result = function (conn) {
+
+    /* check connection status */
+    if (! checkConnection (conn))
+	return false;
+
+    log ("info", "Open a channel to send utf-8");
+    conn.openChannel ({
+	profile: REGRESSION_URI,
+	channelNumber: 0,
+	onChannelCreatedHandler : testUtf8Messages2.channelCreated,
+	onChannelCreatedContext : this
+    });
+
+    return true;
+};
+
+testUtf8Messages2.channelCreated = function (replyData) {
+
+    log ("info", "Channel creation reply received, checking data..");
+
+    /* check channel status */
+    var channel = replyData.channel;
+    if (channel == null) {
+	log ("error", "Expected to find proper channel creation with serverName associated");
+	return false;
+    }
+
+    /* configure frame received to get remote serverName configured */
+    channel.onFrameReceivedHandler = testUtf8Messages2.frameReceived;
+    channel.onFrameReceivedContext = this;
+
+    log ("info", "Sending unicode content and checking reply size...");
+
+    /* send content */
+    testUtf8Messages2.message = "Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..Sending camión con avión y cigüeña..";
+    if (! channel.sendMSG (testUtf8Messages2.message, null)) {
+	log ("error", "To be able to send");
+	return false;
+    }
+
+    return true;
+};
+
+testUtf8Messages2.frameReceived = function (frameReceived) {
+
+    /* check connection first */
+    var conn = frameReceived.conn;
+    if (! checkConnection (conn))
+	return false;
+
+    /* check content */
+    var frame = frameReceived.frame;
+    if (frame.content != testUtf8Messages2.message) {
+	log ("error", "Expected to find content: " + testUtf8Messages2.message + ", but found: " + frame.content);
+	return false;
+    }
+
+    log ("info", "Utf bytes sent!");
+
+    /* configure frame received to get remote serverName configured */
+    frameReceived.channel.onFrameReceivedHandler = testUtf8Messages2.checkCount;
+    frameReceived.channel.onFrameReceivedContext = this;
+
+    /* ok, now request to to count bytes and check result */
+    if (! frameReceived.channel.sendMSG ("count bytes: " + testUtf8Messages2.message, null)) {
+	log ("error", "Unable to send message to request counting bytes..");
+	return false;
+    } /* end if */
+
+    return true;
+
+};
+
+testUtf8Messages2.checkCount = function (frameReceived) {
+
+    /* check connection first */
+    var conn = frameReceived.conn;
+    if (! checkConnection (conn))
+	return;
+
+    /* check content */
+    var frame = frameReceived.frame;
+    if (frame.content != "4521") {
+	log ("error", "Expected to find content content count 4521 bytes (unicode) but found: " + frame.content);
+	return;
+    }
+
+    /* go to next test */
+    this.nextTest ();
+    return;
+};
+
+/******* END: testUtf8Messages2 ******/
+
 /******* BEGIN: testTlsProfileHandleError ******/
 function testTlsProfileHandleError () {
     /* create a connection */
@@ -2681,8 +2793,8 @@ testConnect.Result = function (conn) {
     }
 
     /* check profiles supported */
-    if (conn.profiles.length != 33) {
-	log ("error", "Expected to find 33 profiles registered but found: " + conn.profiles.length);
+    if (conn.profiles.length != 34) {
+	log ("error", "Expected to find 34 profiles registered but found: " + conn.profiles.length);
 	return false;
     }
 
@@ -2959,7 +3071,8 @@ RegressionTest.prototype.tests = [
     {name: "BEEP opening channels already in use",      testHandler: testChannelsInUse},
     {name: "BEEP check channel find by uri/func",       testHandler: testChannelFind},
     {name: "BEEP check channel per message frame received", testHandler: testPerMessageFrameReceived},
-    {name: "BEEP check utf-8 messages (detecting real octect length)", testHandler: testUtf8Messages}
+    {name: "BEEP check utf-8 messages (detecting real octect length)", testHandler: testUtf8Messages},
+    {name: "BEEP check utf-8 messages (detecting real octect length II)", testHandler: testUtf8Messages2}
 ];
 
 
