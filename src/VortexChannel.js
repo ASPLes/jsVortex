@@ -458,8 +458,9 @@ VortexChannel.prototype.sendCommon = function (content, type, onFrameReceivedHan
 
     /* now check how much from this content we can send assuming
      * remote allowed seqno (maxAllowedPeerSeqno) */
-    var allowedSize = (this.maxAllowedPeerSeqno - this.nextPeerSeqno);
-    Vortex.log ("VortexChannel.sendCommon (" + type + "): doing a send operation, allowed bytes: " + allowedSize + ", content size: " + content.length);
+    var allowedSize   = (this.maxAllowedPeerSeqno - this.nextPeerSeqno);
+    var contentLength = VortexEngine.byteLength (content);
+    Vortex.log ("VortexChannel.sendCommon (" + type + "): doing a send operation, allowed bytes: " + allowedSize + ", content size: " + contentLength);
     Vortex.log ("VortexChannel.sendCommon (" + type + "): maxAllowedPeerSeqno: " + this.maxAllowedPeerSeqno + ", nextPeerSeqno: " + this.nextPeerSeqno);
 
     /* check channel stalled */
@@ -478,12 +479,23 @@ VortexChannel.prototype.sendCommon = function (content, type, onFrameReceivedHan
 
     /* check if we can send all content in a single frame */
     var isComplete = true;
-    if (content.length > allowedSize) {
+    if (contentLength > allowedSize) {
 	Vortex.log ("VortexChannel.sendCommon (" + type + "): found send operation with a message larger than allowed remote seqno");
 	/* we have too much content to be sent at this moment, split
 	 * and store to continue. At this point we know we can send at
 	 * least one byte. */
-	var pending_content = content.substring (allowedSize, content.length);
+	var pending_content = content.substring (allowedSize, contentLength);
+	if (pending_content.length != (contentLength - allowedSize)) {
+	    Vortex.log ("VortexChannel.sendCommon (" + type + "): pending size: " + pending_content.length + 
+			", doesn't match with allowed bytes expected by remote side: " + (contentLength - allowedSize));
+	    var difference = (contentLength - allowedSize) - pending_content.length;
+	    allowedSize = allowedSize - difference;
+	    Vortex.log ("VortexChannel.sendCommon (" + type + "): updated allowed size to: " + allowedSize);
+
+	    /* update pending content */
+	    pending_content = content.substring (allowedSize, contentLength);
+	}
+
 	Vortex.log ("VortexChannel.sendCommon (" + type + "): queueing the rest for later send: " + pending_content.length + " bytes");
 
 	/* store pending content for later retrieval */
@@ -494,8 +506,9 @@ VortexChannel.prototype.sendCommon = function (content, type, onFrameReceivedHan
 	this.sendQueue.unshift (pendingSend);
 
 	/* update content to be sent */
-	content = content.substring (0, allowedSize);
-	Vortex.log ("VortexChannel.sendCommont (" + type + "): sending allowed content: " + content.length + " bytes");
+	content       = content.substring (0, allowedSize);
+	contentLength = VortexEngine.byteLength (content);
+	Vortex.log ("VortexChannel.sendCommont (" + type + "): sending allowed content: " + contentLength + " bytes");
 
 	/* flag if the frame contains all the content to be sent */
 	isComplete = false;
@@ -508,7 +521,6 @@ VortexChannel.prototype.sendCommon = function (content, type, onFrameReceivedHan
 
     /* build the frame to sent */
     var frame;
-    var contentLength = VortexEngine.byteLength (content);
     if (type == "RPY") {
 	/* RPY frames */
 	frame        = "RPY " + this.number + " " + this.nextReplyMsgno + " " +
