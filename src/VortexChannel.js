@@ -534,18 +534,18 @@ VortexChannel.prototype.sendCommon = function (content, type, onFrameReceivedHan
 	frame        = type + " " + this.number + " " + this.nextMsgno + " " +
 	    (isComplete ? ". " : "* ") + this.nextPeerSeqno + " " + contentLength + "\r\n" + content + "END\r\n";
 
+	/* check and configure onFrameReceivedHandler for this send operation (only for MSG operations) */
+	if (typeof onFrameReceivedHandler != "undefined") {
+	    Vortex.log ("Configuring particular onFrameReceivedHandler for message number: " + this.nextMsgno);
+	    /* configure a particular frame received handler for this particular send operation */
+	    this.msgNoFrameReceived[this.nextMsgno.toString ()] = {
+		handler : onFrameReceivedHandler,
+		ctx     : onFrameReceivedContext
+	    };
+	} /* end if */
+
 	/* increase nextMsgno only if we have sent a complete message */
 	if (isComplete) {
-
-	    /* check and configure onFrameReceivedHandler for this send operation (only for MSG operations) */
-	    if (typeof onFrameReceivedHandler != "undefined") {
-		Vortex.log ("Configuring particular onFrameReceivedHandler for message number: " + this.nextMsgno);
-		/* configure a particular frame received handler for this particular send operation */
-		this.msgNoFrameReceived[this.nextMsgno.toString ()] = {
-		    handler : onFrameReceivedHandler,
-		    ctx     : onFrameReceivedContext
-		};
-	    } /* end if */
 
 	    /* record last msgno value used */
 	    this.lastMsgno = this.nextMsgno;
