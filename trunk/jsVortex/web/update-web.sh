@@ -15,8 +15,9 @@ function get_selection () {
     # return selection
 }
 
-echo "Enter site location string to upload the content: ";
-read sitelocation
+# echo "Enter site location string to upload the content: ";
+# read sitelocation
+sitelocation="aspl-web@www.aspl.es"
 
 echo "Site location found: ${sitelocation}";
 
@@ -25,7 +26,7 @@ html_files="firefox.html  index.html  professional.html  about.html  download.ht
 get_selection "Upload web html files? (Y/n)";
 if [ "$selection" == "y" ]; then
 	echo "Uploading web html files..";
-	scp ${html_files} "${sitelocation}:www/jsVortex"
+	rsync -avz ${html_files} "${sitelocation}:www/jsVortex"
 fi
 
 # upload web content images
