@@ -366,8 +366,7 @@ VortexChannel.prototype.close = function (params) {
  */
 VortexChannel.prototype.isReady = function () {
     /* check if the last message was replied */
-    Vortex.log ("VortexChannel.isReady: checking is channel: " +
-		this.number + ", is ready: (lastMsgno=" + this.lastMsgno + " == lastMsgnoReplyReceived=" + this.lastMsgnoReplyReceived + ")");
+    Vortex.log ("VortexChannel.isReady: checking is channel: " + this.number + ", is ready: (lastMsgno=" + this.lastMsgno + " == lastMsgnoReplyReceived=" + this.lastMsgnoReplyReceived + ")");
     return (this.lastMsgno == this.lastMsgnoReplyReceived);
 };
 
@@ -486,8 +485,7 @@ VortexChannel.prototype.sendCommon = function (content, type, onFrameReceivedHan
 	 * least one byte. */
 	var pending_content = content.substring (allowedSize, contentLength);
 	if (pending_content.length != (contentLength - allowedSize)) {
-	    Vortex.log ("VortexChannel.sendCommon (" + type + "): pending size: " + pending_content.length + 
-			", doesn't match with allowed bytes expected by remote side: " + (contentLength - allowedSize));
+	    Vortex.log ("VortexChannel.sendCommon (" + type + "): pending size: " + pending_content.length + ", doesn't match with allowed bytes expected by remote side: " + (contentLength - allowedSize));
 	    var difference = (contentLength - allowedSize) - pending_content.length;
 	    allowedSize = allowedSize - difference;
 	    Vortex.log ("VortexChannel.sendCommon (" + type + "): updated allowed size to: " + allowedSize);

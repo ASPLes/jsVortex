@@ -73,8 +73,7 @@ var VortexSASL_PLAIN = {
 	item.isAuthenticated       = true;
 	item.authorizationId       = saslEngine.authorizationId;
 	item.authenticationId      = saslEngine.authenticationId;
-	Vortex.log ("VortexSASLPLAIN.configureCredentials: storing user credentials: " +
-		    item.authorizationId + ", authentication: " + item.authenticationId);
+	Vortex.log ("VortexSASLPLAIN.configureCredentials: storing user credentials: " + item.authorizationId + ", authentication: " + item.authenticationId);
 	return true;
     }
 };

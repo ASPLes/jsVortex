@@ -13,6 +13,9 @@ Inside the zip bundle you'll find the following files:
     sources compressed into a single file for fast loading). See SVN
     source code for full code access.
 
+  - Vortex.debug.js : which includes the same as Vortex.js but with
+    additional debugging log to track down problems.
+
   - JavaSocketConnector.js : a javascript wrapper to aid Vortex.js to
     access JavaSocketConnector.jar
 

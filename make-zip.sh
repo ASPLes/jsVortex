@@ -1,5 +1,29 @@
 #!/bin/sh
 
+######
+## 
+## Usage: 
+##   do_shirnk file.js 
+##
+######
+function do_shrink {
+
+    # write release version
+    sed  's/Vortex.log \(.*\);//g' $1 | sed  's/Vortex.log2 \(.*\);//g' | sed  's/Vortex.warn \(.*\);//g' | sed  's/Vortex.error \(.*\);//g' | sed 's/singleFile:false/singleFile:true/g' | shrinksafe >> ${DEST}/Vortex.js
+    if [ "$?" != "0" ]; then
+	echo "Failure found during compression, error code was: $?"
+	exit -1
+    fi
+    # write debug version
+    sed 's/singleFile:false/singleFile:true/g' $1 | shrinksafe >> ${DEST}/Vortex.debug.js
+    if [ "$?" != "0" ]; then
+	echo "Failure found during compression, error code was: $?"
+	exit -1
+    fi
+
+    return;
+}
+
 if [  -n "$1" ]; then
     COPY_DIR="$1/"
 fi
@@ -17,19 +41,19 @@ cp -v socket-connector/JavaSocketConnector.jar ${DEST}/
 shrinksafe socket-connector/JavaSocketConnector.js > ${DEST}/JavaSocketConnector.js
 
 # prepare shrink-safe: do initial file changing loading style
-shrinksafe src/Vortex.js | sed 's/singleFile:false/singleFile:true/g' > ${DEST}/Vortex.js
+do_shrink src/Vortex.js
 
 # now append rest of files
-shrinksafe src/VortexConnection.js >> ${DEST}/Vortex.js
-shrinksafe src/VortexEngine.js >> ${DEST}/Vortex.js
-shrinksafe src/VortexChannel.js >> ${DEST}/Vortex.js
-shrinksafe src/VortexTCPTransport.js >> ${DEST}/Vortex.js
-shrinksafe src/VortexXMLEngine.js >> ${DEST}/Vortex.js
-shrinksafe src/VortexSASLEngine.js >> ${DEST}/Vortex.js
-shrinksafe src/VortexFrame.js >> ${DEST}/Vortex.js
-shrinksafe src/VortexSASLEnginePlain.js >> ${DEST}/Vortex.js
-shrinksafe src/VortexSASLEngineAnonymous.js >> ${DEST}/Vortex.js
-shrinksafe src/VortexMimeHeader.js >> ${DEST}/Vortex.js
+do_shrink src/VortexConnection.js
+do_shrink src/VortexEngine.js
+do_shrink src/VortexChannel.js
+do_shrink src/VortexTCPTransport.js
+do_shrink src/VortexXMLEngine.js
+do_shrink src/VortexSASLEngine.js
+do_shrink src/VortexFrame.js
+do_shrink src/VortexSASLEnginePlain.js
+do_shrink src/VortexSASLEngineAnonymous.js
+do_shrink src/VortexMimeHeader.js
 
 zip -q jsVortex-${jsvortex_version}.zip ${DEST}/*.{js,txt,jar} ${DEST}/README
 

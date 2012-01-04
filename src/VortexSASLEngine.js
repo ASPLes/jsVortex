@@ -126,8 +126,7 @@ VortexSASLEngine.prototype.addMech = function (saslDefinition) {
 
     /* check we did store a profile defined this way */
     if (this.isSupported (saslDefinition.name)) {
-	Vortex.error ("VortexSASLEngine.addMech: unable to add SASL mechanism: " +
-		saslDefinition.name + " because it is already installed");
+	Vortex.error ("VortexSASLEngine.addMech: unable to add SASL mechanism: " + saslDefinition.name + " because it is already installed");
 	    return false;
     } /* end if */
 
