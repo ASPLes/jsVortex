@@ -410,8 +410,7 @@ VortexEngine.getFrame = function (connection, data) {
 
     while (this.position < data.length) {
 
-	Vortex.log ("VortexEngine.getFrame: Reading next frame from connection, position: " + this.position + ", data length: " + data.length +
-		    (data.length < 100 ? ", content: " + data : ""));
+	Vortex.log ("VortexEngine.getFrame: Reading next frame from connection, position: " + this.position + ", data length: " + data.length + (data.length < 100 ? ", content: " + data : ""));
 
 	/* get frame type */
 	var strType = data.substring (this.position, this.position + 3);
@@ -893,10 +892,7 @@ VortexEngine.checkSendSEQFrame = function (channel, frame) {
 	 * have current channel.windowSize */
 	var acceptedSeqno  = (frame.seqno + frame.size);
 
-	Vortex.log ("VortexEngine.checkSendSEQFrame: channel.windowSize=" + channel.windowSize +
-		    ", channel.maxAllowedSeqno=" + channel.maxAllowedSeqno +
-		    ", frame.seqno=" + frame.seqno +
-		    ", frame.size=" + frame.size);
+	Vortex.log ("VortexEngine.checkSendSEQFrame: channel.windowSize=" + channel.windowSize + ", channel.maxAllowedSeqno=" + channel.maxAllowedSeqno + ", frame.seqno=" + frame.seqno + ", frame.size=" + frame.size);
 
 	Vortex.log ("VortexEngine.checkSendSEQFrame: sending SEQ " + channel.number + " " + acceptedSeqno + " " + channel.windowSize + "\r\n");
 	channel.conn._send ("SEQ " + channel.number + " " + acceptedSeqno + " " + channel.windowSize + "\r\n");

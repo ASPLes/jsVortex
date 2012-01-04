@@ -551,8 +551,7 @@ VortexConnection.prototype.closeChannel = function (params) {
     /* store request as pending */
     this.closeHandlers.push (params);
 
-    Vortex.log ("VortexConnection.closeChannel: requested to close channel: " +
-		channel.number + ", running profile: " + channel.profile);
+    Vortex.log ("VortexConnection.closeChannel: requested to close channel: " +	channel.number + ", running profile: " + channel.profile);
 
     /* build close message */
     var _message = "<close number='" + channel.number + "' code='200' />\r\n";
@@ -1328,17 +1327,13 @@ VortexConnection.prototype._onRead = function (connection, data) {
 
 	/* check to notify SEQ frame and requeue a send operation with pending messages */
 	if (frame.type == 'SEQ') {
-	    Vortex.log ("VortexConnection._onRead: notifying SEQ frame received: channel=" +
-			channel.number + ", ackno=" + frame.seqno + ", window: " + frame.size);
+	    Vortex.log ("VortexConnection._onRead: notifying SEQ frame received: channel=" + channel.number + ", ackno=" + frame.seqno + ", window: " + frame.size);
 	    VortexEngine.receivedSEQFrame.apply (channel, [frame]);
 	    continue;
 	}
 
 	if (Vortex.logEnabled) {
-	    Vortex.log ("VortexConnection._onRead: frame received (only header): " +
-			frame.type + " " + frame.channel + " " + frame.msgno + " " +
-			(frame.more ? '*' : '.') + " " + frame.seqno + " " +
-			frame.size + " " + (frame.ansno == undefined ? "" : frame.ansno));
+	    Vortex.log ("VortexConnection._onRead: frame received (only header): " + frame.type + " " + frame.channel + " " + frame.msgno + " " + (frame.more ? '*' : '.') + " " + frame.seqno + " " + frame.size + " " + (frame.ansno == undefined ? "" : frame.ansno));
 	} /* end if */
 
 	/* check to update RPY status */
