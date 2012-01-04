@@ -1,0 +1,82 @@
+                     >>>> jsVortex 0.5.2 <<<<
+                            'Why not?' 
+
+>>>> Release note
+----------------------------------------------------------------------
+
+  Advanced Software Production Line is proud to announce jsVortex
+  0.5.2 "why not?" release: an Open Source Javascript BEEP
+  implementation.
+
+  jsVortex is a Javascript BEEP implementation that is specially
+  designed to run in the context of a web browser, turning it into an
+  effective BEEP peer without too much effort.
+
+  Check out the following links to get ready with jsVortex:
+
+    - http://www.aspl.es/jsVortex
+      [jsVortex homepage]
+
+    - http://www.aspl.es/jsVortex/docs
+      [jsVortex API documentation]
+
+    - http://www.aspl.es/vortex
+      [Vortex Library homepage, used to validate jsVortex]
+ 
+    - http://www.sf.net/projects/vortexlibrary
+      [Source download]
+
+    - http://www.beepcore.org
+      [BEEP Core community web site]
+    
+
+>>>> This release in short
+----------------------------------------------------------------------
+
+  New stable release that includes some fixings and a new building
+  process that allows delivering a release version (without any debug
+  statement) and a debug version (that includes them).
+
+>>>> Changes from last release
+----------------------------------------------------------------------
+
+* [fix] Adding documentation explaining how to solve "error calling
+  method on npobject"..
+
+* [fix] Added an additional common error explaining how to fix the
+  problem on MAC OS/X when the java applet is not loaded.
+
+* [fix] Fixed bug while splitting frames that uses utf-8 codes which
+  expands into 2 or 3 bytes when translated to byte representation,
+  causing not observing max allowed bytes accepted by remote BEEP
+  peer. Now the situation is detected and the difference is removed so
+  splitted piece fits into the accepted window size. Added regression
+  test to reproduce the bug and check fix introduced.
+
+* [fix] Moved onFrameReceivedHandler configuration inside
+  channel.sendCommon out of the isComplete condition to avoid races.
+
+* [fix] General update to produce a jsVortex bundle that includes an
+  unified Vortex.js without any debug statement (Vortex.{log, error,
+  warn}) and to also produce the same version with all those
+  statements called Vortex.debug.js. Updated source code to standardize
+  all calls to Vortex.log so they are done in a single line.
+
+>>>> About Us
+----------------------------------------------------------------------
+
+  ASPL (Advanced Software Production Line) is a Spanish company that
+  provides services and support to introduce open source products,
+  especially GNU/Linux, into organization's processes.
+
+  Contact us, English or Spanish, to get commercial support and/or
+  BEEP based development services.
+
+  You can reach us:
+
+       http://www.aspl.es - info@aspl.es
+--
+Francis Brosnan Blázquez           - francis@aspl.es
+Advanced Software Production Line  - http://www.aspl.es
+12th Jul 2011, Madrid (Spain)
+
