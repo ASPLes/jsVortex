@@ -1,3 +1,9 @@
+jsvortex (0.5.2-1) unstable; urgency=low
+
+  * Fixed singleFile flag to be true
+
+ -- Francis Brosnan <francis@aspl.es>  Thu, 19 Jan 2012 17:17:01 +0100
+
 jsvortex (0.5.2) unstable; urgency=low
 
   * New upstream release..
