@@ -9,7 +9,7 @@
 function do_shrink {
 
     # write release version
-    sed  's/Vortex.log \(.*\);//g' $1 | sed  's/Vortex.log2 \(.*\);//g' | sed  's/Vortex.warn \(.*\);//g' | sed  's/Vortex.error \(.*\);//g' | sed 's/singleFile:false/singleFile:true/g' | shrinksafe >> ${DEST}/Vortex.js
+    sed  's/Vortex.log \(.*\);//g' $1 | sed  's/Vortex.log2 \(.*\);//g' | sed  's/Vortex.warn \(.*\);//g' | sed  's/Vortex.error \(.*\);//g' | sed 's/singleFile : false/singleFile : true/g' | shrinksafe >> ${DEST}/Vortex.js
     if [ "$?" != "0" ]; then
 	echo "Failure found during compression, error code was: $?"
 	exit -1
