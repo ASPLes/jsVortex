@@ -15,7 +15,7 @@ function do_shrink {
 	exit -1
     fi
     # write debug version
-    sed 's/singleFile:false/singleFile:true/g' $1 | shrinksafe >> ${DEST}/Vortex.debug.js
+    sed 's/singleFile : false/singleFile : true/g' $1 | shrinksafe >> ${DEST}/Vortex.debug.js
     if [ "$?" != "0" ]; then
 	echo "Failure found during compression, error code was: $?"
 	exit -1
