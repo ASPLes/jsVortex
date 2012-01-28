@@ -1337,7 +1337,7 @@ VortexConnection.prototype._onRead = function (connection, data) {
 	} /* end if */
 
 	/* check to update RPY status */
-	if (! frame.more && frame.type == 'RPY') {
+	if (! frame.more && (frame.type == 'RPY' || frame.type == 'ERR' || frame.type == "NUL")) {
 	    channel.lastMsgnoReplyReceived = frame.msgno;
 	}
 
