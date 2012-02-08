@@ -96,7 +96,10 @@ function VortexChannel (conn,
     this.onCloseHandler         = onCloseHandler;
     this.onCloseContext         = onCloseContext;
 
-    /* configure initial window size */
+    /** 
+     * @brief Allows to configure the size of the receiving window each time a SEQ frame is issued.
+     * @type Number
+     */
     this.windowSize             = 4096;
 
     /* nextMsgno: holds the next value to be used
