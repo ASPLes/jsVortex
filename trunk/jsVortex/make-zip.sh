@@ -55,6 +55,9 @@ do_shrink src/VortexSASLEnginePlain.js
 do_shrink src/VortexSASLEngineAnonymous.js
 do_shrink src/VortexMimeHeader.js
 
+# ensure right permissions
+chmod 644 ${DEST}/*.{js,txt,jar} ${DEST}/README
+
 zip -q jsVortex-${jsvortex_version}.zip ${DEST}/*.{js,txt,jar} ${DEST}/README
 
 # copy files if defined
