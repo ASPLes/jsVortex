@@ -30,16 +30,20 @@ public class JSCTrustManager implements X509TrustManager {
 	}
 
 	public X509Certificate[] getAcceptedIssuers() {
-		throw new UnsupportedOperationException();
+		/* not relevant, only for servers */
+		LogHandling.info (state, "JSCTrustManager.getAcceptedIssuers: Calling to get accepted issuers..");
+		return null;
 	}
 	
 	public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+		LogHandling.info (state, "JSCTrustManager.checkClientTrusted: Calling to check client trusted..");
 		throw new UnsupportedOperationException();
 	}
 	
 	public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
 		for (X509Certificate cert : chain) {
-			LogHandling.info (state, "Received notification to accept or not server certificate");
+			LogHandling.info (state, "JSCTrustManager.checkServerTrusted: Received notification to accept or not server certificate: authType=" + authType);
+
 			try {
 				/* get X509 manager */
 				X509TrustManager manager = (X509TrustManager) trustManagerFactory.getTrustManagers()[0];
@@ -47,13 +51,13 @@ public class JSCTrustManager implements X509TrustManager {
 				/* do chain certificate validation */
 				manager.checkServerTrusted (chain, authType);
 
-				LogHandling.info (state, "Certificate status: OK");
+				LogHandling.info (state, "JSCTrustManager.checkServerTrusted: Certificate status: OK");
 			} catch (Exception ex) {
-				LogHandling.error (state, "Certificate status: WRONG (" + ex.getMessage () + "), Trust Policy: " + trustPolicy);
+				LogHandling.error (state, "JSCTrustManager.checkServerTrusted: Certificate status: WRONG (" + ex.getMessage () + "), Trust Policy: " + trustPolicy);
 				switch (trustPolicy) {
 				case 1:
 					/* rethrow certificate error */
-					throw new CertificateException ("Server certificate validation failed and trust policy only accepts valid certificates", ex);
+					throw new CertificateException ("JSCTrustManager.checkServerTrusted: Server certificate validation failed and trust policy only accepts valid certificates", ex);
 				case 2:
 					/* ask user to accept or not certificate. */
 					/* Object [] args = {cert.getSubjectDN (), cert.getIssuerDN (), cert.toString ()}; */
@@ -62,9 +66,10 @@ public class JSCTrustManager implements X509TrustManager {
 					/* Boolean result  = (Boolean) caller.call ("oncerterror", args); */
 
 					if (! result.booleanValue ())
-						throw new CertificateException ("Server certificate validation failed and user has denied accepting it", ex);
+						throw new CertificateException ("JSCTrustManager.checkServerTrusted: Server certificate validation failed and user has denied accepting it", ex);
 					break;
 				case 3:
+					LogHandling.info (state, "JSCTrustManager.checkServerTrusted: Certificate status: Accepting untrusted certificate because=" + trustPolicy);
 					break;
 				} /* end switch */
 			}

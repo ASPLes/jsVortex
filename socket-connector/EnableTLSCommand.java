@@ -58,7 +58,7 @@ public class EnableTLSCommand implements Command {
 			SSLSocketFactory    factory = (SSLSocketFactory) sslContext.getSocketFactory ();
 
 
-			/* enable blocking the socket */
+			/* enable blocking IO on the socket */
 			Socket socket = state.socket;
 			socket.setSoTimeout (0);
 
@@ -81,7 +81,7 @@ public class EnableTLSCommand implements Command {
 
 		} catch (SSLException ex) {
 			/* do nothing for now */
-			LogHandling.error (state, "Server certificate error, error was: " + ex.getMessage ());
+			LogHandling.error (state, "JavaSocketConnector.EnableTLSCommand.doOperation: Server certificate error, error was: " + ex.getMessage ());
 
 			/* configure ready state: CLOSED */
 			state.setMember ("readyState", 2);
