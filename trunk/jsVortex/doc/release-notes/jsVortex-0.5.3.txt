@@ -79,5 +79,5 @@ content is received.
 --
 Francis Brosnan Blázquez           - francis@aspl.es
 Advanced Software Production Line  - http://www.aspl.es
-12th Jul 2011, Madrid (Spain)
+21th May 2012, Madrid (Spain)
 
