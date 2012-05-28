@@ -41,7 +41,7 @@ if (typeof VortexXMLEngine == "undefined") {
  * @param data {String} The XML document to parse. This parameter
  * represents an string that contains an XML document.
  *
- * @return {Object} An object representing the document or null if it
+ * @return {xmlNode} An object representing the document or null if it
  * fails.
  *
  */
@@ -331,11 +331,22 @@ VortexXMLEngine.consumeWhiteSpaces = function (data, iterator)
 };
 
 /**
- * @internal Function used to dump xml content produced
- * by VortexXMLEngine.parseXML.
+ * @brief Function used to dump xml content produced by VortexXMLEngine.parseXML.
+ *
+ * @param document The javascript object produced by \ref VortexXMLEngine.parseFromString to be dumped
+ *
+ * @param tabs {Number}? Optional value that allows to configure
+ * number of white spaces to be introduced on each level. This option
+ * produced pretty printable XML output.
+ *
+ * @return {String} Returns a string representing the xml document.
  */
 VortexXMLEngine.dumpXML = function (document, tabs)
 {
+
+    /* set default value */
+    if (! tabs)
+	tabs = 0;
 
     var iterator = tabs;
     var string   = "";
@@ -344,17 +355,18 @@ VortexXMLEngine.dumpXML = function (document, tabs)
 	iterator--;
     }
 
+    var result = "";
     if (document.haveChilds) {
-	Vortex.log (string + "<" + document.name + " " + VortexXMLEngine.dumpAttrs (document) + ">");
+	result = string + "<" + document.name + " " + VortexXMLEngine.dumpAttrs (document) + ">";
 	for (var node in document.childs) {
-	    VortexXMLEngine.dumpXML (document.childs[node], tabs + 2);
+	    result += VortexXMLEngine.dumpXML (document.childs[node], tabs + 2);
 	}
-	Vortex.log (string + "</" + document.name + ">");
+	result += string + "</" + document.name + ">";
     } else {
-	Vortex.log (string + "<" + document.name + " " + VortexXMLEngine.dumpAttrs (document) + " />");
-	return;
+	result += string + "<" + document.name + " " + VortexXMLEngine.dumpAttrs (document) + " />";
     }
 
+    return result;
 };
 
 /**
@@ -363,14 +375,95 @@ VortexXMLEngine.dumpXML = function (document, tabs)
  */
 VortexXMLEngine.dumpAttrs = function (node) {
 
-    var string;
+    var string = "";
     for (var position in node.attrs) {
-	if (string == undefined)
-	    string = node.attrs.charAt(position).name + "='" + node.attrs.charAt(position).value + "'";
-	else
-	    string = string + " " + node.attrs.charAt(position).name + "='" + node.attrs.charAt(position).value + "'";
+	var attr = node.attrs[position];
+	string = string + attr.name + "='" + attr.value + "' ";
     }
 
     /* return string created */
     return string;
+};
+
+/** 
+ * @brief Allows to get the first child node with the provided
+ * childName on the provided node.
+ * 
+ * @param node {xmlNode} The node or document was represents an xml document
+ * 
+ * @param childName {String} The string representing the child node.
+ * 
+ * @return {xmlNode} Returns a reference to the child node or null if
+ * no child with that name was found.
+ */
+VortexXMLEngine.getChildByName = function (node, childName) {
+    
+    for (var iter in node.childs) {
+        var child = node.childs[iter];
+
+	/* check child found */
+	if (child.name == childName)
+	    return child;
+    }
+    
+    /* no child was found */
+    return null;
+};
+
+/** 
+ * @brief Allows to get the attribute value associated to the xml node. 
+ * 
+ * @param node {xmlNode} The node or document was represents an xml document
+ * 
+ * @param attrName {String} The string representing the xml attribute.
+ * 
+ * @return {String} Returns the value associated to the provided
+ * attribute or null if nothing was found.
+ */
+VortexXMLEngine.getAttr = function (node, attrName) {
+    for (var iter in node.attrs) {
+	var attr = node.attrs[iter];
+
+	if (attr.name == attrName)
+	    return attr.value;
+    }
+
+    return null;
+};
+
+/** 
+ * @brief Allows to check if the provided node has an attribute or if
+ * it has that attribute with the provided value.
+ * 
+ * The function accepts two or three parameters. When provided two,
+ * the function only checks if the node has the provided attribute. In
+ * the case three params are provided, it is assumed the caller wants
+ * to also check the attribute value too.
+ * 
+ * @param node {xmlNode} The node or document was represents an xml document
+ * 
+ * @param attrName {String} The string representing the xml attribute.
+ * 
+ * @param attrValue {String}? Optional value to check if the attribute
+ * has the provided value.
+ * 
+ * @return {Boolean} Returns true to signal the node has the provided
+ * attribute or it has the provided attribute with the provided
+ * value. Otherwise, false is returned.
+ */
+VortexXMLEngine.hasAttr = function (node, attrName, attrValue) {
+    for (var iter in node.attrs) {
+	var attr = node.attrs[iter];
+
+	if (attr.name == attrName) {
+	    /* attribute found */
+	    if (typeof attrValue == "undefined")
+		return true;
+
+	    /* check attribute value */
+	    return attr.value == attrValue;
+	}
+    }
+
+    return false;
 };

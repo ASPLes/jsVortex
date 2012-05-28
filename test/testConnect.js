@@ -2743,6 +2743,98 @@ function testMimeSupport () {
 }
 /******* END:   testMimeSupport ******/
 
+/******* BEGIN: testXMLSupport ******/
+function testXMLSupport () {
+
+    /* check simple empty mime headers */
+    log ("info", "Checking basic XML document handling..");
+
+    var value = "<example value='10' value2='20'><child-node><params>asdfasdfasdf</params></child-node><child-node /></example>";
+    var document = VortexXMLEngine.parseFromString (value);
+
+    if (document == null) {
+	log ("error", "Failed to parse document: " + value + ", received null value from function");
+	return false;	
+    };
+
+    log ("info", "Parse seems right, now check content received");
+    console.dir (document);
+
+    if (document.name != "example") {
+	log ("error", "Expected to find <example> as root node, but found: " + document.name);
+	return false;	
+    }
+    
+    /* get child named */
+    log ("info", "Getting childs by name..");
+    var childNode = VortexXMLEngine.getChildByName (document, "child-node");
+    if (childNode == null) {
+	log ("error", "Expected to find <child-node> as child of <example> but null was found");
+	return false;	
+    }
+
+    if (childNode.name != "child-node") {
+	log ("error", "Expected to find <child-node> as child of <example> but node returned by the function doesn't have that name");
+	return false;	
+    }
+
+    /* get more childs */
+    childNode = VortexXMLEngine.getChildByName (childNode, "params");
+    if (childNode == null) {
+	log ("error", "Expected to find <params> as child of <child-node> but null was found");
+	return false;	
+    }
+
+    if (childNode.name != "params") {
+	log ("error", "Expected to find <params> as child of <child-node> but node returned by the function doesn't have that name");
+	return false;	
+    }
+
+    /* now get something that should be there */
+    if (VortexXMLEngine.getChildByName (childNode, "params") != null) {
+	log ("error", "Expected to NOT find <params> as child of <params> but something was found");
+	return false;	
+    }
+
+    /* ensure we get the content */
+    log ("info", "Checking support to get content");
+    if (childNode.content != "asdfasdfasdf") {
+	log ("error", "Expected to find content: 'asdfasdfasdf' but found: " + childNode.content);
+	return false;
+    }
+
+    /* get check support for attributes */
+    log ("info", "Now checking xml attribute node..");
+    if (VortexXMLEngine.getAttr (document, "value") != "10") {
+	log ("error", "Expected to find 10 as attribute value for attr 'value' inside node <example />, but found: " + VortexXMLEngine.getAttr (document, "value"));
+	return false;
+    }
+
+    if (! VortexXMLEngine.hasAttr (document, "value", "10")) {
+	log ("error", "Expected to find 10 as attribute value for attr 'value' inside node <example />, but found: " + VortexXMLEngine.getAttr (document, "value"));
+	return false;
+    }
+
+    if (! VortexXMLEngine.hasAttr (document, "value")) {
+	log ("error", "Expected to find attribute 'value' inside node <example />, but it wasn't found: " + VortexXMLEngine.getAttr (document, "value"));
+	return false;
+    }
+
+    if (VortexXMLEngine.hasAttr (document, "value", "20")) {
+	log ("error", "Expected to NOT find 20 as attribute value for attr 'value' inside node <example />, but found: " + VortexXMLEngine.getAttr (document, "value"));
+	return false;
+    }
+
+    /* check dumping functions */
+    var content = VortexXMLEngine.dumpXML (document, 4);
+    console.log ("Document dump found: " + content);
+
+    /* call for the next test */
+    this.nextTest ();
+    return true;
+}
+/******* END:   testXMLSupport ******/
+
 /******* BEGIN: testConnect ******/
 function testConnect () {
 
@@ -3048,6 +3140,7 @@ RegressionTest.prototype.tests = [
     {name: "Check if jsVortex is available",            testHandler: testjsVortexAvailable},
     {name: "Library infraestructure check",             testHandler: testInfraestructure},
     {name: "MIME support",                              testHandler: testMimeSupport},
+    {name: "XML basic support",                         testHandler: testXMLSupport},
     {name: "BEEP basic connection test",                testHandler: testConnect},
     {name: "BEEP basic channel management test",        testHandler: testChannels},
     {name: "BEEP basic channel management test (DENY)", testHandler: testChannelsDeny},
