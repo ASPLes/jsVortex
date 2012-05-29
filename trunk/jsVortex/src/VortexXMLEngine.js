@@ -378,7 +378,7 @@ VortexXMLEngine.consumeWhiteSpaces = function (data, iterator)
 /**
  * @brief Function used to dump xml content produced by VortexXMLEngine.parseXML.
  *
- * @param document The javascript object produced by \ref VortexXMLEngine.parseFromString to be dumped
+ * @param document {xmlNode} The javascript object produced by \ref VortexXMLEngine.parseFromString to be dumped
  *
  * @param tabs {Number}? Optional value that allows to configure
  * number of white spaces to be introduced on each level. This option
@@ -623,7 +623,7 @@ VortexXMLEngine.getChildByName = function (node, childName) {
 /**
  * @brief Allows to get the first child that a node has.
  *
- * @node {xmlNode} The node to get  the first child from.
+ * @param node {xmlNode} The node to get  the first child from.
  *
  * @return {xmlNode} A reference to the first child node or null if it fails.
  */
@@ -642,7 +642,7 @@ VortexXMLEngine.firstChild = function (node) {
 /**
  * @brief Allows to get the last child that a node has.
  *
- * @node {xmlNode} The node to get  the last child from.
+ * @param node {xmlNode} The node to get  the last child from.
  *
  * @return {xmlNode} A reference to the last child node or null if it fails.
  */
@@ -661,7 +661,7 @@ VortexXMLEngine.lastChild = function (node) {
 /**
  * @brief Allows to get the next node to the provided node (its sibling).
  *
- * @node {xmlNode} The node to get the next node to it.
+ * @param node {xmlNode} The node to get the next node to it.
  *
  * @return {xmlNode} A reference to the first child node or null if it fails.
  */
@@ -678,7 +678,7 @@ VortexXMLEngine.nextNode = function (node) {
  * @brief Allows to get the previous node to the provided node (its
  * previous sibling).
  *
- * @node {xmlNode} The node to get the previous node to it.
+ * @param node {xmlNode} The node to get the previous node to it.
  *
  * @return {xmlNode} A reference to the first child node or null if it fails.
  */
