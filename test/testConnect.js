@@ -2764,7 +2764,6 @@ function testXMLSupport () {
     };
 
     log ("info", "Parse seems right, now check content received");
-    console.dir (document);
 
     if (document.name != "example") {
 	log ("error", "Expected to find <example> as root node, but found: " + document.name);
@@ -2833,7 +2832,6 @@ function testXMLSupport () {
 
     /* check dumping functions */
     var content = VortexXMLEngine.dumpXML (document, 4);
-    console.log ("Document dump found: \n" + content);
 
     log ("info", "Now testing traversal functions..");
     value    = "<root><value /><value2 /><value3 /><value4 /></root>";
@@ -2850,15 +2848,8 @@ function testXMLSupport () {
 	return false;
     }
     var iterator = 0;
-    console.log ("Checking childNode: ");
-    console.dir (childNode);
-    console.log ("Status is: " + (childNode != null));
     while (childNode != null) {
-
-	console.log ("Checking child node...(1): ");
-	console.dir (childNode);
 	log ("info", "Checking child node: " + childNode.name);
-	console.log ("..2..");
 	if (iterator == 0) {
 	    if (childNode.name != "value") {
 		log ("error", "Expected to find <value> node name but found: " + childNode.name);
@@ -2866,31 +2857,130 @@ function testXMLSupport () {
 	    }
 	} else if (iterator == 1) {
 	    if (childNode.name != "value2") {
-		log ("error", "Expected to find <value> node name but found: " + childNode.name);
+		log ("error", "Expected to find <value2> node name but found: " + childNode.name);
 		return false;
 	    }
 	} else if (iterator == 2) {
 	    if (childNode.name != "value3") {
-		log ("error", "Expected to find <value> node name but found: " + childNode.name);
+		log ("error", "Expected to find <value3> node name but found: " + childNode.name);
 		return false;
 	    }
 	} else if (iterator == 3) {
-	    if (childNode.name != "value5") {
-		log ("error", "Expected to find <value> node name but found: " + childNode.name);
+	    if (childNode.name != "value4") {
+		log ("error", "Expected to find <value4> node name but found: " + childNode.name);
 		return false;
 	    }
+	} else if (iterator == 4) {
+	    log ("error", "Expected to find <value4> node name but found: " + childNode.name);
+	    return false;   
 	}
-
-	console.log ("..3..");
 
 	/* get next iterator */
 	childNode = VortexXMLEngine.nextNode (childNode);
 
-	console.log ("..4.." + childNode);
-
 	/* next iterator */
 	iterator++;
     } /* end while */
+
+    /* create a document */
+    var node = VortexXMLEngine.createNode ("test-node");
+
+    var child = VortexXMLEngine.createNode ("child1");
+    if (! VortexXMLEngine.setChild (node, child)) {
+	log ("error", "Failed to add child node into the document");
+        return false;	
+    }
+
+    if (VortexXMLEngine.dumpXML (node) != "<test-node><child1 /></test-node>") {
+	log ("error", "Expected to find different dump (1) ");
+        return false;	
+    }
+
+    /* set new childs with content */
+    child = VortexXMLEngine.createNode ("child-first");
+    if (! VortexXMLEngine.setChild (node, child, "first")) {
+	log ("error", "Failed to add child node into the document");
+        return false;	
+    }
+
+    if (VortexXMLEngine.dumpXML (node) != "<test-node><child-first /><child1 /></test-node>") {
+	log ("error", "Expected to find different dump (2) ");
+        return false;	
+    }
+
+    /* set new childs with content */
+    child = VortexXMLEngine.createNode ("child-last");
+    if (! VortexXMLEngine.setChild (node, child, "last")) {
+	log ("error", "Failed to add child node into the document");
+        return false;	
+    }
+
+    if (VortexXMLEngine.dumpXML (node) != "<test-node><child-first /><child1 /><child-last /></test-node>") {
+	log ("error", "Expected to find different dump (3) ");
+        return false;	
+    }
+
+    /* set child on a particular position */
+    child = VortexXMLEngine.createNode ("child-nth");
+    if (! VortexXMLEngine.setChild (node, child, 2)) {
+	log ("error", "Failed to add child node into the document");
+        return false;	
+    }
+
+    if (VortexXMLEngine.dumpXML (node) != "<test-node><child-first /><child1 /><child-nth /><child-last /></test-node>") {
+	log ("error", "Expected to find different dump (4) ");
+        return false;	
+    }
+
+    /* set attributes */
+    if (! VortexXMLEngine.setAttr (node, "value", "10")) {
+	log ("error", "Expected to be able to insert attribute but found failure");
+	return false;
+    }
+
+    if (VortexXMLEngine.dumpXML (node) != "<test-node value='10' ><child-first /><child1 /><child-nth /><child-last /></test-node>") {
+	log ("error", "Expected to find different dump (5) ");
+        return false;	
+    }
+
+    /* set attributes */
+    if (! VortexXMLEngine.setAttr (node, "value", "25")) {
+	log ("error", "Expected to be able to insert attribute but found failure");
+	return false;
+    }
+
+    /* set attributes */
+    if (! VortexXMLEngine.setAttr (node, "value2", "37")) {
+	log ("error", "Expected to be able to insert attribute but found failure");
+	return false;
+    }
+
+    if (VortexXMLEngine.dumpXML (node) != "<test-node value='25' value2='37' ><child-first /><child1 /><child-nth /><child-last /></test-node>") {
+	log ("error", "Expected to find different dump (5) ");
+        return false;	
+    }
+
+    /* now dettach nodes */
+    log ("info", "Checking node detaching support");
+    child = VortexXMLEngine.getChildByName (node, "child-nth");
+    VortexXMLEngine.detach (child);
+
+    if (VortexXMLEngine.dumpXML (node) != "<test-node value='25' value2='37' ><child-first /><child1 /><child-last /></test-node>") {
+	log ("error", "Expected to find different dump (5) ");
+        return false;	
+    }
+
+    /* check replacement */
+    log ("info", "Checking node replacement support");
+
+    child = VortexXMLEngine.getChildByName (node, "child1");
+    VortexXMLEngine.detach (child, document);
+
+    if (VortexXMLEngine.dumpXML (node) != "<test-node value='25' value2='37' ><child-first /><root><value /><value2 /><value3 /><value4 /></root><child-last /></test-node>") {
+	log ("error", "Expected to find different dump (6) ");
+        return false;	
+    }
+
 
     /* call for the next test */
     this.nextTest ();

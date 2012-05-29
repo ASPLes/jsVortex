@@ -72,6 +72,9 @@ if (typeof VortexXMLEngine == "undefined") {
  * }
  * \endcode
  *
+ * Note this function returns a xmlNode, not a document so it can be
+ * used to load complete xml documents or portions of xml as long as
+ * they have a root xml node.
  */
 VortexXMLEngine.parseFromString = function (data) {
 
@@ -172,7 +175,10 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
     var node = {
 	name   : stringAux,
 	attrs  : [],
-	childs : []
+	childs : [],
+	nextNode : null,
+	previousNode : null,
+	parentNode : null
     };
 
     /* now parse attributes */
@@ -280,10 +286,19 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 		    break;
 		}
 
+		/* configure child */
+		child.parentNode = node;
+		if (node.childs.length > 0) {
+		    /* set up a reference to the previous */
+		    child.previousNode = node.childs[node.childs.length -1];
+
+		    /* and configure next */
+		    child.previousNode.nextNode = child;
+		} /* end if */
+		    
 		/* store child read */
 		node.haveChilds = true;
 		node.childs.push (child);
-		child.parentNode = node;
 
 		/* consume more whitespaces */
 		iterator = this.position;
@@ -404,7 +419,7 @@ VortexXMLEngine.dumpXML = function (document, tabs)
 	    result += document.content;
 
 	for (var node in document.childs) {
-	    result += VortexXMLEngine.dumpXML (document.childs[node], tabs + 2);
+	    result += VortexXMLEngine.dumpXML (document.childs[node], tabs * 2);
 	}
 	result += string + "</" + document.name + ">" + ender;
     } else {
@@ -443,10 +458,148 @@ VortexXMLEngine.dumpAttrs = function (node) {
 };
 
 /**
+ * @brief Allows to create a new xmlNode.
+ *
+ * @param name {String} The node name to give to the newly created xmlNode.
+ *
+ * @param content {String}? Optional string to be configured as
+ * content into the node. 
+ *
+ * @return {xmlNode} Returns a newly created xml node with the provided name.
+ *
+ * Some examples using this function:
+ * \code
+ * // The following creates an empty node <test-node />
+ * var xmlNode = VortexXMLEngine.createNode ("test-node");
+ *
+ * // The following creates a node with content <test-node>this is a test</test-node>
+ * var xmlNode = VortexXMLEngine.createNode ("test-node", "this is a test");
+ *
+ * // remember to can set the content after using .content attribute 
+ * xmlNode.content = "This is a nother content";
+ *
+ * // you can also change the node name with
+ * xmlNode.name = "this-is-a-test";
+ * \endcode
+ */
+VortexXMLEngine.createNode = function (name, content) {
+    
+    /* return a newly created node */
+    return {
+	name   : name,
+	attrs  : [],
+	childs : [],
+	nextNode : null,
+	previousNode : null,
+	parentNode : null
+    };
+};
+
+/** 
+ * @brief Allows to set a child xmlNode to a another.
+ * 
+ * @param parent {xmlNode} The xml node that will hold the provided child.
+ * 
+ * @param child {xmlNode} The node to be set as child.
+ * 
+ * @param location {String}? Optional string that allows configuring
+ * where the child will be configured. By default the child is
+ * configured as the last one. You can use any of the following
+ * locations: "first", "last" or an intenger value, which will be
+ * handled as the index where to add the node.
+ * 
+ * @return {Boolean} The function returns true if the node was added,
+ * otherwise false is returned. The function fails to add the node if
+ * the parent or the child are undefined or the location do not follow
+ * instructions provided.
+ */
+VortexXMLEngine.setChild = function (parent, child, location) {
+    if (typeof parent == "undefined" || parent == null) 
+	return false;
+    if (typeof child == "undefined" || child == null)
+	return false;
+
+    /* if no node was found, just add it */
+    if (parent.childs.length == 0) {
+	child.parentNode = parent;
+	parent.childs.push (child);
+	return true;
+    }
+
+    if (typeof location == "undefined")
+	location = "last";
+
+    if (location == "first") {
+	/* configure old first */
+	parent.childs[0].previousNode = child;
+
+	/* configure added node */
+	child.nextNode     = parent.childs[0];
+	child.previousNode = null;
+
+	/* add the child */
+	parent.childs.unshift (child);
+
+	/* set parent */
+	child.parentNode = parent;
+	
+	return true;
+    } else if (location == "last") {
+	/* configure old last */
+	parent.childs[parent.childs.length -1].nextNode = child;
+
+	/* configure added node */
+	child.previousNode = parent.childs[parent.childs.length -1];
+	child.nextNode = null;
+
+	/* add the child */
+	parent.childs.push (child);
+
+	/* set parent */
+	child.parentNode = parent;
+
+	return true;
+    } else if (typeof location == "number") {
+	if (location < 0) {
+	    location = 0;
+	} else if (location > parent.childs.length) {
+ 	    location = parent.childs.length;
+	}
+
+	/* add the child */
+	if (location == 0)
+	    return VortexXMLEngine.setChild (parent, child, "first");
+	else if (location == parent.childs.length) 
+	    return VortexXMLEngine.setChild (parent, child, "last");
+	else {
+	    /* add the child into its position */
+	    parent.childs.splice (location, 0, child);
+
+	    /* set new next node */
+	    parent.childs[location - 1].nextNode = child;
+	    child.previousNode = parent.childs[location - 1];
+	    
+	    /* set new previous node */
+	    parent.childs[location + 1].previousNode = child;
+	    child.nextNode = parent.childs[location + 1];
+
+	    /* set parent */
+	    child.parentNode = parent;
+
+	    /* notify done */
+	    return true;
+	} /* end if */
+    }
+    
+    /* this shouldn't be reached */
+    return false;    
+};
+
+/**
  * @brief Allows to get the first child node with the provided
  * childName on the provided node.
  *
- * @param node {xmlNode} The node or document was represents an xml document
+ * @param node {xmlNode} The node or document that represents an xml document
  *
  * @param childName {String} The string representing the child node.
  *
@@ -487,9 +640,28 @@ VortexXMLEngine.firstChild = function (node) {
 };
 
 /**
+ * @brief Allows to get the last child that a node has.
+ *
+ * @node {xmlNode} The node to get  the last child from.
+ *
+ * @return {xmlNode} A reference to the last child node or null if it fails.
+ */
+VortexXMLEngine.lastChild = function (node) {
+
+    if (typeof node == "undefined" || node == null)
+	return null;
+
+    if (node.childs.length == 0)
+	return null;
+
+    /* return last child */
+    return node.childs[node.childs.length - 1];
+};
+
+/**
  * @brief Allows to get the next node to the provided node (its sibling).
  *
- * @node {xmlNode} The node to get  the first child from.
+ * @node {xmlNode} The node to get the next node to it.
  *
  * @return {xmlNode} A reference to the first child node or null if it fails.
  */
@@ -498,28 +670,31 @@ VortexXMLEngine.nextNode = function (node) {
     if (typeof node == "undefined" || node == null)
 	return null;
 
-    for (var iter in node.parentNode.childs) {
-	var auxNode = node.parentNode.childs[iter];
-	if (auxNode == node) {
-	    var position = Number(iter + 1);
-	    console.log ("Found node at (1): " + position);
-	    if (position >= node.parentNode.childs.length)
-		return null;
+    /* return current state */
+    return node.nextNode;
+};
 
-	    console.log ("Found node at (2): " + position);
-	    console.dir (node);
-	    return node.parentNode.childs[position];
-	}
-    } /* end for */
+/**
+ * @brief Allows to get the previous node to the provided node (its
+ * previous sibling).
+ *
+ * @node {xmlNode} The node to get the previous node to it.
+ *
+ * @return {xmlNode} A reference to the first child node or null if it fails.
+ */
+VortexXMLEngine.previousNode = function (node) {
 
-    /* no next node found */
-    return null;
+    if (typeof node == "undefined" || node == null)
+	return null;
+
+    /* return current state */
+    return node.previousNode;
 };
 
 /**
  * @brief Allows to get the attribute value associated to the xml node.
  *
- * @param node {xmlNode} The node or document was represents an xml document
+ * @param node {xmlNode} The node or document that represents an xml document
  *
  * @param attrName {String} The string representing the xml attribute.
  *
@@ -537,6 +712,8 @@ VortexXMLEngine.getAttr = function (node, attrName) {
     return null;
 };
 
+
+
 /**
  * @brief Allows to check if the provided node has an attribute or if
  * it has that attribute with the provided value.
@@ -546,7 +723,7 @@ VortexXMLEngine.getAttr = function (node, attrName) {
  * the case three params are provided, it is assumed the caller wants
  * to also check the attribute value too.
  *
- * @param node {xmlNode} The node or document was represents an xml document
+ * @param node {xmlNode} The node or document that represents an xml document
  *
  * @param attrName {String} The string representing the xml attribute.
  *
@@ -572,4 +749,117 @@ VortexXMLEngine.hasAttr = function (node, attrName, attrValue) {
     }
 
     return false;
+};
+
+/**
+ * @brief Allows to set the provided attribute=value on the give <node />
+ *
+ * @param node {xmlNode} The node or document that represents an xml document
+ *
+ * @param attrName {String} The string representing the xml attribute.
+ *
+ * @param attrValue {String} The value to be set on the attribute.
+ *
+ * @return {Boolean} Returns true if the attribute was added,
+ * otherwise false is returned. The function can only fail if some of
+ * the values aren't provided. If a second call is provided over the
+ * same attribute the value will be replaced.
+ */
+VortexXMLEngine.setAttr = function (node, attrName, attrValue) {
+    /* check if the attribute exists */
+    if (! VortexXMLEngine.hasAttr (node, attrName)) {
+	node.attrs.push ({
+	    name : attrName,
+	    value : attrValue
+	});
+	return true;
+    }
+
+    for (var iter in node.attrs) {
+	var attr = node.attrs[iter];
+
+	if (attr.name == attrName) {
+	    attr.value = attrValue;
+	    return true;
+	}
+    }
+
+    return false;
+};
+
+/**
+ * @brief Allows to dettach the provided node from its holding document.
+ *
+ * @param node {xmlNode} The node or document that represents an xml document
+ *
+ * @param replacement {xmlNode}? Optional xml node that can be used as
+ * replacement for the node removed. 
+ *
+ */
+VortexXMLEngine.detach = function (node, replacement) {
+    
+    /* check if the node is not attached to any document */
+    if (node.parentNode == null)
+	return;
+	
+    /* clear previous reference */
+    if (node.previousNode) {
+	if (replacement) {
+	    /* we have a replacement */
+	    replacement.previousNode          = node.previousNode;
+	    replacement.previousNode.nextNode = replacement;
+	} else {
+	    /* without replacement, just remove */
+	    node.previousNode.nextNode = node.nextNode;
+	}
+    }
+    node.previousNode = null;
+
+    /* clear next reference */
+    if (node.nextNode)  {
+	if (replacement) {
+	    /* we have a replacement */
+	    replacement.nextNode              = node.nextNode;
+	    replacement.nextNode.previousNode = replacement;
+	} else {
+	    /* without replacement, just remove */
+	    node.nextNode.previousNode = node.previousNode;
+	}
+    }
+    node.previousNode = null;
+
+    /* flag this node to be removed */
+    node.__pRemove = true;
+
+    /* remove from the document */
+    while (true) {
+	var found = false;
+	for (var iter in node.parentNode.childs) {
+	    /* get child and check flag */
+	    var child = node.parentNode.childs[iter];
+	    if (child.__pRemove) {
+		if (replacement)
+		    node.parentNode.childs[iter] = replacement;
+		else
+		    node.parentNode.childs.splice (iter, 1);
+		found = true;
+		break;
+	    } /* end if */
+	} /* end for */
+
+	if (! found)
+	    break;
+    } /* end while */
+
+    /* remove this attribute */
+    delete node.__pRemove;
+
+    /* set replacement parent node */
+    if (replacement)
+	replacement.parentNode = node.parentNode;
+
+    /* clear node parent reference */
+    node.parentNode = null;
+    
+    return;
 };
