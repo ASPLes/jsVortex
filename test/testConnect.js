@@ -1164,9 +1164,10 @@ testServerName.frameReceived2 = function (frameReceived) {
 /******* BEGIN: testSuddentlyClosed3 ******/
 function testSuddentlyClosed3 () {
 
-    if (this.nextTestId != 12) {
-	log ("error", "Found some tests out there that is calling more times to this.nextTest () " +
-	     "which is a sign of something wrong. Expected to find current Id equal to 12 but found: " + this.nextTestId);
+    if (this.nextTestId != 13) {
+	console.error ("Expected to find nextTestId == 12 but found (1): " + this.nextTestId);
+	log ("error", "Found some tests out there that are calling more times to this.nextTest () <br />" +
+	     "which is a sign of something wrong. Expected to find current Id equal to 13 but found: " + this.nextTestId);
 	return false;
     }
 
@@ -1187,8 +1188,9 @@ function testSuddentlyClosed3 () {
 
 testSuddentlyClosed3.Result = function (conn) {
 
-    if (this.nextTestId != 12) {
-	log ("error", "Found some tests out there (at top of Result) that is calling more times to this.nextTest () " +
+    if (this.nextTestId != 13) {
+	console.error ("Expected to find nextTestId == 12 but found (2): " + this.nextTestId);
+	log ("error", "Found some tests out there (at top of Result) that is calling more times to this.nextTest () <br />" +
 	     "which is a sign of something wrong. Expected to find current Id equal to 12 but found: " + this.nextTestId);
 	return false;
     }
@@ -1214,8 +1216,9 @@ testSuddentlyClosed3.channelCreated = function (replyData) {
 
     log ("info", "Ok, channel creation reply recevied, first part of the test complete");
 
-    if (this.nextTestId != 12) {
-	log ("error", "Found some tests out there (channelCreated at the top) that is calling more times to this.nextTest () " +
+    if (this.nextTestId != 13) {
+	console.error ("Expected to find nextTestId == 12 but found (3): " + this.nextTestId);
+	log ("error", "Found some tests out there (channelCreated at the top) that is calling more times to this.nextTest () <br />" +
 	     "which is a sign of something wrong. Expected to find current Id equal to 12 but found: " + this.nextTestId);
 	return false;
     } /* end if */
@@ -1250,9 +1253,10 @@ testSuddentlyClosed3.channelCreated = function (replyData) {
     /* set here disconnection handlers */
     conn.onDisconnect (testSuddentlyClosed3.connectionClosed, this);
 
-    if (this.nextTestId != 12) {
-	log ("error", "Found some tests out there (channelCreated) that is calling more times to this.nextTest () " +
-	     "which is a sign of something wrong. Expected to find current Id equal to 12 but found: " + this.nextTestId);
+    if (this.nextTestId != 13) {
+	console.error ("Expected to find nextTestId == 13 but found (4): " + this.nextTestId);
+	log ("error", "Found some tests out there (channelCreated) that is calling more times to this.nextTest () <br />" +
+	     "which is a sign of something wrong. Expected to find current Id equal to 13 but found: " + this.nextTestId);
 	return false;
     }
 
@@ -1267,9 +1271,10 @@ testSuddentlyClosed3.channelCreated = function (replyData) {
 
 testSuddentlyClosed3.connectionClosed =	function (conn) {
 
-    if (this.nextTestId != 12) {
-	log ("error", "Found some tests out there (connectionClosed) that is calling more times to this.nextTest () " +
-	     "which is a sign of something wrong. Expected to find current Id equal to 12 but found: " + this.nextTestId);
+    if (this.nextTestId != 13) {
+	console.error ("Expected to find nextTestId == 13 but found (5): " + this.nextTestId);
+	log ("error", "Found some tests out there (connectionClosed) that is calling more times to this.nextTest () <br />" +
+	     "which is a sign of something wrong. Expected to find current Id equal to 13 but found: " + this.nextTestId);
 	return false;
     }
 
@@ -1293,8 +1298,9 @@ testSuddentlyClosed3.connectionClosed =	function (conn) {
 /******* BEGIN: testSuddentlyClosed2 ******/
 function testSuddentlyClosed2 () {
 
-    if (this.nextTestId != 11) {
-	log ("error", "Found some tests out there that is calling more times to this.nextTest () " +
+    if (this.nextTestId != 12) {
+	console.error ("Expected to find nextTestId == 12 but found (6): " + this.nextTestId);
+	log ("error", "Found some tests out there that is calling more times to this.nextTest () <br />" +
 	     "which is a sign of something wrong. Expected to find current Id equal to 11 but found: " + this.nextTestId);
 	return false;
     }
@@ -2754,7 +2760,7 @@ function testXMLSupport () {
 
     if (document == null) {
 	log ("error", "Failed to parse document: " + value + ", received null value from function");
-	return false;	
+	return false;
     };
 
     log ("info", "Parse seems right, now check content received");
@@ -2762,38 +2768,38 @@ function testXMLSupport () {
 
     if (document.name != "example") {
 	log ("error", "Expected to find <example> as root node, but found: " + document.name);
-	return false;	
+	return false;
     }
-    
+
     /* get child named */
     log ("info", "Getting childs by name..");
     var childNode = VortexXMLEngine.getChildByName (document, "child-node");
     if (childNode == null) {
 	log ("error", "Expected to find <child-node> as child of <example> but null was found");
-	return false;	
+	return false;
     }
 
     if (childNode.name != "child-node") {
 	log ("error", "Expected to find <child-node> as child of <example> but node returned by the function doesn't have that name");
-	return false;	
+	return false;
     }
 
     /* get more childs */
     childNode = VortexXMLEngine.getChildByName (childNode, "params");
     if (childNode == null) {
 	log ("error", "Expected to find <params> as child of <child-node> but null was found");
-	return false;	
+	return false;
     }
 
     if (childNode.name != "params") {
 	log ("error", "Expected to find <params> as child of <child-node> but node returned by the function doesn't have that name");
-	return false;	
+	return false;
     }
 
     /* now get something that should be there */
     if (VortexXMLEngine.getChildByName (childNode, "params") != null) {
 	log ("error", "Expected to NOT find <params> as child of <params> but something was found");
-	return false;	
+	return false;
     }
 
     /* ensure we get the content */
@@ -2827,7 +2833,64 @@ function testXMLSupport () {
 
     /* check dumping functions */
     var content = VortexXMLEngine.dumpXML (document, 4);
-    console.log ("Document dump found: " + content);
+    console.log ("Document dump found: \n" + content);
+
+    log ("info", "Now testing traversal functions..");
+    value    = "<root><value /><value2 /><value3 /><value4 /></root>";
+    document = VortexXMLEngine.parseFromString (value);
+
+    if (document.name != "root") {
+	log ("error", "Expected to find <root> node name but found: " + document.name);
+	return false;
+    }
+
+    childNode = VortexXMLEngine.firstChild (document);
+    if (childNode.name != "value") {
+	log ("error", "Expected to find first child <value> node name but found: " + childNode.name);
+	return false;
+    }
+    var iterator = 0;
+    console.log ("Checking childNode: ");
+    console.dir (childNode);
+    console.log ("Status is: " + (childNode != null));
+    while (childNode != null) {
+
+	console.log ("Checking child node...(1): ");
+	console.dir (childNode);
+	log ("info", "Checking child node: " + childNode.name);
+	console.log ("..2..");
+	if (iterator == 0) {
+	    if (childNode.name != "value") {
+		log ("error", "Expected to find <value> node name but found: " + childNode.name);
+		return false;
+	    }
+	} else if (iterator == 1) {
+	    if (childNode.name != "value2") {
+		log ("error", "Expected to find <value> node name but found: " + childNode.name);
+		return false;
+	    }
+	} else if (iterator == 2) {
+	    if (childNode.name != "value3") {
+		log ("error", "Expected to find <value> node name but found: " + childNode.name);
+		return false;
+	    }
+	} else if (iterator == 3) {
+	    if (childNode.name != "value5") {
+		log ("error", "Expected to find <value> node name but found: " + childNode.name);
+		return false;
+	    }
+	}
+
+	console.log ("..3..");
+
+	/* get next iterator */
+	childNode = VortexXMLEngine.nextNode (childNode);
+
+	console.log ("..4.." + childNode);
+
+	/* next iterator */
+	iterator++;
+    } /* end while */
 
     /* call for the next test */
     this.nextTest ();

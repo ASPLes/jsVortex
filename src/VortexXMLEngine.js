@@ -5,7 +5,7 @@
 
 if (typeof VortexXMLEngine == "undefined") {
     /**
-     * @brief Simple XML parser used by jsVortex to implement BEEP
+     * @brief XML parser used by jsVortex to implement BEEP
      * channel 0 functions.
      *
      * Take a look into \ref VortexXMLEngine.parseFromString to
@@ -43,6 +43,34 @@ if (typeof VortexXMLEngine == "undefined") {
  *
  * @return {xmlNode} An object representing the document or null if it
  * fails.
+ *
+ * Use this function to produce an javascript object representation
+ * from a string representing an XML document:
+ *
+ * \code
+ *
+ * // declare some xml content
+ * var value =
+ *    "<example value='10' value2='20'>" +
+ *    "  <child-node><params>asdfasdfasdf</params></child-node><child-node />" +
+ *    "</example>";
+ *
+ * // parse into a document (an xml node)
+ * var document = VortexXMLEngine.parseFromString (value);
+ *
+ * // print some data
+ * console.log ("Document with xml root node: " + document.name);
+ *
+ * // iterate over all childs xml root node has
+ * var child = VortexXMLEngine.firstChild (document);
+ * while (child) {
+ *     // print child names
+ *     console.log ("Child found: " + child.name);
+ *
+ *     // get next child
+ *     child = VortexXMLEngine.nextNode (child);
+ * }
+ * \endcode
  *
  */
 VortexXMLEngine.parseFromString = function (data) {
@@ -253,7 +281,9 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 		}
 
 		/* store child read */
+		node.haveChilds = true;
 		node.childs.push (child);
+		child.parentNode = node;
 
 		/* consume more whitespaces */
 		iterator = this.position;
@@ -348,6 +378,10 @@ VortexXMLEngine.dumpXML = function (document, tabs)
     if (! tabs)
 	tabs = 0;
 
+    var ender = "";
+    if (tabs > 0)
+	ender = "\n";
+
     var iterator = tabs;
     var string   = "";
     while (iterator > 0) {
@@ -355,15 +389,38 @@ VortexXMLEngine.dumpXML = function (document, tabs)
 	iterator--;
     }
 
+
     var result = "";
-    if (document.haveChilds) {
-	result = string + "<" + document.name + " " + VortexXMLEngine.dumpAttrs (document) + ">";
+    var attrs  = "";
+    if (document.childs.length > 0) {
+	attrs = VortexXMLEngine.dumpAttrs (document);
+	if (attrs.length > 0)
+	    result = string + "<" + document.name + " " + VortexXMLEngine.dumpAttrs (document) + ">" + ender;
+	else
+	    result = string + "<" + document.name + ">" + ender;
+
+	/* add content */
+	if (document.content)
+	    result += document.content;
+
 	for (var node in document.childs) {
 	    result += VortexXMLEngine.dumpXML (document.childs[node], tabs + 2);
 	}
-	result += string + "</" + document.name + ">";
+	result += string + "</" + document.name + ">" + ender;
     } else {
-	result += string + "<" + document.name + " " + VortexXMLEngine.dumpAttrs (document) + " />";
+	attrs = VortexXMLEngine.dumpAttrs (document);
+	if (document.content) {
+	    if (attrs.length > 0)
+		result += string + "<" + document.name + " " + attrs + " >" + document.content + "</" + document.name + ">" + ender;
+	    else
+		result += string + "<" + document.name + ">" + document.content + "</" + document.name + ">" + ender;
+
+	} else {
+	    if (attrs.length > 0)
+		result += string + "<" + document.name + " " + attrs + " />" + ender;
+	    else
+		result += string + "<" + document.name + " />" + ender;
+	}
     }
 
     return result;
@@ -385,19 +442,19 @@ VortexXMLEngine.dumpAttrs = function (node) {
     return string;
 };
 
-/** 
+/**
  * @brief Allows to get the first child node with the provided
  * childName on the provided node.
- * 
+ *
  * @param node {xmlNode} The node or document was represents an xml document
- * 
+ *
  * @param childName {String} The string representing the child node.
- * 
+ *
  * @return {xmlNode} Returns a reference to the child node or null if
  * no child with that name was found.
  */
 VortexXMLEngine.getChildByName = function (node, childName) {
-    
+
     for (var iter in node.childs) {
         var child = node.childs[iter];
 
@@ -405,18 +462,67 @@ VortexXMLEngine.getChildByName = function (node, childName) {
 	if (child.name == childName)
 	    return child;
     }
-    
+
     /* no child was found */
     return null;
 };
 
-/** 
- * @brief Allows to get the attribute value associated to the xml node. 
- * 
+/**
+ * @brief Allows to get the first child that a node has.
+ *
+ * @node {xmlNode} The node to get  the first child from.
+ *
+ * @return {xmlNode} A reference to the first child node or null if it fails.
+ */
+VortexXMLEngine.firstChild = function (node) {
+
+    if (typeof node == "undefined" || node == null)
+	return null;
+
+    if (node.childs.length == 0)
+	return null;
+
+    /* return first child */
+    return node.childs[0];
+};
+
+/**
+ * @brief Allows to get the next node to the provided node (its sibling).
+ *
+ * @node {xmlNode} The node to get  the first child from.
+ *
+ * @return {xmlNode} A reference to the first child node or null if it fails.
+ */
+VortexXMLEngine.nextNode = function (node) {
+
+    if (typeof node == "undefined" || node == null)
+	return null;
+
+    for (var iter in node.parentNode.childs) {
+	var auxNode = node.parentNode.childs[iter];
+	if (auxNode == node) {
+	    var position = Number(iter + 1);
+	    console.log ("Found node at (1): " + position);
+	    if (position >= node.parentNode.childs.length)
+		return null;
+
+	    console.log ("Found node at (2): " + position);
+	    console.dir (node);
+	    return node.parentNode.childs[position];
+	}
+    } /* end for */
+
+    /* no next node found */
+    return null;
+};
+
+/**
+ * @brief Allows to get the attribute value associated to the xml node.
+ *
  * @param node {xmlNode} The node or document was represents an xml document
- * 
+ *
  * @param attrName {String} The string representing the xml attribute.
- * 
+ *
  * @return {String} Returns the value associated to the provided
  * attribute or null if nothing was found.
  */
@@ -431,22 +537,22 @@ VortexXMLEngine.getAttr = function (node, attrName) {
     return null;
 };
 
-/** 
+/**
  * @brief Allows to check if the provided node has an attribute or if
  * it has that attribute with the provided value.
- * 
+ *
  * The function accepts two or three parameters. When provided two,
  * the function only checks if the node has the provided attribute. In
  * the case three params are provided, it is assumed the caller wants
  * to also check the attribute value too.
- * 
+ *
  * @param node {xmlNode} The node or document was represents an xml document
- * 
+ *
  * @param attrName {String} The string representing the xml attribute.
- * 
+ *
  * @param attrValue {String}? Optional value to check if the attribute
  * has the provided value.
- * 
+ *
  * @return {Boolean} Returns true to signal the node has the provided
  * attribute or it has the provided attribute with the provided
  * value. Otherwise, false is returned.
