@@ -581,6 +581,13 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  * \endcode
  * 
  * Once done, recheck your jsVortex enabled application.
+ * 
+ * \section jsvortex_common_errors_tls_failure_during_handshake I'm receiving a "TLS failure during handshake. Transport TLS failed." in the login
+ * 
+ * This is caused by an old jsVortex version which throws an exception
+ * inside a method that wasn't called by old java runtimes. To fix the
+ * issue use latest jsVortex. This is a known issue that was fixed in
+ * 0.5.3 release.
  */
 
 /**

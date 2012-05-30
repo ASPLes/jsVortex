@@ -384,9 +384,13 @@ VortexXMLEngine.consumeWhiteSpaces = function (data, iterator)
  * number of white spaces to be introduced on each level. This option
  * produced pretty printable XML output.
  *
+ * @param addHeader {Boolean}? Optional value that makes the function
+ * to add the xml header <?xml ...> in the case it is true. By default
+ * the header is never added.
+ *
  * @return {String} Returns a string representing the xml document.
  */
-VortexXMLEngine.dumpXML = function (document, tabs)
+VortexXMLEngine.dumpXML = function (document, tabs, addHeader)
 {
 
     /* set default value */
@@ -405,21 +409,25 @@ VortexXMLEngine.dumpXML = function (document, tabs)
     }
 
 
+    /* add xml header */
     var result = "";
+    if (addHeader)
+	result = "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>\n";
+
     var attrs  = "";
     if (document.childs.length > 0) {
 	attrs = VortexXMLEngine.dumpAttrs (document);
 	if (attrs.length > 0)
-	    result = string + "<" + document.name + " " + VortexXMLEngine.dumpAttrs (document) + ">" + ender;
+	    result += string + "<" + document.name + " " + VortexXMLEngine.dumpAttrs (document) + ">" + ender;
 	else
-	    result = string + "<" + document.name + ">" + ender;
+	    result += string + "<" + document.name + ">" + ender;
 
 	/* add content */
 	if (document.content)
 	    result += document.content;
 
 	for (var node in document.childs) {
-	    result += VortexXMLEngine.dumpXML (document.childs[node], tabs * 2);
+	    result += VortexXMLEngine.dumpXML (document.childs[node], tabs * 2, false);
 	}
 	result += string + "</" + document.name + ">" + ender;
     } else {
