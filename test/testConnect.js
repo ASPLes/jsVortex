@@ -2981,6 +2981,12 @@ function testXMLSupport () {
         return false;	
     }
 
+    /* checking adding the header to the dump */
+    var checkValue = "PD94bWwgdmVyc2lvbj0nMS4wJyBlbmNvZGluZz0nVVRGLTgnIHN0YW5kYWxvbmU9J3llcycgPz4KPG5vZGU+PGNoaWxkPnRoaXMgaXMgYSB0ZXN0PC9jaGlsZD48L25vZGU+";
+    if (VortexBase64.encode (VortexXMLEngine.dumpXML (VortexXMLEngine.parseFromString ("<node><child>this is a test</child></node>"), 0, true)) != checkValue) {
+        log ("error", "Expected to find other content for a XML dump with header but found something different..");
+	return false;
+    } /* end if */
 
     /* call for the next test */
     this.nextTest ();
