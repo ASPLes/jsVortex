@@ -81,8 +81,51 @@ VortexXMLEngine.parseFromString = function (data) {
     /* reset parser */
     this.position = 0;
 
+    /* check if the document has a header <?xml ... ?> */
+    var headers = {};
+    if (data.charAt (0) == "<" && 
+	data.charAt (1) == "?" &&
+	data.charAt (2) == "x" &&
+	data.charAt (3) == "m" &&
+	data.charAt (4) == "l") {
+	/* found xml header parse it */
+        var iterator = 5;
+	while (data.charAt (iterator) != "?" && data.charAt (iterator + 1) != ">")
+	    iterator++;
+
+	/* process headers */
+	var header = VortexEngine.trim (data.substring (5, iterator));
+	var pieces = header.split (" ");
+
+	for (var iter in pieces) {
+	    /* get the header */
+	    header = pieces[iter];
+	    
+	    if (header.substring (0, 9) == "version='") {
+		headers['version'] = header.split ("=")[1].replace (/'/g, "");
+		continue;
+	    }
+	    if (header.substring (0, 10) == "encoding='") {
+		headers['encoding'] = header.split ("=")[1].replace (/'/g, "");
+		continue;
+	    }
+	    if (header.substring (0, 12) == "standalone='") {
+		headers['standalone'] = header.split ("=")[1].replace (/'/g, "");
+		continue;
+	    }
+	}
+	this.position = (iterator + 2);
+    }
+
     /* parse node root node */
-    return VortexXMLEngine.parseXMLNode (data, null);
+    var result = VortexXMLEngine.parseXMLNode (data, null);
+    
+    for (var iter in headers) {
+	/* set headers found */
+	result[iter] = headers[iter];
+    }
+    
+    return result;
 };
 
 VortexXMLEngine.parseXMLNode = function (data, parentNode) {
