@@ -2988,6 +2988,28 @@ function testXMLSupport () {
 	return false;
     } /* end if */
 
+    log ("info", "Checking dump with headers..");
+    var dump = VortexXMLEngine.dumpXML (document, 4, true);
+
+    var document2 = VortexXMLEngine.parseFromString (VortexXMLEngine.dumpXML (document, 4, true));
+    if (document2 == null) {
+	log ("error", "Failed to parse document after dump with headers..");
+	return false;
+    }
+    /* check headers parsed */
+    if (document2.encoding != "UTF-8") {
+	log ("error", "Expected to find encoding header set to UTF-8 but found: " + document2.encoding);
+	return false;
+    }
+    if (document2.standalone != "yes") {
+	log ("error", "Expected to find standalone header set to yes but found: " + document2.standalone);
+	return false;
+    }
+    if (document2.version != "1.0") {
+	log ("error", "Expected to find version header set to '1.0' but found: " + document2.version);
+	return false;
+    }
+
     /* call for the next test */
     this.nextTest ();
     return true;

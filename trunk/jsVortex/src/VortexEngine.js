@@ -134,6 +134,18 @@ VortexEngine.count = function (object) {
     return size;
 };
 
+/** 
+ * @brief Implements string.trim () method, removing leading and
+ * trailing whitespaces.
+ * @param string {String} The string to trim.
+ * 
+ * @return An new string with content trimmed.
+ */
+VortexEngine.trim = function (string) {
+    /* return result */
+    return string.replace(/^\s+|\s+$/g, '');
+};
+
 /**
  * @brief Allows to join two frames doing a check operation during the
  * operation.
