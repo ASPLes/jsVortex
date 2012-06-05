@@ -3010,6 +3010,43 @@ function testXMLSupport () {
 	return false;
     }
 
+    var charSource = "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><PREFERENCESDOC><tmlCorePreferences><EnableFileLog type='bool'>1</EnableFileLog><LogMaskValue type='int'>512</LogMaskValue></tmlCorePreferences></PREFERENCESDOC>";
+    console.log ("#############################      Source String content:         #########################");
+    console.log (charSource);
+
+    var doc1 = VortexXMLEngine.parseFromString (charSource);
+    console.log ("#############################      first doc content:         #########################");
+    console.dir (doc1);
+
+    /* get node */
+    node = VortexXMLEngine.get (doc1, "/PREFERENCESDOC/tmlCorePreferences/EnableFileLog");
+    if (VortexXMLEngine.getAttr (node, "type") != "bool") {
+	log ("error", "Expected to find attribute type=bool but found: " + VortexXMLEngine.getAttr (node, "type"));
+	return false;
+    } /* end if */
+
+    /* get node */
+    node = VortexXMLEngine.get (doc1, "/PREFERENCESDOC/tmlCorePreferences/LogMaskValue");
+    if (VortexXMLEngine.getAttr (node, "type") != "int") {
+	log ("error", "Expected to find attribute type=int but found: " + VortexXMLEngine.getAttr (node, "type"));
+	return false;
+    } /* end if */
+
+    /* get node */
+    node = VortexXMLEngine.get (doc1, "/PREFERENCESDOC");
+    if (node.name != "PREFERENCESDOC") {
+	log ("error", "Expected to find node PREFERENCESDOC");
+	return false;
+    }
+
+    var charResult1 = VortexXMLEngine.dumpXML (doc1, 0);
+    console.log ("#############################      Dump- Result content:         #########################");
+    console.log (charResult1);
+
+    var doc2 = VortexXMLEngine.parseFromString (charResult1);
+    console.log ("#############################      second doc content:         #########################");
+    console.dir (doc2);
+
     /* call for the next test */
     this.nextTest ();
     return true;
