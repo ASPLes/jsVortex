@@ -863,9 +863,9 @@ VortexEngine.receivedSEQFrame = function (frame) {
 
     /* now check for pending operations and send them
      *
-     * WARNING: the following code may mean involve an
-     * active data exchange starving other channels. Check
-     * how this interacts with javascript execution model
+     * WARNING: the following code may mean involve an active data
+     * exchange starving other channels. Check how this interacts with
+     * javascript execution model
      */
     var iterator = 0;
     while ((this.sendQueue.length > 0) && (iterator < 1)) {
@@ -877,7 +877,7 @@ VortexEngine.receivedSEQFrame = function (frame) {
 	    break;
 
 	Vortex.log ("VortexEngine.receivedSEQFrame: sent pending content: " + iterator + ", result=" + this.lastStatusCode);
-	return;
+	/* return; inexplicable return here*/
 
 	/* check if the last operation was a partial send
 	 * or if it is stalled or no pending content is found */
