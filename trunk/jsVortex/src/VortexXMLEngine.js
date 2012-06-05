@@ -229,12 +229,14 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
     while (iterator < data.length) {
 
 	/* now consume spaces */
-	while (iterator < data.length) {
-	    if (data.charAt(iterator) == " ") {
-		iterator++;
-	    }
-	    break;
-	}
+	while (iterator < data.length && data.charAt(iterator) == " ") 
+	    iterator++;
+	if (iterator >= data.length) {
+	    Vortex.error ("VortexXMLEngine.parseXMLNode: end of input while parsing attributes found: " + node.name);
+	    return null;
+	} /* end if */
+
+	Vortex.log2 ("VortexXMLEngine.parseXMLNode: looking for attributes, next content found is: '" + data.charAt (iterator) + "', position=" + iterator);
 
 	/* check node termination without childs */
 	if (data.charAt(iterator) == '/' && data.charAt(iterator + 1) == '>') {
@@ -284,7 +286,6 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 	}
 
 	var attrValue = data.substring (this.position, iterator);
-	Vortex.log2 ("VortexXMLEngine.parseXMLNode: found xml node attribute content: '" + attrValue + "'");
 
 	/* store attributes inside the node */
 	var attr = {
@@ -297,6 +298,8 @@ VortexXMLEngine.parseXMLNode = function (data, parentNode) {
 
 	iterator++;
 	this.position = iterator;
+
+	Vortex.log2 ("VortexXMLEngine.parseXMLNode: found xml node attribute content: '" + attrValue + "', position=" + this.position);
     }
 
     this.position = iterator;
@@ -913,4 +916,55 @@ VortexXMLEngine.detach = function (node, replacement) {
     node.parentNode = null;
     
     return;
+};
+
+/** 
+ * @brief Allows to get the first node found on the provided path. 
+ *
+ * Assuming you have the following xml document:
+ * \code
+ * <root-node>
+ *    <first-child>
+ *       <item>content</item>
+ *    </first-child>
+ * </root-node>
+ * \endcode
+ *
+ * You can call this function using the following to get a reference
+ * to the item node.
+ *
+ * \code
+ * var node = VortexXMLEngine.get (doc, "/root-node/first-child/item")
+ * \endcode
+ * 
+ * @param doc {xmlNode} The node where the find operation will happen.
+ *
+ * @param path {String} The search string to use to locate the node to
+ * find.
+ *
+ * @return {xmlNode} A reference to the first node found or null it if
+ * fail.
+ */
+VortexXMLEngine.get = function (doc, path) {
+    
+    var items = path.split ("/");
+    items.shift ();
+
+    /* get the first node */
+    var node = doc;
+    if (node.name != items[0])
+	return null;
+
+    var iterator = 1;
+    while (iterator < items.length) {
+	/* get the child called */
+	node = VortexXMLEngine.getChildByName (node, items[iterator]);
+	if (node == null)
+	    return null;
+
+	/* next level */
+	iterator ++;
+    } /* end while */
+
+    return node;
 };
