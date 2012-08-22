@@ -194,6 +194,9 @@ function VortexChannel (conn,
      * - 2 : Part of the message was sent and the rest was queued to later
      * delivery (until SEQ frame from remote side is received). In this
      * case the function returns true.
+     * 
+     * - 3 : Initial state. No send operation carried out on this
+     * channel so no state to notify.
      *
      * - 0 : Failed to send the content. Error found during the
      * operation. Check connection stack error. In this case the send function
@@ -209,7 +212,7 @@ function VortexChannel (conn,
      * by jsVortex engine. In this case the function returns true.
      *
      */
-     this.lastStatusCode = 0;
+     this.lastStatusCode = 3;
 };
 
 /**
@@ -453,7 +456,7 @@ VortexChannel.prototype.sendCommon = function (content, type, onFrameReceivedHan
 
     /* check here if content == null (we are requesting to flush previous content) */
     if (content == null && type == null) {
-	Vortex.log ("VortexChannel.sendCommon: no more content peding to be sent");
+	Vortex.log ("VortexChannel.sendCommon: no more content pending to be sent");
 	this.lastStatusCode = -2;
 	return true;
     }
