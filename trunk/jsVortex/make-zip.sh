@@ -28,6 +28,9 @@ if [  -n "$1" ]; then
     COPY_DIR="$1/"
 fi
 
+# update version
+./prepare-version.py
+
 # acquire current version
 jsvortex_version=`cat VERSION`
 
