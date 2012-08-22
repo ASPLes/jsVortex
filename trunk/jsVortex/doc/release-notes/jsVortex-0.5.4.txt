@@ -1,0 +1,124 @@
+                     >>>> jsVortex 0.5.4 <<<<
+                          'Seven devils' 
+
+>>>> Release note
+----------------------------------------------------------------------
+
+  Advanced Software Production Line is proud to announce jsVortex
+  0.5.4 "Seven devils" release: an Open Source Javascript BEEP
+  implementation.
+
+  jsVortex is a Javascript BEEP implementation that is specially
+  designed to run in the context of a web browser, turning it into an
+  effective BEEP peer without too much effort.
+
+  Check out the following links to get ready with jsVortex:
+
+    - http://www.aspl.es/jsVortex
+      [jsVortex homepage]
+
+    - http://www.aspl.es/jsVortex/docs
+      [jsVortex API documentation]
+
+    - http://www.aspl.es/vortex
+      [Vortex Library homepage, used to validate jsVortex]
+ 
+    - http://www.sf.net/projects/vortexlibrary
+      [Source download]
+
+    - http://www.beepcore.org
+      [BEEP Core community web site]
+    
+
+>>>> This release in short
+----------------------------------------------------------------------
+
+  Fixed a bug inside SEQ frame handling code. Updated VortexXMLEngine
+  with lot of API to allow XML processing.
+
+
+>>>> Changes from last release
+----------------------------------------------------------------------
+
+* [new] Updated VortexXMLEngine module to include new API functions to
+  ease XML manipulation. API added:
+
+   - VortexXMLEngine.getChildByName 
+   - VortexXMLEngine.getAttr
+   - VortexXMLEngine.hasAttr
+
+* [new] Updated VortexXMLEngine to include new functions to iterate
+  child nodes. API added:
+
+  - VortexXMLEngine.firstChild
+  - VortexXMLEngine.nextNode
+
+* [fix] Fixed VortexXMLEngine.dumpXML to properly handle nodes with
+  content.
+
+* [new] More updates to XML API adding functions to create nodes, set
+  attributes, replacing content, set children nodes.
+
+  - VortexXMLEngine.createNode
+  - VortexXMLEngine.setAttr
+  - VortexXMLEngine.detach
+  - VortexXMLEngine.previousNode
+  - VortexXMLEngine.lastChild
+  - VortexXMLEngine.setChild
+
+* [fix] Fixed VortexXMLEngine.dumpXML to properly indent content
+  across children nodes.
+
+* [fix] Several updates to jsVortex regression test to check new XML
+  functions.
+
+* [fix] Fixing some typos at VortexXMLEngine documentation..
+
+* [fix] Updated VortexXMLEngine.dumpXML to support a new parameter to
+  signal the function to include xml headers. Updated regression test
+  to check new support added.
+
+* [fix] Fixed support to properly parse xml header (if defined).
+  Updated regression test to check implemented features.
+
+* [fix] Fixed bug inside inside SEQ frame handling that was causing
+  channels with more than one pending message to not properly
+  requeue/retry when a SEQ frame is received and the channel owner
+  also doesn't do any send operation...
+
+* [fix] Fixed bug while parsing XML node attributes when it is found
+  more white spaces after last attribute read. Bug reported by Ralf
+  Konusch.
+
+* [new] Updated jsVortex XML API to include a function to find a node
+  by a path:
+
+  - VortexXMLEngine.get
+
+* [fix] Fixed debian package to properly configure package
+  permissions.
+
+* [fix] Updated VortexChannel constructor to set lastStatusCode to
+  an initial state of (3) to signal no status so this is not confused
+  with the error state.
+
+* [fix] Updated building process to self-update VERSION file.
+
+>>>> About Us
+----------------------------------------------------------------------
+
+  ASPL (Advanced Software Production Line) is a Spanish company that
+  provides services and support to introduce open source products,
+  especially GNU/Linux, into organization's processes.
+
+  Contact us, English or Spanish, to get commercial support and/or
+  BEEP based development services.
+
+  You can reach us:
+
+       http://www.aspl.es - info@aspl.es
+--
+Francis Brosnan Blázquez           - francis@aspl.es
+Advanced Software Production Line  - http://www.aspl.es
+22th Aug 2012, Madrid (Spain)
+
