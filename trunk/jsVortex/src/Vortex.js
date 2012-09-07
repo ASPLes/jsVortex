@@ -591,10 +591,11 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  * 
  * \section jsvortex_common_errors_found_security_manager_is_denying_the_connection I'm receiving a "Found security manager is denying the connection: access denied ("java.net.Socket:Permission", "you-server-ip", "connect,resolve")
  * 
- * This error has to with either because a firewall is blocking the
- * connection to your server, or because your applet is not able to
- * resolve the server name you are connecting to or because there is a
- * problem with the cache.
+ * This error has to do with some of the following reasons:
+ * 
+ * - 1) A firewall is blocking the connection to your server.
+ * - 2) Or because your applet is not able to resolve the server name you are connecting to.
+ * - 3) Or because there is a problem with the cache that is making your browser to use an old jsVortex applet.
  * 
  * To solve the the issue check the following:
  * 
