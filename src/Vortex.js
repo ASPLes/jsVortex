@@ -588,6 +588,19 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  * inside a method that wasn't called by old java runtimes. To fix the
  * issue use latest jsVortex. This is a known issue that was fixed in
  * 0.5.3 release.
+ * 
+ * \section jsvortex_common_errors_found_security_manager_is_denying_the_connection I'm receiving a "Found security manager is denying the connection: access denied ("java.net.Socket:Permission", "you-server-ip", "connect,resolve")
+ * 
+ * This error has to with either because a firewall is blocking the
+ * connection to your server, or because your applet is not able to
+ * resolve the server name you are connecting to or because there is a
+ * problem with the cache.
+ * 
+ * To solve the the issue check the following:
+ * 
+ * 1) Ensure you can run a plain "telnet" against the host and port you are using to connect with jsVortex to ensure your applet will be able to connect too. This will spot if this is a connection blocked problem or a name resolution problem.
+ * 
+ * 2) If the problem persists, clear your browser cache, and the close all instances before trying again.
  */
 
 /**
