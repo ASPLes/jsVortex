@@ -18,7 +18,8 @@ server.setsockopt (socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 server.setblocking(0)
 
 # Bind the socket to the port
-server_address = ('localhost', 443)
+print "INFO: attempting to starting at localhost:1443"
+server_address = ("0.0.0.0", 1443)
 server.bind (server_address)
 
 # Listen for incoming connections
