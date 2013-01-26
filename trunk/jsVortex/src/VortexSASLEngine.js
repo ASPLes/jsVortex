@@ -197,6 +197,11 @@ var VortexBase64 = {
      * @return {String} A reference to a new string representing the content encoded.
      */
     encode : function (input) {
+
+	/* do not apply any operation to null or undefined */
+	if (! input)
+	    return input;
+
 	var output = "";
 	var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
 	var i = 0;
@@ -237,6 +242,11 @@ var VortexBase64 = {
      * @return {String} A reference to a new string representing the content decoded.
      */
     decode : function (input) {
+
+	/* do not apply any operation to null or undefined */
+	if (! input)
+	    return input;
+
 	var output = "";
 	var chr1, chr2, chr3;
 	var enc1, enc2, enc3, enc4;
