@@ -594,14 +594,17 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  * This error has to do with some of the following reasons:
  * 
  * - 1) A firewall is blocking the connection to your server.
- * - 2) Or because your applet is not able to resolve the server name you are connecting to.
- * - 3) Or because there is a problem with the cache that is making your browser to use an old jsVortex applet.
+ * - 2) Your applet is using a proxy (not supported yet).
+ * - 3) Or because your applet is not able to resolve the server name you are connecting to.
+ * - 4) Or because there is a problem with the cache that is making your browser to use an old jsVortex applet.
  * 
  * To solve the the issue check the following:
  * 
  * 1) Ensure you can run a plain "telnet" against the host and port you are using to connect with jsVortex to ensure your applet will be able to connect too. This will spot if this is a connection blocked problem or a name resolution problem.
  * 
- * 2) If the problem persists, clear your browser cache, and the close all instances before trying again.
+ * 2) Ensure you aren't using a proxy. For that, run the Java control panel (ControlPanel command in linux, Control panel -> Java). Once inside, inside "General" tab, "Network configuration" and then check "Use direct connect".
+ * 
+ * 3) If the problem persists, clear your browser cache, and the close all instances before trying again.
  */
 
 /**
