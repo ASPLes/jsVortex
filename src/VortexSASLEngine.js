@@ -201,6 +201,8 @@ var VortexBase64 = {
 	/* do not apply any operation to null or undefined */
 	if (! input)
 	    return input;
+	if (typeof input == "object")
+	    return input;
 
 	var output = "";
 	var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
@@ -245,6 +247,8 @@ var VortexBase64 = {
 
 	/* do not apply any operation to null or undefined */
 	if (! input)
+	    return input;
+	if (typeof input == "object")
 	    return input;
 
 	var output = "";
