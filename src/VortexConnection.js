@@ -1146,7 +1146,7 @@ VortexConnection.prototype.shutdown = function (error) {
     this._transport = null;
 
     /* push message if defined */
-    if (typeof error != undefined) {
+    if (typeof error != "undefined") {
 	Vortex.error (error);
 	this._onError (error);
     }

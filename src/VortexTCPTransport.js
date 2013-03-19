@@ -58,17 +58,49 @@ function VortexTCPTransport () {
 	/* define default start TLS operation */
 	this.enableTLS  = VortexJSCEnableTLS;
 
+    } else if (VortexTCPTransport.useTransport == 3) {
+	Vortex.log ("Creating transport using WebSocket Connector");
+
+	/* define default write method */
+	this.connect    = VortexWSConnect;
+
+	/* define default write method */
+	this.write      = VortexWSWrite;
+
+	/* define default isOk method */
+	this.isOk       = VortexWSisOK;
+
+	/* define default close method */
+	this.close      = VortexWSClose;
+
+	/* no enable TLS support */
+	this.enableTLS  = null;
+
     } /* end if */
 };
 
-/**
+/** 
  * @brief Configures the default transport to be used each time an
  * instance of VortexTCPTransport is craeted.
  * Transports available are:
  *  - 1 : Firefox native javascript sockets
- *  - 2 : JavaSocketConnector native sockets (default)
+ *  - 2 : JavaSocketConnector native sockets (fallback when WebSocket not available)
+ *  - 3 : WebSocket native support (default when available)
+ * 
+ * Call to VortexTCPTransport.detect () to automatically detect the
+ * right transport available.
  */
-VortexTCPTransport.useTransport = 2;
+VortexTCPTransport.useTransport = 3;
+
+function VortexDetectTransport () {
+    if (typeof WebSocket == "function")
+	VortexTCPTransport.useTransport = 3;
+    else
+	VortexTCPTransport.useTransport = 2;
+    return;
+};
+
+/***** BEGIN: Firefox native Javascript api support *****/
 
 /**
  * @internal Firefox support for TCP connect.
@@ -469,6 +501,10 @@ VortexTCPTransport.prototype._reportError = function (errorMsg) {
     return;
 };
 
+/***** END: FireFox native Javascript api support *****/
+
+/***** BEGIN: JavaSocketConnector support *****/
+
 /**
  * @internal JavaSocketConnector support for TCP connect.
  *
@@ -639,3 +675,161 @@ function VortexJSCClose () {
     return;
 };
 
+/***** END: JavaSocketConnector support *****/
+
+/***** BEGIN: WEBSOCKET SUPPORT *****/
+
+/**
+ * @internal JavaSocketConnector support for TCP connect.
+ *
+ * @param host The host to connect to using full (ws:// url or
+ * wss://). If the host value does not includes those url:// protocol
+ * handlers, then the function will add them.
+ * 
+ * @param port The port to connect to.
+ *
+ * @return The socket created.
+ */
+function VortexWSConnect (host, port) {
+
+    Vortex.log ("Creating connection with " + host + ":" + port + ", using WebSocket interface..");
+    
+    /* add url handling if not present */
+    if (host.indexOf ("ws://") == -1 && host.indexOf ("wss://") == -1)
+	host = "ws://" + host;
+
+    if (typeof port != "undefined" && port.indexOf (":") == -1)
+	port = ":" + port;
+    else
+	port = "";
+
+    /* connect */
+    Vortex.log ("Creating WebSocket connection to url: " + host + port);
+    this.socket = new WebSocket (host + port);
+    this.socket.isReady = false;
+
+    /* configure on open handler and the transport context  */
+    this.socket.transport = this;
+    this.socket.onopen    = VortexWSConnect.onopen;
+    this.socket.onerror   = VortexWSConnect.onopen;
+    this.socket.onmessage = VortexWSConnect.onmessage;
+    this.socket.onclose   = VortexWSConnect.onclose;
+    this.socket.onlog     = VortexWSConnect.onlog;
+
+    /* return socket created */
+    return this.socket;
+};
+
+VortexWSConnect.onopen = function (event) {
+    /* under this handler "this" keyword points to the socket object */
+    var socket = event.target;
+    if (socket.readyState == 1) {
+	Vortex.log ("Connection OK, now proceed..: " + socket.host);
+    } else {
+	Vortex.error ("Failed to connect to remote host: " + socket.host);
+	socket.transport._reportError ("Failed to connect to remote host, error was: " + socket.connectError);
+    }
+
+    /* notify connection was opened */
+    socket.wasOpened = true;
+
+    /* notify connection ready at this point because firefox socket
+     support do not notify it until data comes from the server. */
+    VortexEngine.apply (socket.transport.onStartHandler, socket.transport.onStartObject, [], true);
+    return;
+};
+
+/**
+ * @internal Handler called eacy time some content is received on the socket.
+ */
+VortexWSConnect.onmessage = function (event) {
+
+    /* call to notify data read */
+    var socket = event.target;
+    socket.transport.onReadHandler.apply (socket.transport.onReadObject, [socket.transport.onReadObject, event.data]);
+};
+
+/**
+ * @internal Handler to receive all java socket connector work.
+ */
+VortexWSConnect.onlog = function (type, message) {
+    if (type == "info") {
+	Vortex.log (message);
+	return;
+    } else if (type == "error") {
+	Vortex.error (message);
+	return;
+    } else if (type == "warn") {
+	Vortex.warn (message);
+	return;
+    }
+
+    Vortex.error ("UNHANDLED TYPE: " + type + ": " + message);
+    return;
+
+};
+
+/**
+ * @internal Handler called eacy time some content is received on the socket.
+ */
+VortexWSConnect.onclose = function (event) {
+
+    /* call to notify data read */
+    var socket = event.target;
+
+    /** 
+     * - CONNECTIN : 0
+     * - OPEN : 1
+     * - CLOSING : 2
+     * - CLOSED : 3
+     */
+    console.log ("Close received, connection state: " + socket.readyState);
+    console.dir (event);
+
+    /* notify connection closed when connected */
+    if (socket.wasOpened) {
+	socket.transport.onStopHandler.apply (socket.transport.onStopObject, [socket.transport.onStopObject]);
+    } else {
+	if (socket.readyState == 3) {
+	    var erroMsg = "Failed to connect to " + event.target.URL;
+	    socket.transport._reportError (erroMsg); 
+	    VortexEngine.apply (socket.transport.onStartHandler, socket.transport.onStartObject, [], true);
+	}
+    } /* end if */
+
+    return;
+};
+
+/**
+ * @internal JavaSocketConnector write support.
+ * @param data The set of octets to write.
+ * @param length The amount of data from data to be written.
+ */
+function VortexWSWrite (data, length) {
+    /* this points to the transport (VortexTCPTransport) */
+    return this.socket.send (data);
+}
+
+/**
+ * @internal JavaSocketConnector socket check.
+ */
+function VortexWSisOK () {
+
+    /* Vortex.log ("Checking socket ready state: " + this.socket.readyState); */
+
+    /* check that the socket is in readyState == OPEN */
+    return (this.socket.readyState == 1);
+}
+
+
+
+function VortexWSClose () {
+
+    Vortex.log ("VortexTCPTransport.VortexWSClose: calling to close connection..");
+
+    /* call to close socket */
+    this.socket.close ();
+    return;
+};
+
+/***** END: WEBSOCKET SUPPORT *****/

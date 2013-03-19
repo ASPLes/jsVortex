@@ -255,6 +255,14 @@ testUtf8Messages2.checkCount = function (frameReceived) {
 
 /******* BEGIN: testTlsProfileHandleError ******/
 function testTlsProfileHandleError () {
+
+    /* skip this test for WebSocket */
+    log ("info", "Checking test with transport: " + VortexTCPTransport.useTransport);
+    if (VortexTCPTransport.useTransport == 3) {
+	this.nextTest ();
+	return;
+    } /* end if */
+
     /* create a connection */
     var conn = new VortexConnection (
 	this.host,
@@ -305,6 +313,14 @@ testTlsProfileHandleError.onCertError = function (subject, issuer, cert) {
 
 /******* BEGIN: testTlsProfileCertError ******/
 function testTlsProfileCertError () {
+
+    /* skip this test for WebSocket */
+    log ("info", "Checking test with transport: " + VortexTCPTransport.useTransport);
+    if (VortexTCPTransport.useTransport == 3) {
+	this.nextTest ();
+	return;
+    } /* end if */
+
     /* create a connection */
     var conn = new VortexConnection (
 	this.host,
@@ -350,10 +366,19 @@ testTlsProfileCertError.onTLSFinishHandler = function (tlsReply) {
 
 /******* BEGIN: testTlsProfile ******/
 function testTlsProfile () {
+
+    /* check for WebSocket */
+    var prefix = "";
+    var port   = this.port;
+    if (VortexTCPTransport.useTransport == 3) {
+	prefix = "wss://";
+	port   = "44014";
+    } /* end if */
+
     /* create a connection */
     var conn = new VortexConnection (
-	this.host,
-	this.port,
+	prefix + this.host,
+	port,
 	new VortexTCPTransport (),
 	testTlsProfile.connectionResult, this);
 
@@ -369,6 +394,20 @@ testTlsProfile.connectionResult = function (conn) {
     /* check connection */
     if (! checkConnection (conn))
 	return false;
+
+    if (VortexTCPTransport.useTransport == 3) {
+	/* check connection status */
+
+	/* now test the session: now open a channel here to do some useful work */
+	log ("info", "Now create a channel and transfer some content");
+	conn.openChannel ({
+	    profile: REGRESSION_URI,
+	    channelNumber: 0,
+	    onChannelCreatedHandler : testTlsProfile.channelCreated,
+	    onChannelCreatedContext : this
+	});
+	return;
+    }
 
     log ("info", "Connection, now openinig TLS channel");
     conn.enableTLS ({
@@ -3109,6 +3148,7 @@ testConnect.Result = function (conn) {
     }
 
     /* close the conection */
+    Vortex.log ("Calling to close connection inside testConnect: conn.shutdown ()");
     conn.shutdown ();
 
     /* call for the next test */
@@ -3512,9 +3552,13 @@ function invertSelection (event) {
 function transportSelected (event) {
     clearLog ();
     log ("info", "TCP Transport selected: " + event);
-    if (event == "Java Socket Connector")
+    if (event == "WebSocket Connector") {
+	VortexTCPTransport.useTransport = 3;
+	dojo.byId ("port").value = "44013";
+    } else if (event == "Java Socket Connector") {
 	VortexTCPTransport.useTransport = 2;
-    else if (event == "Firefox nsISocketTransportService")
+	dojo.byId ("port").value = "44010";
+    } else if (event == "Firefox nsISocketTransportService")
 	VortexTCPTransport.useTransport = 1;
     return;
 }
@@ -3595,6 +3639,20 @@ function prepareTest () {
 
     /* catch resize event */
     dojo.connect (window, "resize", resizeTestWindow);
+
+    setTimeout (function () {
+	/* call to detect transport */
+	VortexDetectTransport ();
+	if (VortexTCPTransport.useTransport == 3) {
+	    dijit.byId ("transportType").attr ("value", "WebSocket Connector");
+	    dojo.byId ("port").value = "44013";
+	} else if (VortexTCPTransport.useTransport == 2) {
+	    dijit.byId ("transportType").attr ("value", "Java Socket Connector"); 
+	    dojo.byId ("port").value = "44010";
+	}
+
+	return;
+    }, 100);
 }
 
 /* register our function in dojo */
