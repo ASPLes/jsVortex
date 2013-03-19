@@ -604,7 +604,7 @@ for (var iterator = 0; iterator < scripts.length; iterator++) {
  * 
  * 2) Ensure you aren't using a proxy. For that, run the Java control panel (ControlPanel command in linux, Control panel -> Java). Once inside, inside "General" tab, "Network configuration" and then check "Use direct connect".
  * 
- * 3) If the problem persists, clear your browser cache, and the close all instances before trying again.
+ * 3) If the problem persists, clear your browser and Java cache , and the close all instances before trying again.
  */
 
 /**
