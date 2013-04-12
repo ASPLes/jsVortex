@@ -708,6 +708,9 @@ function VortexWSConnect (host, port) {
     this.socket = new WebSocket (host + port);
     this.socket.isReady = false;
 
+    /* record host direction used */
+    this.socket.host = host + port;
+
     /* configure on open handler and the transport context  */
     this.socket.transport = this;
     this.socket.onopen    = VortexWSConnect.onopen;
@@ -726,8 +729,8 @@ VortexWSConnect.onopen = function (event) {
     if (socket.readyState == 1) {
 	Vortex.log ("Connection OK, now proceed..: " + socket.host);
     } else {
-	Vortex.error ("Failed to connect to remote host: " + socket.host);
-	socket.transport._reportError ("Failed to connect to remote host, error was: " + socket.connectError);
+	Vortex.error ("Failed to connect to remote host: " + socket.host + ", readyState != 1 : " + socket.readyState);
+	socket.transport._reportError ("Failed to connect to remote host");
     }
 
     /* notify connection was opened */
