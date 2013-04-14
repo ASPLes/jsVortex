@@ -134,6 +134,9 @@ testUtf8Messages.checkCount = function (frameReceived) {
 	return;
     }
 
+    /* shutdown connection */
+    conn.shutdown ();
+
     /* go to next test */
     this.nextTest ();
     return;
@@ -275,7 +278,7 @@ function testTlsProfileHandleError () {
 	log ("error", "Expected to find a connection object after connection operation");
 	this.stopTests = true;
     }
-    return true;
+    return;
 }
 
 testTlsProfileHandleError.connectionResult = function (conn) {
@@ -333,7 +336,7 @@ function testTlsProfileCertError () {
 	log ("error", "Expected to find a connection object after connection operation");
 	this.stopTests = true;
     }
-    return true;
+    return;
 }
 
 testTlsProfileCertError.connectionResult = function (conn) {
@@ -1048,6 +1051,14 @@ testOnConnectionClose.disconnected = function (conn) {
 
 /******* BEGIN: testServerName *******/
 function testServerName () {
+
+    /* avoid running this test while running with webSocket */
+    if (VortexTCPTransport.useTransport == 3) {
+	/* call to execute next test */
+	this.nextTest ();
+	return;
+    }
+
     /* open a connection */
     var conn = new VortexConnection (
 	this.host,
@@ -1088,9 +1099,16 @@ testServerName.channelCreated = function (replyData) {
 
     /* check connection serverName */
     var conn = replyData.conn;
-    if (conn.serverName != 'dolphin.aspl.es') {
-	log ("error", "Expected to find proper serverName configuration for first channel with serverName configured");
-	return false;
+    if (VortexTCPTransport.useTransport == 3) {
+	if (conn.serverName != this.host) {
+	    log ("error", "Expected to find proper serverName configuration for first channel with serverName configured");
+	    return false;
+	}
+    } else {
+	if (conn.serverName != 'dolphin.aspl.es') {
+	    log ("error", "Expected to find proper serverName configuration for first channel with serverName configured");
+	    return false;
+	}
     }
 
     /* configure frame received to get remote serverName configured */
@@ -2911,7 +2929,7 @@ function testXMLSupport () {
 	    }
 	} else if (iterator == 4) {
 	    log ("error", "Expected to find <value4> node name but found: " + childNode.name);
-	    return false;   
+	    return false;
 	}
 
 	/* get next iterator */
@@ -2927,48 +2945,48 @@ function testXMLSupport () {
     var child = VortexXMLEngine.createNode ("child1");
     if (! VortexXMLEngine.setChild (node, child)) {
 	log ("error", "Failed to add child node into the document");
-        return false;	
+        return false;
     }
 
     if (VortexXMLEngine.dumpXML (node) != "<test-node><child1 /></test-node>") {
 	log ("error", "Expected to find different dump (1) ");
-        return false;	
+        return false;
     }
 
     /* set new childs with content */
     child = VortexXMLEngine.createNode ("child-first");
     if (! VortexXMLEngine.setChild (node, child, "first")) {
 	log ("error", "Failed to add child node into the document");
-        return false;	
+        return false;
     }
 
     if (VortexXMLEngine.dumpXML (node) != "<test-node><child-first /><child1 /></test-node>") {
 	log ("error", "Expected to find different dump (2) ");
-        return false;	
+        return false;
     }
 
     /* set new childs with content */
     child = VortexXMLEngine.createNode ("child-last");
     if (! VortexXMLEngine.setChild (node, child, "last")) {
 	log ("error", "Failed to add child node into the document");
-        return false;	
+        return false;
     }
 
     if (VortexXMLEngine.dumpXML (node) != "<test-node><child-first /><child1 /><child-last /></test-node>") {
 	log ("error", "Expected to find different dump (3) ");
-        return false;	
+        return false;
     }
 
     /* set child on a particular position */
     child = VortexXMLEngine.createNode ("child-nth");
     if (! VortexXMLEngine.setChild (node, child, 2)) {
 	log ("error", "Failed to add child node into the document");
-        return false;	
+        return false;
     }
 
     if (VortexXMLEngine.dumpXML (node) != "<test-node><child-first /><child1 /><child-nth /><child-last /></test-node>") {
 	log ("error", "Expected to find different dump (4) ");
-        return false;	
+        return false;
     }
 
     /* set attributes */
@@ -2979,7 +2997,7 @@ function testXMLSupport () {
 
     if (VortexXMLEngine.dumpXML (node) != "<test-node value='10' ><child-first /><child1 /><child-nth /><child-last /></test-node>") {
 	log ("error", "Expected to find different dump (5) ");
-        return false;	
+        return false;
     }
 
     /* set attributes */
@@ -2996,7 +3014,7 @@ function testXMLSupport () {
 
     if (VortexXMLEngine.dumpXML (node) != "<test-node value='25' value2='37' ><child-first /><child1 /><child-nth /><child-last /></test-node>") {
 	log ("error", "Expected to find different dump (5) ");
-        return false;	
+        return false;
     }
 
     /* now dettach nodes */
@@ -3006,7 +3024,7 @@ function testXMLSupport () {
 
     if (VortexXMLEngine.dumpXML (node) != "<test-node value='25' value2='37' ><child-first /><child1 /><child-last /></test-node>") {
 	log ("error", "Expected to find different dump (5) ");
-        return false;	
+        return false;
     }
 
     /* check replacement */
@@ -3017,7 +3035,7 @@ function testXMLSupport () {
 
     if (VortexXMLEngine.dumpXML (node) != "<test-node value='25' value2='37' ><child-first /><root><value /><value2 /><value3 /><value4 /></root><child-last /></test-node>") {
 	log ("error", "Expected to find different dump (6) ");
-        return false;	
+        return false;
     }
 
     /* checking adding the header to the dump */
@@ -3317,6 +3335,10 @@ function showErrors (conn) {
     while (conn.hasErrors ())
 	log ("error", conn.popError ());
 
+    if (VortexTCPTransport.useTransport == 3 && conn.host.indexOf ("wss://") >= 0) {
+	log ("error", "Remember to include an exception to accept certificate provided at: " + conn.host + ":" + conn.port);
+    }
+
     /* close the connection */
     conn.shutdown ();
 
@@ -3381,7 +3403,9 @@ RegressionTest.prototype.nextTest = function () {
 	Vortex.log ("INFO: running test-" + this.nextTestId);
 	log ("info", "Running TEST-" + this.nextTestId + ": " + this.tests[this.nextTestId].name);
 
+	/* rest of cases */
 	VortexEngine.apply (this.tests[this.nextTestId].testHandler, this, [], true);
+
 /*	setTimeout (function (_this) {
 			log ("info", "Inside settimeout: " + _this); */
 			/* call next test */
@@ -3647,7 +3671,7 @@ function prepareTest () {
 	    dijit.byId ("transportType").attr ("value", "WebSocket Connector");
 	    dojo.byId ("port").value = "44013";
 	} else if (VortexTCPTransport.useTransport == 2) {
-	    dijit.byId ("transportType").attr ("value", "Java Socket Connector"); 
+	    dijit.byId ("transportType").attr ("value", "Java Socket Connector");
 	    dojo.byId ("port").value = "44010";
 	}
 

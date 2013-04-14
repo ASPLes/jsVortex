@@ -96,7 +96,7 @@ function VortexChannel (conn,
     this.onCloseHandler         = onCloseHandler;
     this.onCloseContext         = onCloseContext;
 
-    /** 
+    /**
      * @brief Allows to configure the size of the receiving window each time a SEQ frame is issued.
      * @type Number
      */
@@ -194,7 +194,7 @@ function VortexChannel (conn,
      * - 2 : Part of the message was sent and the rest was queued to later
      * delivery (until SEQ frame from remote side is received). In this
      * case the function returns true.
-     * 
+     *
      * - 3 : Initial state. No send operation carried out on this
      * channel so no state to notify.
      *
@@ -568,7 +568,9 @@ VortexChannel.prototype.sendCommon = function (content, type, onFrameReceivedHan
 
     /* send the content */
     Vortex.log ("VortexChannel.sendCommon: about to do send operation: " + contentLength + " bytes");
-    return this.conn._send.apply (this.conn, [frame]);
+    var result =  this.conn._send.apply (this.conn, [frame]);
+    Vortex.log ("   conn._send result was: " + result);
+    return result;
 };
 
 /**
