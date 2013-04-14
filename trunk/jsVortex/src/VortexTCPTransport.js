@@ -79,14 +79,14 @@ function VortexTCPTransport () {
     } /* end if */
 };
 
-/** 
+/**
  * @brief Configures the default transport to be used each time an
  * instance of VortexTCPTransport is craeted.
  * Transports available are:
  *  - 1 : Firefox native javascript sockets
  *  - 2 : JavaSocketConnector native sockets (fallback when WebSocket not available)
  *  - 3 : WebSocket native support (default when available)
- * 
+ *
  * Call to VortexTCPTransport.detect () to automatically detect the
  * right transport available.
  */
@@ -685,7 +685,7 @@ function VortexJSCClose () {
  * @param host The host to connect to using full (ws:// url or
  * wss://). If the host value does not includes those url:// protocol
  * handlers, then the function will add them.
- * 
+ *
  * @param port The port to connect to.
  *
  * @return The socket created.
@@ -693,7 +693,7 @@ function VortexJSCClose () {
 function VortexWSConnect (host, port) {
 
     Vortex.log ("Creating connection with " + host + ":" + port + ", using WebSocket interface..");
-    
+
     /* add url handling if not present */
     if (host.indexOf ("ws://") == -1 && host.indexOf ("wss://") == -1)
 	host = "ws://" + host;
@@ -780,13 +780,13 @@ VortexWSConnect.onclose = function (event) {
     /* call to notify data read */
     var socket = event.target;
 
-    /** 
+    /**
      * - CONNECTIN : 0
      * - OPEN : 1
      * - CLOSING : 2
      * - CLOSED : 3
      */
-    console.log ("Close received, connection state: " + socket.readyState);
+    console.log ("VortexWSConnect.onclose: Close received, connection state: " + socket.readyState);
     console.dir (event);
 
     /* notify connection closed when connected */
@@ -795,7 +795,7 @@ VortexWSConnect.onclose = function (event) {
     } else {
 	if (socket.readyState == 3) {
 	    var erroMsg = "Failed to connect to " + event.target.URL;
-	    socket.transport._reportError (erroMsg); 
+	    socket.transport._reportError (erroMsg);
 	    VortexEngine.apply (socket.transport.onStartHandler, socket.transport.onStartObject, [], true);
 	}
     } /* end if */
@@ -810,7 +810,8 @@ VortexWSConnect.onclose = function (event) {
  */
 function VortexWSWrite (data, length) {
     /* this points to the transport (VortexTCPTransport) */
-    return this.socket.send (data);
+    this.socket.send (data);
+    return length;
 }
 
 /**
@@ -828,7 +829,9 @@ function VortexWSisOK () {
 
 function VortexWSClose () {
 
-    Vortex.log ("VortexTCPTransport.VortexWSClose: calling to close connection..");
+    Vortex.log ("VortexTCPTransport.VortexWSClose: calling to close connection (disabling onclose)..");
+    this.socket.onerror = null;
+    this.socket.onopen = null;
 
     /* call to close socket */
     this.socket.close ();
