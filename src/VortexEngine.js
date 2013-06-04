@@ -134,11 +134,11 @@ VortexEngine.count = function (object) {
     return size;
 };
 
-/** 
+/**
  * @brief Implements string.trim () method, removing leading and
  * trailing whitespaces.
  * @param string {String} The string to trim.
- * 
+ *
  * @return An new string with content trimmed.
  */
 VortexEngine.trim = function (string) {
@@ -413,8 +413,8 @@ VortexEngine.getFrame = function (connection, data) {
 	data = connection.storedContent + data;
 	/* reset stored content */
 	connection.storedContent = "";
-	Vortex.error ("Reensabled content, new size: " + data.length);
-	Vortex.error ("Reensabled content, content: '" + data + "'");
+	Vortex.error ("New content, new size: " + data.length);
+	Vortex.error ("New content, content: '" + data + "'");
     } /* end if */
 
     /* configure initial position for this parse operation */
@@ -445,13 +445,14 @@ VortexEngine.getFrame = function (connection, data) {
 	var channel  = this.getNumber (data);
 	Vortex.log ("VortexEngine.getFrame: channel: " + channel + ", next position: " + this.position);
 
+	var more = false;
 	if (strType != 'SEQ') {
 	    /* get the frame msgno */
 	    var msgno = this.getNumber (data);
 	    Vortex.log2 ("msgno: " + msgno + ", next position: " + this.position);
 
 	    /* get more character */
-	    var more  =	data.charAt(this.position + 1) == '*';
+	    more  =	data.charAt(this.position + 1) == '*';
 	    this.position += 2;
 	    Vortex.log2 ("more: " + more + ", next position: " + this.position);
 	} /* end if */
@@ -474,10 +475,25 @@ VortexEngine.getFrame = function (connection, data) {
 
 	/* now check BEEP header end */
 	if (data.charAt(this.position) != '\r' || data.charAt(this.position + 1) != '\n') {
-	    connection._onError ("VortexEngine: ERROR (1): position: " + this.position);
-	    connection.shutdown (
-		"VortexEngine: ERROR: expected to find \\r\\n BEEP header trailer, but not found: " +
-		    Number (data.charAt(this.position)) + ", " + Number (data.charAt(this.position + 1)));
+
+	    /* check if this header is taking too long */
+	    if (data.length > 200) {
+		connection._onError ("VortexEngine: ERROR (1): while reading BEEP header: " + strType);
+		connection._onError ("VortexEngine: ERROR (1): position: " + this.position);
+		connection._onError ("VortexEngine: ERROR (2): data length: " + data.length);
+		connection._onError ("VortexEngine: ERROR (3): more: " + more);
+		connection._onError ("VortexEngine: ERROR (4): seqno: " + seqno);
+		connection._onError ("VortexEngine: ERROR (5): size: " + more);
+		connection._onError ("VortexEngine: ERROR (6): first bytes: '" + data.slice (0, 10) + "'");
+		connection._onError ("VortexEngine: ERROR (7): first bytes: '" + data.slice (-10, -1) + "'");
+		connection.shutdown (
+		    "VortexEngine: ERROR: expected to find \\r\\n BEEP header trailer, but not found: " +
+			Number (data.charAt(this.position)) + ", " + Number (data.charAt(this.position + 1)));
+		return null;
+	    }
+
+	    /* no trailing header found, save content and try later */
+	    VortexEngine.saveContent (connection, data);
 	    return null;
 	}
 
