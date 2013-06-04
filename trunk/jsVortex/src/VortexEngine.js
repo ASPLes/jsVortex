@@ -425,6 +425,7 @@ VortexEngine.getFrame = function (connection, data) {
 	Vortex.log ("VortexEngine.getFrame: Reading next frame from connection, position: " + this.position + ", data length: " + data.length + (data.length < 100 ? ", content: " + data : ""));
 
 	/* get frame type */
+	var initial = this.position;
 	var strType = data.substring (this.position, this.position + 3);
 	Vortex.log ("VortexEngine.getFrame: Received frame type: " + strType + ", length: " + strType.length);
 	this.position += 4;
@@ -484,8 +485,9 @@ VortexEngine.getFrame = function (connection, data) {
 		connection._onError ("VortexEngine: ERROR (3): more: " + more);
 		connection._onError ("VortexEngine: ERROR (4): seqno: " + seqno);
 		connection._onError ("VortexEngine: ERROR (5): size: " + more);
-		connection._onError ("VortexEngine: ERROR (6): first bytes: '" + data.slice (0, 10) + "'");
-		connection._onError ("VortexEngine: ERROR (7): first bytes: '" + data.slice (-10, -1) + "'");
+		connection._onError ("VortexEngine: ERROR (6): first bytes: '" + data.slice (0, 100) + "'");
+		connection._onError ("VortexEngine: ERROR (6): first from <initial> bytes: '" + data.slice (initial, 100) + "'");
+		connection._onError ("VortexEngine: ERROR (7): last bytes: '" + data.slice (-100, -1) + "'");
 		connection.shutdown (
 		    "VortexEngine: ERROR: expected to find \\r\\n BEEP header trailer, but not found: " +
 			Number (data.charAt(this.position)) + ", " + Number (data.charAt(this.position + 1)));
@@ -493,7 +495,7 @@ VortexEngine.getFrame = function (connection, data) {
 	    }
 
 	    /* no trailing header found, save content and try later */
-	    VortexEngine.saveContent (connection, data);
+	    VortexEngine.saveContent (connection, data.slice (initial, -1));
 	    return null;
 	}
 
