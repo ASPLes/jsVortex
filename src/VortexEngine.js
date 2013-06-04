@@ -480,14 +480,11 @@ VortexEngine.getFrame = function (connection, data) {
 	    /* check if this header is taking too long */
 	    if (data.length > 200) {
 		connection._onError ("VortexEngine: ERROR (1): while reading BEEP header: " + strType);
-		connection._onError ("VortexEngine: ERROR (1): position: " + this.position);
-		connection._onError ("VortexEngine: ERROR (2): data length: " + data.length);
-		connection._onError ("VortexEngine: ERROR (3): more: " + more);
-		connection._onError ("VortexEngine: ERROR (4): seqno: " + seqno);
-		connection._onError ("VortexEngine: ERROR (5): size: " + more);
-		connection._onError ("VortexEngine: ERROR (6): first bytes: '" + data.slice (0, 100) + "'");
-		connection._onError ("VortexEngine: ERROR (6): first from <initial> bytes: '" + data.slice (initial, 100) + "'");
-		connection._onError ("VortexEngine: ERROR (7): last bytes: '" + data.slice (-100, -1) + "'");
+		connection._onError ("VortexEngine: ERROR (2): position: " + this.position + ", initial: " + initial + ", length: " + data.length);
+		connection._onError ("VortexEngine: ERROR (3): more: " + more + ", seqno: " + seqno + ", size: " + size);
+		connection._onError ("VortexEngine: ERROR (4): first bytes: '" + data.slice (0, 100) + "'");
+		connection._onError ("VortexEngine: ERROR (5): first from <initial> bytes: '" + data.slice (initial, 100) + "'");
+		connection._onError ("VortexEngine: ERROR (6): last bytes: '" + data.slice (-100, -1) + "'");
 		connection.shutdown (
 		    "VortexEngine: ERROR: expected to find \\r\\n BEEP header trailer, but not found: " +
 			Number (data.charAt(this.position)) + ", " + Number (data.charAt(this.position + 1)));
