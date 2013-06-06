@@ -478,7 +478,7 @@ VortexEngine.getFrame = function (connection, data) {
 	if (data.charAt(this.position) != '\r' || data.charAt(this.position + 1) != '\n') {
 
 	    /* check if this header is taking too long */
-	    if (data.length > 200) {
+	    /* if (data.length > 200) {
 		connection._onError ("VortexEngine: ERROR (1): while reading BEEP header: " + strType);
 		connection._onError ("VortexEngine: ERROR (2): position: " + this.position + ", initial: " + initial + ", length: " + data.length);
 		connection._onError ("VortexEngine: ERROR (3): more: " + more + ", seqno: " + seqno + ", size: " + size);
@@ -489,9 +489,9 @@ VortexEngine.getFrame = function (connection, data) {
 		    "VortexEngine: ERROR: expected to find \\r\\n BEEP header trailer, but not found: " +
 			Number (data.charAt(this.position)) + ", " + Number (data.charAt(this.position + 1)));
 		return null;
-	    }
+	    } */
 
-	    /* no trailing header found, save content and try later */
+	    /* no trailing header found, save content from initial to the end and try later */
 	    VortexEngine.saveContent (connection, data.slice (initial, -1));
 	    return null;
 	}
