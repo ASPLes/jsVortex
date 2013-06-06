@@ -426,6 +426,12 @@ VortexEngine.getFrame = function (connection, data) {
 
 	/* get frame type */
 	var initial = this.position;
+	if ((data.length - initial) < 13) {
+ 	    /* not received enough data, save and retry later */
+	    VortexEngine.saveContent (connection, data.slice (initial, -1));
+	    return null;
+	} /* end if */
+
 	var strType = data.substring (this.position, this.position + 3);
 	Vortex.log ("VortexEngine.getFrame: Received frame type: " + strType + ", length: " + strType.length);
 	this.position += 4;
