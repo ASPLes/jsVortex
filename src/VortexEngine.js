@@ -199,12 +199,6 @@ VortexEngine.joinFrame = function (conn, frameA, frameB) {
 	return null;
     }
     if ((frameA.seqno + frameA.size) != frameB.seqno) {
-	conn._onError ("VortexEngine: ERROR (1): frameA.msgno: " + frameA.msgno + ", frameB.msgno: " + frameB.msgno);
-	conn._onError ("VortexEngine: ERROR (2): frameA.more: " + frameA.more + ", frameB.more: " + frameB.more);
-	conn._onError ("VortexEngine: ERROR (3): frameA.channel: " + frameA.channel + ", frameB.channel: " + frameB.channel);
-	conn._onError ("VortexEngine: ERROR (4): frameA.type: " + frameA.channel + ", frameB.type: " + frameB.channel);
-	conn._onError ("VortexEngine: ERROR (5): frameA.size: " + frameA.size + ", frameB.size: " + frameB.size);
-	conn._onError ("VortexEngine: ERROR (6): frameA.seqno: " + frameA.seqno + ", frameB.seqno: " + frameB.seqno);
 	conn.shutdown ("frame seqno mismatch while trying to joing frames");
 	return null;
     }
@@ -399,6 +393,7 @@ VortexEngine.saveContent = function (connection, data) {
 
     /* save content appending it to previous content */
     connection.storedContent = connection.storedContent + data;
+
     return;
 };
 
@@ -419,8 +414,6 @@ VortexEngine.getFrame = function (connection, data) {
 	data = connection.storedContent + data;
 	/* reset stored content */
 	connection.storedContent = "";
-	Vortex.error ("New content, new size: " + data.length);
-	Vortex.error ("New content, content: '" + data + "'");
     } /* end if */
 
     /* configure initial position for this parse operation */
@@ -434,7 +427,7 @@ VortexEngine.getFrame = function (connection, data) {
 	var initial = this.position;
 	if ((data.length - initial) < 13) {
  	    /* not received enough data, save and retry later */
-	    VortexEngine.saveContent (connection, data.slice (initial, -1));
+	    VortexEngine.saveContent (connection, data.slice (initial, data.length));
 	    return frameList;
 	} /* end if */
 
@@ -504,7 +497,7 @@ VortexEngine.getFrame = function (connection, data) {
 	    } */
 
 	    /* no trailing header found, save content from initial to the end and try later */
-	    VortexEngine.saveContent (connection, data.slice (initial, -1));
+	    VortexEngine.saveContent (connection, data.slice (initial, data.length));
 	    return frameList;
 	}
 
@@ -532,7 +525,7 @@ VortexEngine.getFrame = function (connection, data) {
 	var beepTrailerIndex = data.indexOf ("END\r\n", this.position);
 	if (beepTrailerIndex == -1) {
 	    /* no beep trailer in content, so we have no complete frame */
-	    VortexEngine.saveContent (connection, data);
+	    VortexEngine.saveContent (connection, data.slice (initial, data.length));
 	    return frameList;
 	}
 
@@ -561,7 +554,7 @@ VortexEngine.getFrame = function (connection, data) {
 	/* call to create frame object */
 	frame = new VortexFrame (strType, channel, msgno, more, seqno, size, ansno, null, content);
 
-	Vortex.log ("Frame type: " + frame.type);
+	Vortex.log ("PUSHING: new complete frame read: " + frame.type + ", channel: " + channel + ", msgno: " + msgno + ", more: " + more + ", seqno: " + seqno + ", size: " + size);
 	frameList.push (frame);
     }
 
