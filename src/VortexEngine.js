@@ -434,7 +434,7 @@ VortexEngine.getFrame = function (connection, data) {
 	if ((data.length - initial) < 13) {
  	    /* not received enough data, save and retry later */
 	    VortexEngine.saveContent (connection, data.slice (initial, -1));
-	    return null;
+	    return frameList;
 	} /* end if */
 
 	var strType = data.substring (this.position, this.position + 3);
@@ -504,7 +504,7 @@ VortexEngine.getFrame = function (connection, data) {
 
 	    /* no trailing header found, save content from initial to the end and try later */
 	    VortexEngine.saveContent (connection, data.slice (initial, -1));
-	    return null;
+	    return frameList;
 	}
 
 	/* start reading frame content */
@@ -532,7 +532,7 @@ VortexEngine.getFrame = function (connection, data) {
 	if (beepTrailerIndex == -1) {
 	    /* no beep trailer in content, so we have no complete frame */
 	    VortexEngine.saveContent (connection, data);
-	    return null;
+	    return frameList;
 	}
 
 	/* get BEEP frame content */
