@@ -191,6 +191,11 @@ VortexEngine.joinFrame = function (conn, frameA, frameB) {
 	return null;
     }
     if (frameA.msgno != frameB.msgno) {
+	conn._onError ("VortexEngine: ERROR (1): frameA.msgno: " + frameA.msgno + ", frameB.msgno: " + frameB.msgno);
+	conn._onError ("VortexEngine: ERROR (2): frameA.more: " + frameA.more + ", frameB.more: " + frameB.more);
+	conn._onError ("VortexEngine: ERROR (3): frameA.channel: " + frameA.channel + ", frameB.channel: " + frameB.channel);
+	conn._onError ("VortexEngine: ERROR (4): frameA.type: " + frameA.channel + ", frameB.type: " + frameB.channel);
+	conn._onError ("VortexEngine: ERROR (5): frameA.size: " + frameA.size + ", frameB.size: " + frameB.size);
 	conn.shutdown ("frame msgno mismatch while trying to joing frames");
 	return null;
     }
