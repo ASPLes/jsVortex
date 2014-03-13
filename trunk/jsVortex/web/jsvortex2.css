@@ -309,3 +309,46 @@ ol.enumeration li {
   font-size: 15px;
   color: #204a87;
 }
+
+.sponsored-content { 
+  text-align: left;
+  
+}
+
+.sponsored-content .dotted { 
+  border-right: 1px dotted #729fcf;
+  padding-left: 6px;
+}
+
+.remove-dotted-right { 
+  border-right: 0px !important;
+}
+
+.sponsored-content a { 
+
+}
+
+.sponsored-content table { 
+  padding: 10px;
+}
+
+.sponsored-content h1 { 
+  padding-top: 0px;
+  margin-top: 0px;
+  background: #3465a4;
+  color: white;  
+}
+
+.sponsored-content td { 
+  vertical-align: top;
+}
+
+.sponsored-content ul { 
+  padding: 6px;
+  margin: 6px;
+}
+
+.sponsored-content li { 
+  list-style: none;
+}
+
