@@ -1,0 +1,36 @@
+* Actualizar la versión del fichero modules-version.txt
+
+* ejecutar lo siguiente para generar el zip
+
+   >> make
+
+* actualizar documentación (doc center) del producto en la web.
+
+   >> cd doc
+   >> make
+   >> ./update-doc.sh
+
+* hacer release note.
+
+* subir producto a http://www.aspl.es/jsVortex/downloads
+
+   >> scp jsVortex-XX.zip aspl-web@www.aspl.es:www/jsVortex/downloads/
+
+* publicar en listas de correo de aspl (jsVortex principalmente).
+
+* publicar en BEEP Builders, BEEPWg
+
+* publicar en freshmeat.net
+
+* actualizar web de vortex (añadir sección de noticias y a la gestión
+  de releases notes).
+
+* actualizar web de jsVortex (añadir sección de noticias y a la gestión
+  de releases notes).
+
+* publicar noticia en aspl.es.
+
+* publicar noticia en beepcore.org
+
+
+

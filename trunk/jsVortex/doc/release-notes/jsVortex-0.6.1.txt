@@ -1,0 +1,109 @@
+                     >>>> jsVortex 0.6.1 <<<<
+                             'Levels' 
+
+>>>> Release note
+----------------------------------------------------------------------
+
+  Advanced Software Production Line is proud to announce jsVortex
+  0.6.1 "Levels" release: an Open Source Javascript BEEP
+  implementation.
+
+  jsVortex is a Javascript BEEP implementation that is specially
+  designed to run in the context of a web browser, turning it into an
+  effective BEEP peer without too much effort.
+
+  Check out the following links to get ready with jsVortex:
+
+    - http://www.aspl.es/jsVortex
+      [jsVortex homepage]
+
+    - http://www.aspl.es/jsVortex/docs
+      [jsVortex API documentation]
+
+    - http://www.aspl.es/vortex
+      [Vortex Library homepage, used to validate jsVortex]
+ 
+    - http://www.aspl.es/jsVortex/downloads/
+      [Source download]
+
+    - http://www.beepcore.org
+      [BEEP Core community web site]
+    
+
+>>>> This release in short
+----------------------------------------------------------------------
+
+  - Added BEEP over WebSocket support ;-) 
+
+  - Improved library partial frame header handling and retry code when
+    the connection isn't available.
+
+  - Several improvements and bug were fixed.
+
+
+>>>> Changes from last release
+----------------------------------------------------------------------
+
+* [fix] Making VortexBase64.{encode,decode} to just return when they
+  receive null or undefined.
+
+* [fix] Making VortexBase64.{encode,decode} to return the same object
+  if received a hash or a list.
+
+* [fix] Several modifications to support BEEP over WebSocket using
+  recent noPoll support added to Vortex Library. Updated regression
+  tests to check all items are passed. Nice!!!
+
+* [fix] Fixed some wrong variable references when WebSocket connection
+  fails.
+
+* [fix] Several fixings into reg test and WebSocket send handler to
+  make it to work with Firefox...poor performance got with this
+  browser compared with GG. They must catch up!
+
+* [fix] Updated frame reading engine to detect missing header trailing
+  \r\n not as a failure but instead saving read content waiting for
+  more octets to come to complete the operation (but with a limit to
+  avoid infinite header size).
+
+* [fix] More changes to detect where was done the last header read
+  inside the reading engine.
+
+* [fix] More adjustments to support reading BEEP frames with partial
+  headers..
+
+* [fix] Fixed bug while reading several consolidated frames but where
+  the last frame received in just a part of the header. Added code to
+  save those bytes and retry later.
+
+* [fix] Fixed support to receive incomplete BEEP frames and to retry
+  later with safety.
+
+* [fix] Adding more debug information when found frame join failures.
+
+* [fix] Making internal frame getter to return the current list of frames
+  found when found not enough content to be keep on processing frames instead
+  of returning null.
+
+* [fix] Some changes to detect frame seqno mismatch.
+
+* [fix] More updates into the frame reading engine.
+
+>>>> About Us
+----------------------------------------------------------------------
+
+  ASPL (Advanced Software Production Line) is a Spanish company that
+  provides services and support to introduce open source products,
+  especially GNU/Linux, into organisation's processes.
+
+  Contact us, English or Spanish, to get commercial support and/or
+  BEEP based development services.
+
+  You can reach us:
+
+       http://www.aspl.es - info@aspl.es
+--
+Francis Brosnan Blázquez           - francis@aspl.es
+Advanced Software Production Line  - http://www.aspl.es
+13th Mar 2014, Madrid (Spain)
+
