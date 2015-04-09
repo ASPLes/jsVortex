@@ -1,0 +1,19 @@
+#!/bin/sh
+
+set -x
+
+echo "Preparing sources"
+rm -rf rpm/SOURCES/*.tar.gz
+rm -rf rpm/BUILD/*
+rm -rf rpm/BUILDROOT/*
+# rm *.zip
+# make
+# cp *.zip  rpm/SOURCES/
+
+echo "Calling to compile packages.."
+LANG=C rpmbuild -ba --define '_topdir /usr/src/jsVortex/rpm' rpm/SPECS/jsvortex.spec
+
+echo "Output ready at rpm/RPMS"
+find rpm/RPMS -type f
+
+
