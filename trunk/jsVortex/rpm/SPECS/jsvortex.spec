@@ -1,3 +1,4 @@
+%define release_date %(date +"%a %b %d %Y")
 %define jsvortex_version %(cat VERSION)
 
 Name:           jsvortex
@@ -62,6 +63,5 @@ connector applet.
 
 
 %changelog
-* Sun Apr 07 2015 Francis Brosnan Blázquez <francis@aspl.es> - %{jsvortex_version}
-- New upstream release
+%include rpm/SPECS/changelog.inc
 
