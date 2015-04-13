@@ -15,6 +15,7 @@ echo "Calling to compile packages.."
 LANG=C rpmbuild -ba --define '_topdir /usr/src/jsVortex/rpm' rpm/SPECS/jsvortex.spec
 
 echo "Output ready at rpm/RPMS"
-find rpm/RPMS -type f
+find rpm/RPMS -type f -name '*.rpm' > rpm/RPMS/files
+cat rpm/RPMS/files
 
 
