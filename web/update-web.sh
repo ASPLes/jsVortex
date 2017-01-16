@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 function get_selection () {
     echo $1;
