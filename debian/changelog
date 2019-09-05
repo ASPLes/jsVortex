@@ -1,3 +1,10 @@
+jsvortex (0.5.2-3) unstable; urgency=low
+
+  * Fixed wrong ERR, NUL handling to udpate msgno reply
+  internal handling.
+
+ -- Advanced Software Production Line, S.L. <info@aspl.es> Mon, 30 Jan 2012 11:04:17 +0100
+
 jsvortex (0.5.2-2) unstable; urgency=low
 
   * Fixed wrong ERR, NUL handling to udpate msgno reply
