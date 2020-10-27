@@ -29,7 +29,7 @@ if [  -n "$1" ]; then
 fi
 
 # update version
-./prepare-version.py
+python ./prepare-version.py
 
 # acquire current version
 jsvortex_version=`cat VERSION`
