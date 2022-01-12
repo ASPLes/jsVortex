@@ -1,3 +1,15 @@
+jsvortex (0.6.1-1541) stable; urgency=low
+
+  * New upstream release
+
+ -- Advanced Software Production Line, S.L. <info@aspl.es>  Tue, 01 Oct 2019 17:21:38 +0200
+
+jsvortex (0.6.1-1540) stable; urgency=low
+
+  * New upstream release
+
+ -- Advanced Software Production Line, S.L. <info@aspl.es>  Tue, 01 Oct 2019 16:37:16 +0200
+
 jsvortex (0.5.2-3) unstable; urgency=low
 
   * Fixed wrong ERR, NUL handling to udpate msgno reply
