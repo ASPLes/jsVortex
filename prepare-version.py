@@ -3,6 +3,16 @@
 from core_admin_common import command
 import sys
 
+# get os support to check if we can update VERSION
+(osname, oslongname, osversion) = support.get_os ()
+release_name = osversion.split (" ")[1]
+no_github_com_access = ["lenny", "squeeze", "wheezy", "centos6", "precise"]
+
+if release_name in no_github_com_access:
+    command.run ("cp -f LATEST-VERSION VERSION")
+    sys.exit (0)
+# end if
+
 # update sources
 # 23/02/2024 -- | github.com disabled svn
 # 23/02/2024 -- (status, info) = command.run ("svn update .")
