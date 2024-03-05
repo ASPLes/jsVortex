@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# ensure tool finds shrinksafe
+export PATH=/usr/local/bin:$PATH
+
 ######
 ## 
 ## Usage: 
