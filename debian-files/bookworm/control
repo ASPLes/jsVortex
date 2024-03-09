@@ -1,0 +1,16 @@
+Source: jsvortex
+Priority: extra
+Maintainer: root <francis@aspl.es>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.7.3
+Section: libs
+Homepage: http://www.aspl.es/jsVortex
+
+Package: jsvortex1
+Section: libs
+Architecture: any
+Description: Javascript BEEP implementation web files
+  This package contains javascript BEEP implementation to be
+  placed on a web so it can be downloaded by a web browser to
+  connect to BEEP servers. The package includes java socket
+  connector applet.

@@ -1,0 +1,98 @@
+jsvortex (0.6.1-1541) stable; urgency=low
+
+  * New upstream release
+
+ -- Advanced Software Production Line, S.L. <info@aspl.es>  Tue, 01 Oct 2019 17:21:38 +0200
+
+jsvortex (0.6.1-1540) stable; urgency=low
+
+  * New upstream release
+
+ -- Advanced Software Production Line, S.L. <info@aspl.es>  Tue, 01 Oct 2019 16:37:16 +0200
+
+jsvortex (0.5.2-3) unstable; urgency=low
+
+  * Fixed wrong ERR, NUL handling to udpate msgno reply
+  internal handling.
+
+ -- Advanced Software Production Line, S.L. <info@aspl.es> Mon, 30 Jan 2012 11:04:17 +0100
+
+jsvortex (0.5.2-2) unstable; urgency=low
+
+  * Fixed wrong ERR, NUL handling to udpate msgno reply
+  internal handling.
+
+ -- Francis Brosnan <francis@aspl.es>  Mon, 30 Jan 2012 11:04:17 +0100
+
+jsvortex (0.5.2-1) unstable; urgency=low
+
+  * Fixed singleFile flag to be true
+
+ -- Francis Brosnan <francis@aspl.es>  Thu, 19 Jan 2012 17:17:01 +0100
+
+jsvortex (0.5.2) unstable; urgency=low
+
+  * New upstream release..
+
+ -- Francis Brosnan <francis@aspl.es>  Thu, 19 Jan 2012 14:02:20 +0100
+
+jsvortex (0.5.1-3) unstable; urgency=low
+
+  * New minor upstream release..
+
+ -- Francis Brosnan <francis@aspl.es>  Tue, 20 Sep 2011 12:57:18 +0200
+
+jsvortex (0.5.1-2) unstable; urgency=low
+
+  * New upstream release..
+
+ -- Francis Brosnan <francis@aspl.es>  Mon, 22 Aug 2011 15:38:43 +0200
+
+jsvortex (0.5.1-1) unstable; urgency=low
+
+  * New upstream release..
+
+ -- Francis Brosnan Blázquez <francis@aspl.es>  Mon, 11 Jul 2011 12:14:43 +0200
+
+jsvortex (0.4.2-squeeze1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Francis Brosnan <francis@aspl.es>  Fri, 03 Jun 2011 16:40:06 +0200
+
+jsvortex (0.4.2-squeeze0) unstable; urgency=low
+
+  * New upstream release
+
+ -- Francis Brosnan <francis@aspl.es>  Sun, 15 May 2011 12:32:21 +0200
+
+jsvortex (0.4.1-lenny0) unstable; urgency=low
+
+  * New upsream release.
+
+ -- Francis Brosnan <francis@aspl.es>  Fri, 12 Nov 2010 18:24:46 +0100
+
+jsvortex (0.3.9-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Francis Brosnan <francis@aspl.es>  Tue, 31 Aug 2010 14:38:35 +0200
+
+jsvortex (0.3.9-0) unstable; urgency=low
+
+  * New upstream update. SVN revision 4440.
+
+ -- Francis Brosnan <francis@aspl.es>  Fri, 09 Jul 2010 18:35:52 +0200
+
+jsvortex (0.3.7-2) unstable; urgency=low
+
+  * New upstream update.
+
+ -- Francis Brosnan <francis@aspl.es>  Thu, 27 May 2010 09:26:04 +0200
+
+jsvortex (0.3.7-1) unstable; urgency=low
+
+  * Initial release
+
+ -- Francis Brosnan <francis@aspl.es>  Fri, 21 May 2010 10:57:35 +0200
+
